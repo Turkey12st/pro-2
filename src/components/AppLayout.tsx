@@ -18,10 +18,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </Sidebar>
         <main className="flex-1 overflow-hidden">
           <div className="h-16 border-b flex items-center px-6">
-            <SidebarTrigger asChild>
-              <button className="p-2 hover:bg-accent rounded-md transition-colors">
+            <SidebarTrigger>
+              <div className="p-2 hover:bg-accent rounded-md transition-colors">
                 <Menu className="h-5 w-5" />
-              </button>
+              </div>
             </SidebarTrigger>
           </div>
           <div className="p-6 overflow-auto max-h-[calc(100vh-4rem)]">
