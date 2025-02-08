@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/components/AppLayout";
 import { useToast } from "@/components/ui/use-toast";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -36,6 +37,7 @@ type JournalEntry = {
 export default function AccountingPage() {
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [entry, setEntry] = useState<JournalEntry>({
     date: new Date().toISOString().split('T')[0],
     description: "",
@@ -44,6 +46,21 @@ export default function AccountingPage() {
     credit: 0,
     reference: "",
   });
+
+  const validateEntry = () => {
+    if (!entry.description || entry.description.trim() === "") {
+      throw new Error("الرجاء إدخال وصف القيد المحاسبي");
+    }
+    if (!entry.account) {
+      throw new Error("الرجاء اختيار الحساب");
+    }
+    if (entry.debit < 0 || entry.credit < 0) {
+      throw new Error("لا يمكن أن تكون القيم المدينة أو الدائنة سالبة");
+    }
+    if (entry.debit === 0 && entry.credit === 0) {
+      throw new Error("يجب إدخال قيمة مدينة أو دائنة");
+    }
+  };
 
   const handleInputChange = (field: keyof JournalEntry, value: string | number) => {
     setEntry(prev => ({
@@ -54,29 +71,26 @@ export default function AccountingPage() {
 
   const handleSubmit = async () => {
     try {
-      console.log("Saving journal entry...");
+      setIsLoading(true);
+      console.log("بدء عملية حفظ القيد المحاسبي...");
       
-      if (!entry.description || !entry.account) {
-        toast({
-          title: "خطأ في الإدخال",
-          description: "الرجاء إدخال جميع البيانات المطلوبة",
-          variant: "destructive",
-        });
-        return;
-      }
+      validateEntry();
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('journal_entries')
         .insert([{
           ...entry,
           created_at: new Date().toISOString(),
-        }]);
+        }])
+        .select();
 
       if (error) throw error;
 
+      console.log("تم حفظ القيد المحاسبي بنجاح:", data);
+
       toast({
         title: "تم الحفظ بنجاح",
-        description: "تم حفظ القيد المحاسبي",
+        description: "تم حفظ القيد المحاسبي في قاعدة البيانات",
       });
       
       setIsOpen(false);
@@ -89,12 +103,14 @@ export default function AccountingPage() {
         reference: "",
       });
     } catch (error) {
-      console.error('Error saving journal entry:', error);
+      console.error('خطأ في حفظ القيد المحاسبي:', error);
       toast({
         title: "خطأ في الحفظ",
-        description: "حدث خطأ أثناء حفظ القيد المحاسبي",
+        description: error instanceof Error ? error.message : "حدث خطأ أثناء حفظ القيد المحاسبي",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -119,6 +135,9 @@ export default function AccountingPage() {
               <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                   <DialogTitle>إضافة قيد محاسبي جديد</DialogTitle>
+                  <DialogDescription>
+                    أدخل تفاصيل القيد المحاسبي. جميع الحقول مطلوبة.
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4">
                   <div className="space-y-2">
@@ -127,6 +146,7 @@ export default function AccountingPage() {
                       type="date"
                       value={entry.date}
                       onChange={(e) => handleInputChange("date", e.target.value)}
+                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -135,6 +155,7 @@ export default function AccountingPage() {
                       value={entry.description}
                       onChange={(e) => handleInputChange("description", e.target.value)}
                       placeholder="وصف القيد المحاسبي"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -160,8 +181,10 @@ export default function AccountingPage() {
                     <Input
                       type="number"
                       value={entry.debit}
-                      onChange={(e) => handleInputChange("debit", parseFloat(e.target.value))}
+                      onChange={(e) => handleInputChange("debit", parseFloat(e.target.value) || 0)}
                       placeholder="0.00"
+                      min="0"
+                      step="0.01"
                     />
                   </div>
                   <div className="space-y-2">
@@ -169,8 +192,10 @@ export default function AccountingPage() {
                     <Input
                       type="number"
                       value={entry.credit}
-                      onChange={(e) => handleInputChange("credit", parseFloat(e.target.value))}
+                      onChange={(e) => handleInputChange("credit", parseFloat(e.target.value) || 0)}
                       placeholder="0.00"
+                      min="0"
+                      step="0.01"
                     />
                   </div>
                   <div className="space-y-2">
@@ -183,7 +208,12 @@ export default function AccountingPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button onClick={handleSubmit}>حفظ القيد المحاسبي</Button>
+                  <Button 
+                    onClick={handleSubmit} 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "جاري الحفظ..." : "حفظ القيد المحاسبي"}
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
