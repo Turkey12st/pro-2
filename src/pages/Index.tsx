@@ -23,7 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash2, Edit2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { supabase } from "@/hooks/useSupabase";
 
 type Partner = {
   id: string;
@@ -32,8 +33,6 @@ type Partner = {
   profession: string;
   birthDate: string;
   nationality: string;
-  residencePlace: string;
-  residenceCity: string;
   shares: string;
   country: string;
   shareValue: string;
@@ -51,8 +50,6 @@ export default function Index() {
     profession: "",
     birthDate: "",
     nationality: "",
-    residencePlace: "",
-    residenceCity: "",
     shares: "",
     country: "",
     shareValue: "",
@@ -62,6 +59,47 @@ export default function Index() {
   const [partnerToDelete, setPartnerToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const saveData = async () => {
+    try {
+      // حفظ بيانات الشركة
+      const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .upsert({
+          name: companyName,
+          type: companyType,
+          capital: capital,
+        })
+        .select()
+        .single();
+
+      if (companyError) throw companyError;
+
+      // حفظ بيانات الشركاء
+      const partnersToSave = partners.map(partner => ({
+        ...partner,
+        company_id: companyData.id
+      }));
+
+      const { error: partnersError } = await supabase
+        .from('partners')
+        .upsert(partnersToSave);
+
+      if (partnersError) throw partnersError;
+
+      toast({
+        title: "تم الحفظ بنجاح",
+        description: "تم حفظ بيانات الشركة والشركاء",
+      });
+    } catch (error) {
+      console.error('Error saving data:', error);
+      toast({
+        title: "خطأ في الحفظ",
+        description: "حدث خطأ أثناء حفظ البيانات",
+        variant: "destructive",
+      });
+    }
+  };
+
   const addPartner = () => {
     setPartners([...partners, {
       id: Date.now().toString(),
@@ -70,8 +108,6 @@ export default function Index() {
       profession: "",
       birthDate: "",
       nationality: "",
-      residencePlace: "",
-      residenceCity: "",
       shares: "",
       country: "",
       shareValue: "",
@@ -155,6 +191,9 @@ export default function Index() {
                 />
               </div>
             </div>
+            <Button onClick={saveData} className="w-full">
+              حفظ البيانات
+            </Button>
           </CardContent>
         </Card>
 
@@ -173,8 +212,6 @@ export default function Index() {
                     <th className="p-2 text-right">المهنة</th>
                     <th className="p-2 text-right">تاريخ الميلاد</th>
                     <th className="p-2 text-right">الجنسية</th>
-                    <th className="p-2 text-right">مكان الإقامة</th>
-                    <th className="p-2 text-right">مدينة الإقامة</th>
                     <th className="p-2 text-right">الحصص</th>
                     <th className="p-2 text-right">الدولة</th>
                     <th className="p-2 text-right">قيمة الحصة</th>
@@ -233,20 +270,6 @@ export default function Index() {
                           value={partner.nationality}
                           onChange={(e) => updatePartner(partner.id, "nationality", e.target.value)}
                           placeholder="الجنسية"
-                        />
-                      </td>
-                      <td className="p-2">
-                        <Input
-                          value={partner.residencePlace}
-                          onChange={(e) => updatePartner(partner.id, "residencePlace", e.target.value)}
-                          placeholder="مكان الإقامة"
-                        />
-                      </td>
-                      <td className="p-2">
-                        <Input
-                          value={partner.residenceCity}
-                          onChange={(e) => updatePartner(partner.id, "residenceCity", e.target.value)}
-                          placeholder="المدينة"
                         />
                       </td>
                       <td className="p-2">
