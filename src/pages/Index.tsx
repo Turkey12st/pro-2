@@ -61,40 +61,90 @@ export default function Index() {
 
   const saveData = async () => {
     try {
+      console.log("Starting save operation...");
+      
+      // Validate required fields
+      if (!companyName || !companyType || !capital) {
+        toast({
+          title: "خطأ في الإدخال",
+          description: "الرجاء إدخال جميع البيانات المطلوبة للشركة",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // حفظ بيانات الشركة
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
-        .upsert({
+        .insert([{
           name: companyName,
           type: companyType,
-          capital: capital,
-        })
+          capital: parseFloat(capital),
+          created_at: new Date().toISOString(),
+        }])
         .select()
         .single();
 
-      if (companyError) throw companyError;
+      if (companyError) {
+        console.error('Company save error:', companyError);
+        throw companyError;
+      }
+
+      console.log("Company saved successfully:", companyData);
 
       // حفظ بيانات الشركاء
       const partnersToSave = partners.map(partner => ({
-        ...partner,
-        company_id: companyData.id
+        company_id: companyData.id,
+        name: partner.name,
+        identity_number: partner.identityNumber,
+        profession: partner.profession,
+        birth_date: partner.birthDate,
+        nationality: partner.nationality,
+        shares: parseInt(partner.shares) || 0,
+        country: partner.country,
+        share_value: parseFloat(partner.shareValue) || 0,
+        role: partner.role,
+        created_at: new Date().toISOString(),
       }));
 
       const { error: partnersError } = await supabase
         .from('partners')
-        .upsert(partnersToSave);
+        .insert(partnersToSave);
 
-      if (partnersError) throw partnersError;
+      if (partnersError) {
+        console.error('Partners save error:', partnersError);
+        throw partnersError;
+      }
+
+      console.log("Partners saved successfully");
 
       toast({
         title: "تم الحفظ بنجاح",
         description: "تم حفظ بيانات الشركة والشركاء",
       });
+
+      // Reset form after successful save
+      setCompanyName("");
+      setCompanyType("");
+      setCapital("");
+      setPartners([{
+        id: "1",
+        name: "",
+        identityNumber: "",
+        profession: "",
+        birthDate: "",
+        nationality: "",
+        shares: "",
+        country: "",
+        shareValue: "",
+        role: "",
+      }]);
+
     } catch (error) {
-      console.error('Error saving data:', error);
+      console.error('Error details:', error);
       toast({
         title: "خطأ في الحفظ",
-        description: "حدث خطأ أثناء حفظ البيانات",
+        description: "حدث خطأ أثناء حفظ البيانات. الرجاء المحاولة مرة أخرى",
         variant: "destructive",
       });
     }
