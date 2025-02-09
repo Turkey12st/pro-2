@@ -1,5 +1,5 @@
 
-import { Building2, Users, Calculator, FolderKanban, UserSquare2, LineChart } from "lucide-react";
+import { Building2, Users, Calculator, FolderKanban, UserSquare2, LineChart, Wallet, FileText } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,7 @@ const navigation = [
     icon: Users,
   },
   {
-    name: "إدارة المشاريع",
+    name: "المشاريع",
     href: "/projects",
     icon: FolderKanban,
   },
@@ -28,6 +28,16 @@ const navigation = [
     name: "العملاء",
     href: "/clients",
     icon: UserSquare2,
+  },
+  {
+    name: "التقارير المالية",
+    href: "/financial",
+    icon: FileText,
+  },
+  {
+    name: "الزكاة والضرائب",
+    href: "/zakat",
+    icon: Wallet,
   },
   {
     name: "لوحة المعلومات",

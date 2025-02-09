@@ -10,9 +10,18 @@ import HRPage from "./pages/hr/Index";
 import ProjectsPage from "./pages/projects/Index";
 import ClientsPage from "./pages/clients/Index";
 import DashboardPage from "./pages/dashboard/Index";
+import FinancialPage from "./pages/financial/Index";
+import ZakatPage from "./pages/zakat/Index";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -26,6 +35,8 @@ const App = () => (
           <Route path="/hr" element={<HRPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/clients" element={<ClientsPage />} />
+          <Route path="/financial" element={<FinancialPage />} />
+          <Route path="/zakat" element={<ZakatPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
