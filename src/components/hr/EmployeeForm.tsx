@@ -35,6 +35,7 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
   const [employee, setEmployee] = useState(initialEmployeeState);
   const [photo, setPhoto] = useState<File | null>(null);
   const [documents, setDocuments] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: keyof typeof initialEmployeeState, value: string | number) => {
     setEmployee(prev => ({
@@ -57,10 +58,18 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
 
   const handleSubmit = async () => {
     try {
+      setIsSubmitting(true);
+      
+      // التحقق من وجود المستخدم الحالي
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('يجب تسجيل الدخول لإضافة موظف');
+      }
+
       let photoUrl = '';
       let documentUrls = [];
 
-      // Upload photo if exists
+      // رفع الصورة إذا وجدت
       if (photo) {
         const photoPath = `${crypto.randomUUID()}-${photo.name}`;
         const { error: uploadError } = await supabase.storage
@@ -76,7 +85,7 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
         photoUrl = publicUrl;
       }
 
-      // Upload documents if exist
+      // رفع المستندات إذا وجدت
       if (documents.length > 0) {
         for (const doc of documents) {
           const docPath = `${crypto.randomUUID()}-${doc.name}`;
@@ -97,10 +106,6 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
           });
         }
       }
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated user found');
 
       const { error } = await supabase
         .from('employees')
@@ -137,6 +142,8 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
         description: "حدث خطأ أثناء حفظ بيانات الموظف",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -258,7 +265,13 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
         />
       </div>
       <div className="col-span-2">
-        <Button onClick={handleSubmit} className="w-full">حفظ بيانات الموظف</Button>
+        <Button 
+          onClick={handleSubmit} 
+          className="w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "جاري الحفظ..." : "حفظ بيانات الموظف"}
+        </Button>
       </div>
     </div>
   );

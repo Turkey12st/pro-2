@@ -13,16 +13,18 @@ export default function EmployeeList() {
   const { toast } = useToast();
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
 
-  const { data: employees, isLoading } = useQuery({
+  const { data: employees, isLoading, error } = useQuery({
     queryKey: ["employees"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("employees")
         .select("*");
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching employees:", error);
+        throw error;
+      }
       
-      // Transform snake_case to camelCase for frontend use
       return (data || []).map(emp => ({
         ...emp,
         identityNumber: emp.identity_number,
@@ -49,6 +51,7 @@ export default function EmployeeList() {
         description: "تم حذف بيانات الموظف من النظام",
       });
     } catch (error) {
+      console.error("Error deleting employee:", error);
       toast({
         title: "خطأ في الحذف",
         description: "حدث خطأ أثناء محاولة حذف الموظف",
@@ -58,7 +61,23 @@ export default function EmployeeList() {
   };
 
   if (isLoading) {
-    return <div>جاري التحميل...</div>;
+    return <div className="text-center py-4">جاري التحميل...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-4 text-red-500">
+        حدث خطأ أثناء تحميل البيانات. الرجاء المحاولة مرة أخرى.
+      </div>
+    );
+  }
+
+  if (!employees?.length) {
+    return (
+      <div className="text-center py-4 text-gray-500">
+        لا يوجد موظفين حالياً
+      </div>
+    );
   }
 
   return (
@@ -75,7 +94,7 @@ export default function EmployeeList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {employees?.map((employee) => (
+          {employees.map((employee) => (
             <TableRow key={employee.id}>
               <TableCell className="flex items-center gap-2">
                 <Avatar>
@@ -89,7 +108,10 @@ export default function EmployeeList() {
               </TableCell>
               <TableCell>{employee.department}</TableCell>
               <TableCell>{employee.position}</TableCell>
-              <TableCell>{employee.contractType}</TableCell>
+              <TableCell>
+                {employee.contractType === 'full-time' ? 'دوام كامل' :
+                 employee.contractType === 'part-time' ? 'دوام جزئي' : 'عقد مؤقت'}
+              </TableCell>
               <TableCell>{new Date(employee.joiningDate).toLocaleDateString('ar')}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
@@ -99,7 +121,11 @@ export default function EmployeeList() {
                   <Button variant="ghost" size="icon">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(employee.id)}>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleDelete(employee.id)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon">
