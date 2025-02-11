@@ -35,7 +35,7 @@ export default function HRPage() {
             <CardContent className="flex gap-4">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="h-8 px-3 text-sm">
                     <Plus className="h-4 w-4 ml-2" />
                     إضافة موظف جديد
                   </Button>
@@ -50,11 +50,11 @@ export default function HRPage() {
                   <EmployeeForm onSuccess={() => setIsDialogOpen(false)} />
                 </DialogContent>
               </Dialog>
-              <Button variant="outline">
+              <Button variant="outline" size="sm" className="h-8 px-3 text-sm">
                 <FileText className="h-4 w-4 ml-2" />
                 تصدير إلى Excel
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" size="sm" className="h-8 px-3 text-sm">
                 <Download className="h-4 w-4 ml-2" />
                 استيراد من Excel
               </Button>

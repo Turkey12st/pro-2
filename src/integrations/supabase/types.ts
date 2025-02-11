@@ -24,6 +24,63 @@ export type Database = {
         }
         Relationships: []
       }
+      employees: {
+        Row: {
+          birth_date: string
+          contract_type: string
+          created_at: string
+          created_by: string
+          department: string
+          documents: Json | null
+          email: string
+          id: string
+          identity_number: string
+          joining_date: string
+          name: string
+          nationality: string
+          phone: string
+          photo_url: string | null
+          position: string
+          salary: number
+        }
+        Insert: {
+          birth_date: string
+          contract_type: string
+          created_at?: string
+          created_by: string
+          department: string
+          documents?: Json | null
+          email: string
+          id?: string
+          identity_number: string
+          joining_date: string
+          name: string
+          nationality: string
+          phone: string
+          photo_url?: string | null
+          position: string
+          salary: number
+        }
+        Update: {
+          birth_date?: string
+          contract_type?: string
+          created_at?: string
+          created_by?: string
+          department?: string
+          documents?: Json | null
+          email?: string
+          id?: string
+          identity_number?: string
+          joining_date?: string
+          name?: string
+          nationality?: string
+          phone?: string
+          photo_url?: string | null
+          position?: string
+          salary?: number
+        }
+        Relationships: []
+      }
       project_tasks: {
         Row: {
           assignee_id: string | null
