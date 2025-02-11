@@ -24,6 +24,140 @@ export type Database = {
         }
         Relationships: []
       }
+      project_tasks: {
+        Row: {
+          assignee_id: string | null
+          attachments: Json | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          project_id: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          attachments?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          project_id?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          assignee_id?: string | null
+          attachments?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          project_id?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          attachments: Json | null
+          budget: number | null
+          completed_tasks: number | null
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          id: string
+          manager_id: string | null
+          notes: string | null
+          priority: string
+          progress: number | null
+          stakeholders: Json | null
+          start_date: string
+          status: string
+          tags: string[] | null
+          team_members: Json | null
+          title: string
+          total_tasks: number | null
+        }
+        Insert: {
+          attachments?: Json | null
+          budget?: number | null
+          completed_tasks?: number | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          manager_id?: string | null
+          notes?: string | null
+          priority?: string
+          progress?: number | null
+          stakeholders?: Json | null
+          start_date: string
+          status?: string
+          tags?: string[] | null
+          team_members?: Json | null
+          title: string
+          total_tasks?: number | null
+        }
+        Update: {
+          attachments?: Json | null
+          budget?: number | null
+          completed_tasks?: number | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          manager_id?: string | null
+          notes?: string | null
+          priority?: string
+          progress?: number | null
+          stakeholders?: Json | null
+          start_date?: string
+          status?: string
+          tags?: string[] | null
+          team_members?: Json | null
+          title?: string
+          total_tasks?: number | null
+        }
+        Relationships: []
+      }
+      T: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
