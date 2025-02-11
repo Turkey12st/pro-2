@@ -1,19 +1,13 @@
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Employee } from "@/types/hr";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import PersonalInfo from "./PersonalInfo";
+import JobInfo from "./JobInfo";
+import FileUpload from "./FileUpload";
 
 const initialEmployeeState: Omit<Employee, 'id' | 'created_at' | 'created_by'> = {
   name: "",
@@ -60,7 +54,6 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
     try {
       setIsSubmitting(true);
       
-      // التحقق من وجود المستخدم الحالي
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('يجب تسجيل الدخول لإضافة موظف');
@@ -69,7 +62,6 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
       let photoUrl = '';
       let documentUrls = [];
 
-      // رفع الصورة إذا وجدت
       if (photo) {
         const photoPath = `${crypto.randomUUID()}-${photo.name}`;
         const { error: uploadError } = await supabase.storage
@@ -85,7 +77,6 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
         photoUrl = publicUrl;
       }
 
-      // رفع المستندات إذا وجدت
       if (documents.length > 0) {
         for (const doc of documents) {
           const docPath = `${crypto.randomUUID()}-${doc.name}`;
@@ -148,131 +139,35 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label>الاسم الكامل</Label>
-        <Input
-          value={employee.name}
-          onChange={(e) => handleInputChange("name", e.target.value)}
-          placeholder="أدخل اسم الموظف"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>رقم الهوية</Label>
-        <Input
-          value={employee.identityNumber}
-          onChange={(e) => handleInputChange("identityNumber", e.target.value)}
-          placeholder="أدخل رقم الهوية"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>تاريخ الميلاد</Label>
-        <Input
-          type="date"
-          value={employee.birthDate}
-          onChange={(e) => handleInputChange("birthDate", e.target.value)}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>الجنسية</Label>
-        <Input
-          value={employee.nationality}
-          onChange={(e) => handleInputChange("nationality", e.target.value)}
-          placeholder="أدخل الجنسية"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>المنصب</Label>
-        <Input
-          value={employee.position}
-          onChange={(e) => handleInputChange("position", e.target.value)}
-          placeholder="أدخل المنصب الوظيفي"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>القسم</Label>
-        <Input
-          value={employee.department}
-          onChange={(e) => handleInputChange("department", e.target.value)}
-          placeholder="أدخل القسم"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>الراتب</Label>
-        <Input
-          type="number"
-          value={employee.salary}
-          onChange={(e) => handleInputChange("salary", parseFloat(e.target.value))}
-          placeholder="أدخل الراتب"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>تاريخ الالتحاق</Label>
-        <Input
-          type="date"
-          value={employee.joiningDate}
-          onChange={(e) => handleInputChange("joiningDate", e.target.value)}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>نوع العقد</Label>
-        <Select
-          value={employee.contractType}
-          onValueChange={(value) => handleInputChange("contractType", value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="اختر نوع العقد" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="full-time">دوام كامل</SelectItem>
-            <SelectItem value="part-time">دوام جزئي</SelectItem>
-            <SelectItem value="contract">عقد مؤقت</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <Label>البريد الإلكتروني</Label>
-        <Input
-          type="email"
-          value={employee.email}
-          onChange={(e) => handleInputChange("email", e.target.value)}
-          placeholder="أدخل البريد الإلكتروني"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>رقم الهاتف</Label>
-        <Input
-          value={employee.phone}
-          onChange={(e) => handleInputChange("phone", e.target.value)}
-          placeholder="أدخل رقم الهاتف"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>الصورة الشخصية</Label>
-        <Input
-          type="file"
-          accept="image/*"
-          onChange={handlePhotoChange}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label>المستندات</Label>
-        <Input
-          type="file"
-          multiple
-          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-          onChange={handleDocumentsChange}
-        />
-      </div>
-      <div className="col-span-2">
-        <Button 
-          onClick={handleSubmit} 
-          className="w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "جاري الحفظ..." : "حفظ بيانات الموظف"}
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <PersonalInfo
+        name={employee.name}
+        identityNumber={employee.identityNumber}
+        birthDate={employee.birthDate}
+        nationality={employee.nationality}
+        email={employee.email}
+        phone={employee.phone}
+        onInputChange={handleInputChange}
+      />
+      <JobInfo
+        position={employee.position}
+        department={employee.department}
+        salary={employee.salary}
+        joiningDate={employee.joiningDate}
+        contractType={employee.contractType}
+        onInputChange={handleInputChange}
+      />
+      <FileUpload
+        onPhotoChange={handlePhotoChange}
+        onDocumentsChange={handleDocumentsChange}
+      />
+      <Button 
+        onClick={handleSubmit} 
+        className="w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "جاري الحفظ..." : "حفظ بيانات الموظف"}
+      </Button>
     </div>
   );
 }

@@ -50,6 +50,9 @@ export default function EmployeeList() {
         title: "تم حذف الموظف بنجاح",
         description: "تم حذف بيانات الموظف من النظام",
       });
+      
+      // تحديث القائمة بعد الحذف
+      window.location.reload();
     } catch (error) {
       console.error("Error deleting employee:", error);
       toast({
