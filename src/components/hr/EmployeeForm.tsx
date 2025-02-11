@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Employee } from "@/types/hr";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
@@ -98,12 +98,27 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
         }
       }
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No authenticated user found');
+
       const { error } = await supabase
         .from('employees')
         .insert([{
-          ...employee,
-          photoUrl,
-          documents: documentUrls
+          name: employee.name,
+          identity_number: employee.identityNumber,
+          birth_date: employee.birthDate,
+          nationality: employee.nationality,
+          position: employee.position,
+          department: employee.department,
+          salary: employee.salary,
+          joining_date: employee.joiningDate,
+          contract_type: employee.contractType,
+          email: employee.email,
+          phone: employee.phone,
+          photo_url: photoUrl,
+          documents: documentUrls,
+          created_by: user.id
         }]);
 
       if (error) throw error;
