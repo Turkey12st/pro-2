@@ -1,9 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/components/AppLayout";
 import { useToast } from "@/components/ui/use-toast";
-import { Wallet, Calculator, FileText, ArrowRight } from "lucide-react";
+import { Calculator, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,11 +12,32 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function ZakatPage() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [capitalAmount, setCapitalAmount] = useState<string>("");
   const [annualProfits, setAnnualProfits] = useState<string>("");
   const [loading, setLoading] = useState(false);
+
+  // التحقق من تسجيل دخول المستخدم
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/auth/login");
+      }
+    };
+    
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        navigate("/auth/login");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   // جلب حسابات الزكاة السابقة
   const { data: zakatHistory } = useQuery({
@@ -39,6 +61,9 @@ export default function ZakatPage() {
       zakatAmount: number;
       taxAmount: number;
     }) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("يجب تسجيل الدخول أولاً");
+
       const { data, error } = await supabase
         .from('zakat_calculations')
         .insert([{
@@ -64,10 +89,10 @@ export default function ZakatPage() {
       setAnnualProfits("");
       setLoading(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "حدث خطأ",
-        description: "لم نتمكن من حساب الزكاة. الرجاء المحاولة مرة أخرى.",
+        description: error.message || "لم نتمكن من حساب الزكاة. الرجاء المحاولة مرة أخرى.",
         variant: "destructive",
       });
       setLoading(false);
@@ -86,18 +111,12 @@ export default function ZakatPage() {
 
     setLoading(true);
 
-    // تحويل القيم إلى أرقام
     const capital = parseFloat(capitalAmount);
     const profits = parseFloat(annualProfits);
-
-    // حساب الزكاة (2.5% من مجموع رأس المال والأرباح)
     const totalAmount = capital + profits;
     const zakatAmount = totalAmount * 0.025;
-
-    // حساب الضريبة (15% من الأرباح)
     const taxAmount = profits * 0.15;
 
-    // إضافة الحساب إلى قاعدة البيانات
     addZakatCalculation.mutate({
       capitalAmount: capital,
       annualProfits: profits,

@@ -433,6 +433,7 @@ export type Database = {
           payment_date: string | null
           status: string | null
           tax_amount: number
+          user_id: string
           year: number
           zakat_amount: number
         }
@@ -446,6 +447,7 @@ export type Database = {
           payment_date?: string | null
           status?: string | null
           tax_amount: number
+          user_id?: string
           year: number
           zakat_amount: number
         }
@@ -459,6 +461,7 @@ export type Database = {
           payment_date?: string | null
           status?: string | null
           tax_amount?: number
+          user_id?: string
           year?: number
           zakat_amount?: number
         }
