@@ -24,6 +24,48 @@ export type Database = {
         }
         Relationships: []
       }
+      company_documents: {
+        Row: {
+          created_at: string
+          document_url: string | null
+          expiry_date: string
+          id: string
+          issue_date: string
+          metadata: Json | null
+          number: string | null
+          reminder_days: number[] | null
+          status: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          document_url?: string | null
+          expiry_date: string
+          id?: string
+          issue_date: string
+          metadata?: Json | null
+          number?: string | null
+          reminder_days?: number[] | null
+          status?: string
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          document_url?: string | null
+          expiry_date?: string
+          id?: string
+          issue_date?: string
+          metadata?: Json | null
+          number?: string | null
+          reminder_days?: number[] | null
+          status?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           birth_date: string
@@ -78,6 +120,90 @@ export type Database = {
           photo_url?: string | null
           position?: string
           salary?: number
+        }
+        Relationships: []
+      }
+      financials: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          metadata: Json | null
+          paid_date: string | null
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          paid_date?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          paid_date?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          metadata: Json | null
+          priority: string
+          reference_id: string
+          reference_type: string
+          status: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          priority: string
+          reference_id: string
+          reference_type: string
+          status?: string
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string
+          reference_id?: string
+          reference_type?: string
+          status?: string
+          title?: string
+          type?: string
         }
         Relationships: []
       }
