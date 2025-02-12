@@ -11,7 +11,10 @@ import {
   Users, 
   FileCheck,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  Wallet,
+  ArrowUpRight,
+  ArrowDownRight
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +25,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  LineChart as RechartsLineChart,
+  Line
 } from "recharts";
 
 export default function DashboardPage() {
@@ -57,6 +62,36 @@ export default function DashboardPage() {
     }
   });
 
+  // جلب بيانات رأس المال
+  const { data: capitalData } = useQuery({
+    queryKey: ['capital_management'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('capital_management')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1);
+      
+      if (error) throw error;
+      return data[0];
+    }
+  });
+
+  // جلب التدفقات النقدية
+  const { data: cashFlow } = useQuery({
+    queryKey: ['cash_flow'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cash_flow')
+        .select('*')
+        .order('transaction_date', { ascending: false })
+        .limit(30);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   // جلب الوثائق
   const { data: documents } = useQuery({
     queryKey: ['company_documents'],
@@ -74,8 +109,85 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto space-y-6 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* بطاقة التنبيهات */}
+        {/* بطاقات المؤشرات الرئيسية */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* رأس المال المتاح */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">رأس المال المتاح</CardTitle>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {capitalData?.available_capital?.toLocaleString()} ريال
+              </div>
+              <p className="text-xs text-muted-foreground">
+                من إجمالي {capitalData?.total_capital?.toLocaleString()} ريال
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* التدفقات النقدية */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">التدفقات النقدية (30 يوم)</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {cashFlow?.reduce((acc, curr) => 
+                  curr.type === 'inflow' ? acc + Number(curr.amount) : acc - Number(curr.amount), 0
+                )?.toLocaleString()} ريال
+              </div>
+              <div className="flex items-center pt-1">
+                <ArrowUpRight className="h-4 w-4 text-green-500" />
+                <span className="text-green-500 text-sm ml-1">
+                  {cashFlow?.filter(cf => cf.type === 'inflow')
+                    .reduce((acc, curr) => acc + Number(curr.amount), 0)
+                    ?.toLocaleString()} واردات
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* المستحقات المالية */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">المستحقات المالية</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {financials?.filter(f => f.status === 'pending' && f.type === 'revenue')
+                  .reduce((acc, curr) => acc + Number(curr.amount), 0)
+                  ?.toLocaleString()} ريال
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {financials?.filter(f => f.status === 'pending' && f.type === 'revenue').length} مستحق
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* الوثائق المنتهية */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">الوثائق المنتهية</CardTitle>
+              <FileCheck className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {documents?.filter(doc => new Date(doc.expiry_date) < new Date()).length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                وثيقة تحتاج للتجديد
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* التنبيهات والمؤشرات */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* التنبيهات */}
           <Card>
             <CardHeader>
               <CardTitle className="text-primary flex items-center gap-2 text-lg">
@@ -107,69 +219,32 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* بطاقة المؤشرات المالية */}
+          {/* التدفق النقدي */}
           <Card>
             <CardHeader>
               <CardTitle className="text-primary flex items-center gap-2 text-lg">
-                <DollarSign className="h-5 w-5" />
-                المؤشرات المالية
+                <TrendingUp className="h-5 w-5" />
+                التدفق النقدي
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {financials && (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <span>الالتزامات المالية</span>
-                      <span className="font-medium">
-                        {financials
-                          .filter(f => f.status === 'pending')
-                          .reduce((acc, curr) => acc + Number(curr.amount), 0)
-                          .toLocaleString()} ريال
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>المستحقات المالية</span>
-                      <span className="font-medium text-green-600">
-                        {financials
-                          .filter(f => f.type === 'revenue' && f.status === 'pending')
-                          .reduce((acc, curr) => acc + Number(curr.amount), 0)
-                          .toLocaleString()} ريال
-                      </span>
-                    </div>
-                  </>
+              <div className="h-[300px]">
+                {cashFlow && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsLineChart data={cashFlow}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="transaction_date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line 
+                        type="monotone" 
+                        dataKey="amount" 
+                        stroke="#4f46e5" 
+                        strokeWidth={2}
+                      />
+                    </RechartsLineChart>
+                  </ResponsiveContainer>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* بطاقة الوثائق */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-primary flex items-center gap-2 text-lg">
-                <FileCheck className="h-5 w-5" />
-                الوثائق القانونية
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {documents?.filter(doc => {
-                  const daysUntilExpiry = Math.ceil(
-                    (new Date(doc.expiry_date).getTime() - new Date().getTime()) / 
-                    (1000 * 60 * 60 * 24)
-                  );
-                  return daysUntilExpiry <= 30;
-                }).map(doc => (
-                  <div key={doc.id} className="flex items-start gap-3 p-3 bg-muted rounded-lg">
-                    <Calendar className="h-5 w-5 text-yellow-500" />
-                    <div>
-                      <h4 className="font-medium">{doc.title}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        تاريخ الانتهاء: {new Date(doc.expiry_date).toLocaleDateString('ar-SA')}
-                      </p>
-                    </div>
-                  </div>
-                ))}
               </div>
             </CardContent>
           </Card>

@@ -24,6 +24,78 @@ export type Database = {
         }
         Relationships: []
       }
+      capital_management: {
+        Row: {
+          available_capital: number
+          created_at: string
+          fiscal_year: number
+          id: string
+          last_updated: string
+          notes: string | null
+          reserved_capital: number
+          total_capital: number
+          turnover_rate: number | null
+        }
+        Insert: {
+          available_capital: number
+          created_at?: string
+          fiscal_year: number
+          id?: string
+          last_updated?: string
+          notes?: string | null
+          reserved_capital: number
+          total_capital: number
+          turnover_rate?: number | null
+        }
+        Update: {
+          available_capital?: number
+          created_at?: string
+          fiscal_year?: number
+          id?: string
+          last_updated?: string
+          notes?: string | null
+          reserved_capital?: number
+          total_capital?: number
+          turnover_rate?: number | null
+        }
+        Relationships: []
+      }
+      cash_flow: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          transaction_date: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_date: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_date?: string
+          type?: string
+        }
+        Relationships: []
+      }
       company_documents: {
         Row: {
           created_at: string
@@ -126,41 +198,50 @@ export type Database = {
       financials: {
         Row: {
           amount: number
+          category: string | null
           created_at: string
           description: string | null
           due_date: string | null
           id: string
           metadata: Json | null
           paid_date: string | null
+          recurring: boolean | null
           reference_id: string | null
           reference_type: string | null
           status: string
+          transaction_type: string | null
           type: string
         }
         Insert: {
           amount: number
+          category?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
           id?: string
           metadata?: Json | null
           paid_date?: string | null
+          recurring?: boolean | null
           reference_id?: string | null
           reference_type?: string | null
           status?: string
+          transaction_type?: string | null
           type: string
         }
         Update: {
           amount?: number
+          category?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
           id?: string
           metadata?: Json | null
           paid_date?: string | null
+          recurring?: boolean | null
           reference_id?: string | null
           reference_type?: string | null
           status?: string
+          transaction_type?: string | null
           type?: string
         }
         Relationships: []
