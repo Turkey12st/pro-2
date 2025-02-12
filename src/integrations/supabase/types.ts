@@ -422,6 +422,48 @@ export type Database = {
         }
         Relationships: []
       }
+      zakat_calculations: {
+        Row: {
+          annual_profits: number
+          capital_amount: number
+          created_at: string
+          id: string
+          metadata: Json | null
+          notes: string | null
+          payment_date: string | null
+          status: string | null
+          tax_amount: number
+          year: number
+          zakat_amount: number
+        }
+        Insert: {
+          annual_profits: number
+          capital_amount: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          payment_date?: string | null
+          status?: string | null
+          tax_amount: number
+          year: number
+          zakat_amount: number
+        }
+        Update: {
+          annual_profits?: number
+          capital_amount?: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          payment_date?: string | null
+          status?: string | null
+          tax_amount?: number
+          year?: number
+          zakat_amount?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
