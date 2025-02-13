@@ -20,14 +20,21 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message === "Invalid login credentials") {
+          throw new Error("البريد الإلكتروني أو كلمة المرور غير صحيحة");
+        }
+        throw error;
+      }
 
-      navigate("/zakat");
+      if (data.user) {
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       toast({
         title: "خطأ في تسجيل الدخول",
@@ -43,18 +50,41 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
+    if (password.length < 6) {
+      toast({
+        title: "خطأ في كلمة المرور",
+        description: "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: window.location.origin + '/auth/callback'
+        }
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("anonymous")) {
+          throw new Error("تم تعطيل التسجيل المجهول. يرجى استخدام بريد إلكتروني صحيح");
+        }
+        throw error;
+      }
 
       toast({
         title: "تم إنشاء الحساب بنجاح",
         description: "يرجى تأكيد بريدك الإلكتروني للمتابعة",
       });
+
+      // If email confirmation is disabled, redirect to dashboard
+      if (data.user && !data.user.email_confirmed_at) {
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       toast({
         title: "خطأ في إنشاء الحساب",
@@ -82,6 +112,8 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="mt-1"
+                placeholder="أدخل بريدك الإلكتروني"
               />
             </div>
             <div>
@@ -92,6 +124,9 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="mt-1"
+                placeholder="أدخل كلمة المرور"
+                minLength={6}
               />
             </div>
             <div className="flex flex-col space-y-2">
