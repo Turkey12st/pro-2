@@ -13,6 +13,7 @@ import DashboardPage from "./pages/dashboard/Index";
 import FinancialPage from "./pages/financial/Index";
 import ZakatPage from "./pages/zakat/Index";
 import NotFound from "./pages/NotFound";
+import LoginPage from "./pages/auth/Login";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/financial" element={<FinancialPage />} />
           <Route path="/zakat" element={<ZakatPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/auth/login" element={<LoginPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
