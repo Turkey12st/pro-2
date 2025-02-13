@@ -11,13 +11,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Wallet,
   TrendingUp,
   DollarSign,
   FileCheck,
   ArrowUpRight,
-  Plus
+  Plus,
+  Building2,
+  Users
 } from "lucide-react";
 import { useState } from "react";
 
@@ -92,7 +95,7 @@ export default function DashboardPage() {
 
   // إضافة رأس مال جديد
   const addCapitalMutation = useMutation({
-    mutationFn: async (newCapitalData) => {
+    mutationFn: async (newCapitalData: typeof newCapital) => {
       const { data, error } = await supabase
         .from('capital_management')
         .insert([newCapitalData])
@@ -102,14 +105,14 @@ export default function DashboardPage() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['capital_management']);
+      queryClient.invalidateQueries({ queryKey: ['capital_management'] });
       toast({
         title: "تم الحفظ بنجاح",
         description: "تم إضافة بيانات رأس المال الجديدة",
       });
       setIsDialogOpen(false);
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "خطأ في الحفظ",
         description: error.message,
@@ -125,6 +128,47 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto space-y-6 p-6">
+        {/* معلومات الشركة */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                معلومات الشركة
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p><strong>اسم الشركة:</strong> شركة التطوير العقاري</p>
+                <p><strong>نوع الشركة:</strong> شركة ذات مسؤولية محدودة</p>
+                <p><strong>تاريخ التأسيس:</strong> 1444/05/15</p>
+                <p><strong>رقم السجل التجاري:</strong> 1010XXXXXX</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                الشركاء
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span>محمد أحمد</span>
+                  <span>60%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>خالد محمد</span>
+                  <span>40%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">لوحة التحكم</h1>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -185,9 +229,9 @@ export default function DashboardPage() {
                 </div>
                 <Button 
                   onClick={handleAddCapital}
-                  disabled={addCapitalMutation.isLoading}
+                  disabled={addCapitalMutation.isPending}
                 >
-                  {addCapitalMutation.isLoading ? "جاري الحفظ..." : "حفظ"}
+                  {addCapitalMutation.isPending ? "جاري الحفظ..." : "حفظ"}
                 </Button>
               </div>
             </DialogContent>
