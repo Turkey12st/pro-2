@@ -138,6 +138,54 @@ export type Database = {
         }
         Relationships: []
       }
+      company_info: {
+        Row: {
+          commercial_registration: string
+          company_name: string
+          company_type: string
+          created_at: string
+          establishment_date: string
+          id: string
+        }
+        Insert: {
+          commercial_registration: string
+          company_name: string
+          company_type: string
+          created_at?: string
+          establishment_date: string
+          id?: string
+        }
+        Update: {
+          commercial_registration?: string
+          company_name?: string
+          company_type?: string
+          created_at?: string
+          establishment_date?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      company_partners: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          ownership_percentage: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          ownership_percentage: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          ownership_percentage?: number
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           birth_date: string

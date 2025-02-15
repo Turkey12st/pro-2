@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 
 export default function Index() {
   const navigate = useNavigate();
-  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div 
@@ -15,22 +14,6 @@ export default function Index() {
         background: "linear-gradient(135deg, #FF1B6B 0%, #45CAFF 100%)",
       }}
     >
-      {/* Centered Logo with Animation */}
-      <div 
-        className="relative group cursor-pointer"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <img
-          src={isHovered ? "/logo-black.png" : "/logo-color.png"}
-          alt="شركة عين المتكاملة"
-          className="w-[300px] md:w-[400px] transition-all duration-500 hover:scale-105"
-          style={{
-            filter: isHovered ? "drop-shadow(0 0 20px rgba(255,255,255,0.5))" : "none"
-          }}
-        />
-      </div>
-
       {/* Enter Button */}
       <Button
         onClick={() => navigate("/dashboard")}
