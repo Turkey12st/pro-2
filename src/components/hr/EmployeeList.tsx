@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, FileDown, Eye } from "lucide-react";
-import { Employee, mapDbEmployeeToEmployee } from "@/types/hr";
+import { Employee, DbEmployee } from "@/types/hr";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -25,7 +25,24 @@ export default function EmployeeList() {
         throw error;
       }
       
-      return data ? data.map(mapDbEmployeeToEmployee) : [];
+      return (data || []).map(emp => ({
+        id: emp.id,
+        created_at: emp.created_at,
+        name: emp.name,
+        identityNumber: emp.identity_number,
+        birthDate: emp.birth_date,
+        nationality: emp.nationality,
+        position: emp.position,
+        department: emp.department,
+        salary: emp.salary,
+        joiningDate: emp.joining_date,
+        contractType: emp.contract_type as 'full-time' | 'part-time' | 'contract',
+        email: emp.email,
+        phone: emp.phone,
+        photoUrl: emp.photo_url,
+        documents: emp.documents as { name: string; url: string; type: string }[] || [],
+        created_by: emp.created_by
+      })) as Employee[];
     },
   });
 
