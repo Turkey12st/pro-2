@@ -24,6 +24,66 @@ export type Database = {
         }
         Relationships: []
       }
+      allowance_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      capital_history: {
+        Row: {
+          amount: number
+          approval_date: string | null
+          created_at: string
+          effective_date: string | null
+          id: string
+          new_capital: number
+          notes: string | null
+          previous_capital: number
+          status: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          approval_date?: string | null
+          created_at?: string
+          effective_date?: string | null
+          id?: string
+          new_capital: number
+          notes?: string | null
+          previous_capital: number
+          status?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          approval_date?: string | null
+          created_at?: string
+          effective_date?: string | null
+          id?: string
+          new_capital?: number
+          notes?: string | null
+          previous_capital?: number
+          status?: string | null
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       capital_management: {
         Row: {
           available_capital: number
@@ -93,6 +153,48 @@ export type Database = {
           reference_type?: string | null
           transaction_date?: string
           type?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          address: Json | null
+          contact_person: string | null
+          cr_number: string | null
+          created_at: string
+          email: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          phone: string | null
+          type: string
+          vat_number: string | null
+        }
+        Insert: {
+          address?: Json | null
+          contact_person?: string | null
+          cr_number?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          phone?: string | null
+          type: string
+          vat_number?: string | null
+        }
+        Update: {
+          address?: Json | null
+          contact_person?: string | null
+          cr_number?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          phone?: string | null
+          type?: string
+          vat_number?: string | null
         }
         Relationships: []
       }
@@ -167,79 +269,112 @@ export type Database = {
       }
       company_partners: {
         Row: {
+          contact_info: Json | null
           created_at: string
+          documents: Json | null
           id: string
           name: string
           ownership_percentage: number
+          partner_type: string | null
+          share_value: number | null
         }
         Insert: {
+          contact_info?: Json | null
           created_at?: string
+          documents?: Json | null
           id?: string
           name: string
           ownership_percentage: number
+          partner_type?: string | null
+          share_value?: number | null
         }
         Update: {
+          contact_info?: Json | null
           created_at?: string
+          documents?: Json | null
           id?: string
           name?: string
           ownership_percentage?: number
+          partner_type?: string | null
+          share_value?: number | null
         }
         Relationships: []
       }
       employees: {
         Row: {
+          base_salary: number | null
           birth_date: string
+          branch: string | null
           contract_type: string
           created_at: string
           created_by: string
           department: string
           documents: Json | null
           email: string
+          employment_number: string | null
+          gosi_subscription: number | null
+          housing_allowance: number | null
           id: string
           identity_number: string
           joining_date: string
           name: string
           nationality: string
+          other_allowances: Json | null
           phone: string
           photo_url: string | null
           position: string
           salary: number
+          transportation_allowance: number | null
         }
         Insert: {
+          base_salary?: number | null
           birth_date: string
+          branch?: string | null
           contract_type: string
           created_at?: string
           created_by: string
           department: string
           documents?: Json | null
           email: string
+          employment_number?: string | null
+          gosi_subscription?: number | null
+          housing_allowance?: number | null
           id?: string
           identity_number: string
           joining_date: string
           name: string
           nationality: string
+          other_allowances?: Json | null
           phone: string
           photo_url?: string | null
           position: string
           salary: number
+          transportation_allowance?: number | null
         }
         Update: {
+          base_salary?: number | null
           birth_date?: string
+          branch?: string | null
           contract_type?: string
           created_at?: string
           created_by?: string
           department?: string
           documents?: Json | null
           email?: string
+          employment_number?: string | null
+          gosi_subscription?: number | null
+          housing_allowance?: number | null
           id?: string
           identity_number?: string
           joining_date?: string
           name?: string
           nationality?: string
+          other_allowances?: Json | null
           phone?: string
           photo_url?: string | null
           position?: string
           salary?: number
+          transportation_allowance?: number | null
         }
         Relationships: []
       }
@@ -336,6 +471,88 @@ export type Database = {
         }
         Relationships: []
       }
+      project_expenses: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          created_by: string
+          date: string
+          description: string | null
+          id: string
+          project_id: string | null
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          created_by: string
+          date: string
+          description?: string | null
+          id?: string
+          project_id?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          created_by?: string
+          date?: string
+          description?: string | null
+          id?: string
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_expenses_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string | null
+          id: string
+          invoice_number: string
+          issue_date: string
+          project_id: string | null
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          issue_date: string
+          project_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          project_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_invoices_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_tasks: {
         Row: {
           assignee_id: string | null
@@ -391,18 +608,25 @@ export type Database = {
       }
       projects: {
         Row: {
+          actual_cost: number | null
+          actual_hours: number | null
           attachments: Json | null
           budget: number | null
+          client_id: string | null
           completed_tasks: number | null
           created_at: string
           created_by: string
           description: string | null
           end_date: string | null
+          estimated_cost: number | null
+          estimated_hours: number | null
           id: string
           manager_id: string | null
           notes: string | null
           priority: string
+          profit: number | null
           progress: number | null
+          revenue: number | null
           stakeholders: Json | null
           start_date: string
           status: string
@@ -412,18 +636,25 @@ export type Database = {
           total_tasks: number | null
         }
         Insert: {
+          actual_cost?: number | null
+          actual_hours?: number | null
           attachments?: Json | null
           budget?: number | null
+          client_id?: string | null
           completed_tasks?: number | null
           created_at?: string
           created_by: string
           description?: string | null
           end_date?: string | null
+          estimated_cost?: number | null
+          estimated_hours?: number | null
           id?: string
           manager_id?: string | null
           notes?: string | null
           priority?: string
+          profit?: number | null
           progress?: number | null
+          revenue?: number | null
           stakeholders?: Json | null
           start_date: string
           status?: string
@@ -433,18 +664,25 @@ export type Database = {
           total_tasks?: number | null
         }
         Update: {
+          actual_cost?: number | null
+          actual_hours?: number | null
           attachments?: Json | null
           budget?: number | null
+          client_id?: string | null
           completed_tasks?: number | null
           created_at?: string
           created_by?: string
           description?: string | null
           end_date?: string | null
+          estimated_cost?: number | null
+          estimated_hours?: number | null
           id?: string
           manager_id?: string | null
           notes?: string | null
           priority?: string
+          profit?: number | null
           progress?: number | null
+          revenue?: number | null
           stakeholders?: Json | null
           start_date?: string
           status?: string
@@ -454,6 +692,59 @@ export type Database = {
           total_tasks?: number | null
         }
         Relationships: []
+      }
+      salary_records: {
+        Row: {
+          base_salary: number
+          created_at: string
+          deductions: Json | null
+          employee_id: string | null
+          gosi_subscription: number | null
+          housing_allowance: number | null
+          id: string
+          other_allowances: Json | null
+          payment_date: string
+          status: string | null
+          total_salary: number
+          transportation_allowance: number | null
+        }
+        Insert: {
+          base_salary: number
+          created_at?: string
+          deductions?: Json | null
+          employee_id?: string | null
+          gosi_subscription?: number | null
+          housing_allowance?: number | null
+          id?: string
+          other_allowances?: Json | null
+          payment_date: string
+          status?: string | null
+          total_salary: number
+          transportation_allowance?: number | null
+        }
+        Update: {
+          base_salary?: number
+          created_at?: string
+          deductions?: Json | null
+          employee_id?: string | null
+          gosi_subscription?: number | null
+          housing_allowance?: number | null
+          id?: string
+          other_allowances?: Json | null
+          payment_date?: string
+          status?: string | null
+          total_salary?: number
+          transportation_allowance?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       T: {
         Row: {

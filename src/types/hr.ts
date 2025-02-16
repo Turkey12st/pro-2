@@ -16,12 +16,16 @@ export type Employee = {
   photoUrl?: string;
   documents?: { name: string; url: string; type: string }[];
   created_by: string;
-};
-
-export type EmployeeFilter = {
-  department?: string;
-  position?: string;
-  contractType?: string;
+  employmentNumber?: string;
+  branch?: string;
+  baseSalary: number;
+  housingAllowance: number;
+  transportationAllowance: number;
+  otherAllowances: {
+    name: string;
+    amount: number;
+  }[];
+  gosiSubscription: number;
 };
 
 export type DbEmployee = {
@@ -35,15 +39,53 @@ export type DbEmployee = {
   department: string;
   salary: number;
   joining_date: string;
-  contract_type: 'full-time' | 'part-time' | 'contract';
+  contract_type: string;
   email: string;
   phone: string;
   photo_url?: string;
   documents?: { name: string; url: string; type: string }[];
   created_by: string;
+  employment_number?: string;
+  branch?: string;
+  base_salary: number;
+  housing_allowance: number;
+  transportation_allowance: number;
+  other_allowances: {
+    name: string;
+    amount: number;
+  }[];
+  gosi_subscription: number;
 };
 
-// Helper function to convert database employee to frontend employee
+export type AllowanceType = {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+};
+
+export type SalaryRecord = {
+  id: string;
+  employeeId: string;
+  baseSalary: number;
+  housingAllowance: number;
+  transportationAllowance: number;
+  otherAllowances: {
+    name: string;
+    amount: number;
+  }[];
+  deductions: {
+    name: string;
+    amount: number;
+  }[];
+  gosiSubscription: number;
+  totalSalary: number;
+  paymentDate: string;
+  status: 'pending' | 'paid' | 'cancelled';
+  created_at: string;
+};
+
+// تحويل البيانات من قاعدة البيانات إلى نموذج التطبيق
 export const mapDbEmployeeToEmployee = (dbEmployee: DbEmployee): Employee => ({
   id: dbEmployee.id,
   created_at: dbEmployee.created_at,
@@ -55,15 +97,22 @@ export const mapDbEmployeeToEmployee = (dbEmployee: DbEmployee): Employee => ({
   department: dbEmployee.department,
   salary: dbEmployee.salary,
   joiningDate: dbEmployee.joining_date,
-  contractType: dbEmployee.contract_type,
+  contractType: dbEmployee.contract_type as 'full-time' | 'part-time' | 'contract',
   email: dbEmployee.email,
   phone: dbEmployee.phone,
   photoUrl: dbEmployee.photo_url,
   documents: dbEmployee.documents,
-  created_by: dbEmployee.created_by
+  created_by: dbEmployee.created_by,
+  employmentNumber: dbEmployee.employment_number,
+  branch: dbEmployee.branch,
+  baseSalary: dbEmployee.base_salary,
+  housingAllowance: dbEmployee.housing_allowance,
+  transportationAllowance: dbEmployee.transportation_allowance,
+  otherAllowances: dbEmployee.other_allowances,
+  gosiSubscription: dbEmployee.gosi_subscription
 });
 
-// Helper function to convert frontend employee to database employee
+// تحويل البيانات من نموذج التطبيق إلى قاعدة البيانات
 export const mapEmployeeToDbEmployee = (employee: Employee): DbEmployee => ({
   id: employee.id,
   created_at: employee.created_at,
@@ -80,5 +129,12 @@ export const mapEmployeeToDbEmployee = (employee: Employee): DbEmployee => ({
   phone: employee.phone,
   photo_url: employee.photoUrl,
   documents: employee.documents,
-  created_by: employee.created_by
+  created_by: employee.created_by,
+  employment_number: employee.employmentNumber,
+  branch: employee.branch,
+  base_salary: employee.baseSalary,
+  housing_allowance: employee.housingAllowance,
+  transportation_allowance: employee.transportationAllowance,
+  other_allowances: employee.otherAllowances,
+  gosi_subscription: employee.gosiSubscription
 });
