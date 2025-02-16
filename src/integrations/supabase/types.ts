@@ -45,6 +45,33 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_saves: {
+        Row: {
+          created_at: string
+          form_data: Json
+          form_type: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          form_data: Json
+          form_type: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          form_data?: Json
+          form_type?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       capital_history: {
         Row: {
           amount: number
@@ -156,9 +183,31 @@ export type Database = {
         }
         Relationships: []
       }
+      client_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: Json | null
+          category_id: string | null
           contact_person: string | null
           cr_number: string | null
           created_at: string
@@ -172,6 +221,7 @@ export type Database = {
         }
         Insert: {
           address?: Json | null
+          category_id?: string | null
           contact_person?: string | null
           cr_number?: string | null
           created_at?: string
@@ -185,6 +235,7 @@ export type Database = {
         }
         Update: {
           address?: Json | null
+          category_id?: string | null
           contact_person?: string | null
           cr_number?: string | null
           created_at?: string
@@ -196,7 +247,15 @@ export type Database = {
           type?: string
           vat_number?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "client_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_documents: {
         Row: {
@@ -471,6 +530,27 @@ export type Database = {
         }
         Relationships: []
       }
+      project_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       project_expenses: {
         Row: {
           amount: number
@@ -612,6 +692,7 @@ export type Database = {
           actual_hours: number | null
           attachments: Json | null
           budget: number | null
+          category_id: string | null
           client_id: string | null
           completed_tasks: number | null
           created_at: string
@@ -640,6 +721,7 @@ export type Database = {
           actual_hours?: number | null
           attachments?: Json | null
           budget?: number | null
+          category_id?: string | null
           client_id?: string | null
           completed_tasks?: number | null
           created_at?: string
@@ -668,6 +750,7 @@ export type Database = {
           actual_hours?: number | null
           attachments?: Json | null
           budget?: number | null
+          category_id?: string | null
           client_id?: string | null
           completed_tasks?: number | null
           created_at?: string
@@ -691,7 +774,15 @@ export type Database = {
           title?: string
           total_tasks?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "project_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       salary_records: {
         Row: {
