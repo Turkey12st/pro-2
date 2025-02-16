@@ -21,6 +21,11 @@ const initialEmployeeState: Omit<Employee, 'id' | 'created_at' | 'created_by'> =
   contractType: "full-time",
   email: "",
   phone: "",
+  baseSalary: 0,
+  housingAllowance: 0,
+  transportationAllowance: 0,
+  otherAllowances: [],
+  gosiSubscription: 0
 };
 
 export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
@@ -114,6 +119,11 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
           phone: employee.phone,
           photo_url: photoUrl,
           documents: documentUrls,
+          base_salary: employee.baseSalary,
+          housing_allowance: employee.housingAllowance,
+          transportation_allowance: employee.transportationAllowance,
+          other_allowances: employee.otherAllowances,
+          gosi_subscription: employee.gosiSubscription,
           created_by: user.id
         }]);
 
