@@ -37,10 +37,19 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: keyof typeof initialEmployeeState, value: string | number) => {
-    setEmployee(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (field === "baseSalary" || field === "housingAllowance" || field === "transportationAllowance") {
+      const numValue = typeof value === 'string' ? parseFloat(value) : value;
+      setEmployee(prev => ({
+        ...prev,
+        [field]: numValue,
+        salary: prev.baseSalary + prev.housingAllowance + prev.transportationAllowance + (field === "baseSalary" ? numValue - prev.baseSalary : 0) + (field === "housingAllowance" ? numValue - prev.housingAllowance : 0) + (field === "transportationAllowance" ? numValue - prev.transportationAllowance : 0)
+      }));
+    } else {
+      setEmployee(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,6 +174,10 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
         salary={employee.salary}
         joiningDate={employee.joiningDate}
         contractType={employee.contractType}
+        baseSalary={employee.baseSalary}
+        housingAllowance={employee.housingAllowance}
+        transportationAllowance={employee.transportationAllowance}
+        gosiSubscription={employee.gosiSubscription}
         onInputChange={handleInputChange}
       />
       <FileUpload

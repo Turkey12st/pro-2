@@ -85,7 +85,6 @@ export type SalaryRecord = {
   created_at: string;
 };
 
-// تحويل البيانات من قاعدة البيانات إلى نموذج التطبيق
 export const mapDbEmployeeToEmployee = (dbEmployee: DbEmployee): Employee => ({
   id: dbEmployee.id,
   created_at: dbEmployee.created_at,
@@ -112,7 +111,6 @@ export const mapDbEmployeeToEmployee = (dbEmployee: DbEmployee): Employee => ({
   gosiSubscription: dbEmployee.gosi_subscription
 });
 
-// تحويل البيانات من نموذج التطبيق إلى قاعدة البيانات
 export const mapEmployeeToDbEmployee = (employee: Employee): DbEmployee => ({
   id: employee.id,
   created_at: employee.created_at,
