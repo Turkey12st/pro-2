@@ -1,11 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function LoginPage() {
@@ -14,6 +14,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // التحقق من حالة تسجيل الدخول عند تحميل الصفحة
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/dashboard");
+      }
+    });
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,26 +74,16 @@ export default function LoginPage() {
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin + '/auth/callback'
-        }
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
-      if (error) {
-        if (error.message.includes("anonymous")) {
-          throw new Error("تم تعطيل التسجيل المجهول. يرجى استخدام بريد إلكتروني صحيح");
-        }
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "تم إنشاء الحساب بنجاح",
-        description: "يرجى تأكيد بريدك الإلكتروني للمتابعة",
+        description: "تم إرسال رابط تأكيد البريد الإلكتروني",
       });
-
-      // If email confirmation is disabled, redirect to dashboard
-      if (data.user && !data.user.email_confirmed_at) {
-        navigate("/dashboard");
-      }
     } catch (error: any) {
       toast({
         title: "خطأ في إنشاء الحساب",
@@ -97,14 +96,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50/50 p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-center">تسجيل الدخول</CardTitle>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">مرحباً بك</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="space-y-6" onSubmit={handleLogin}>
-            <div>
+          <form className="space-y-4" onSubmit={handleLogin}>
+            <div className="space-y-2">
               <Label htmlFor="email">البريد الإلكتروني</Label>
               <Input
                 id="email"
@@ -112,11 +111,11 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="mt-1"
                 placeholder="أدخل بريدك الإلكتروني"
+                className="text-right"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="password">كلمة المرور</Label>
               <Input
                 id="password"
@@ -124,13 +123,12 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="mt-1"
                 placeholder="أدخل كلمة المرور"
-                minLength={6}
+                className="text-right"
               />
             </div>
-            <div className="flex flex-col space-y-2">
-              <Button type="submit" disabled={loading}>
+            <div className="flex flex-col gap-2">
+              <Button type="submit" disabled={loading} className="w-full">
                 {loading ? "جاري التحميل..." : "تسجيل الدخول"}
               </Button>
               <Button
@@ -138,6 +136,7 @@ export default function LoginPage() {
                 variant="outline"
                 onClick={handleSignUp}
                 disabled={loading}
+                className="w-full"
               >
                 إنشاء حساب جديد
               </Button>

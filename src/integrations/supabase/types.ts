@@ -365,11 +365,14 @@ export type Database = {
           birth_date: string
           branch: string | null
           contract_type: string
+          cost_breakdown: Json | null
           created_at: string
           created_by: string
           department: string
           documents: Json | null
+          documents_expiry: Json | null
           email: string
+          employee_type: string | null
           employment_number: string | null
           gosi_subscription: number | null
           housing_allowance: number | null
@@ -390,11 +393,14 @@ export type Database = {
           birth_date: string
           branch?: string | null
           contract_type: string
+          cost_breakdown?: Json | null
           created_at?: string
           created_by: string
           department: string
           documents?: Json | null
+          documents_expiry?: Json | null
           email: string
+          employee_type?: string | null
           employment_number?: string | null
           gosi_subscription?: number | null
           housing_allowance?: number | null
@@ -415,11 +421,14 @@ export type Database = {
           birth_date?: string
           branch?: string | null
           contract_type?: string
+          cost_breakdown?: Json | null
           created_at?: string
           created_by?: string
           department?: string
           documents?: Json | null
+          documents_expiry?: Json | null
           email?: string
+          employee_type?: string | null
           employment_number?: string | null
           gosi_subscription?: number | null
           housing_allowance?: number | null
@@ -487,6 +496,89 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      journal_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          entry_date: string
+          id: string
+          posted_at: string | null
+          posted_by: string | null
+          reference_number: string | null
+          status: string | null
+          total_credit: number | null
+          total_debit: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description: string
+          entry_date: string
+          id?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          reference_number?: string | null
+          status?: string | null
+          total_credit?: number | null
+          total_debit?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          entry_date?: string
+          id?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          reference_number?: string | null
+          status?: string | null
+          total_credit?: number | null
+          total_debit?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      journal_entry_items: {
+        Row: {
+          account_id: string
+          created_at: string
+          credit: number | null
+          debit: number | null
+          description: string | null
+          id: string
+          journal_entry_id: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          credit?: number | null
+          debit?: number | null
+          description?: string | null
+          id?: string
+          journal_entry_id?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          credit?: number | null
+          debit?: number | null
+          description?: string | null
+          id?: string
+          journal_entry_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entry_items_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
