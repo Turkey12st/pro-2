@@ -314,6 +314,7 @@ export type Database = {
           ownership_percentage: number
           partner_type: string | null
           share_value: number | null
+          updated_at: string | null
         }
         Insert: {
           contact_info?: Json | null
@@ -323,6 +324,7 @@ export type Database = {
           ownership_percentage: number
           partner_type?: string | null
           share_value?: number | null
+          updated_at?: string | null
         }
         Update: {
           contact_info?: Json | null
@@ -332,6 +334,7 @@ export type Database = {
           ownership_percentage?: number
           partner_type?: string | null
           share_value?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
