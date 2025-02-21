@@ -11,8 +11,6 @@ import ClientsPage from "./pages/clients/Index";
 import DashboardPage from "./pages/dashboard/Index";
 import FinancialPage from "./pages/financial/Index";
 import ZakatPage from "./pages/zakat/Index";
-import LoginPage from "./pages/auth/Login";
-import { PrivateRoute } from "./components/auth/PrivateRoute";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,23 +28,18 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* جعل صفحة تسجيل الدخول هي الصفحة الرئيسية */}
-          <Route path="/" element={<Navigate to="/auth/login" replace />} />
-          <Route path="/auth/login" element={<LoginPage />} />
-          
-          {/* الصفحات المحمية التي تتطلب تسجيل الدخول */}
-          <Route element={<PrivateRoute />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/accounting" element={<AccountingPage />} />
-            <Route path="/hr" element={<HRPage />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/clients" element={<ClientsPage />} />
-            <Route path="/financial" element={<FinancialPage />} />
-            <Route path="/zakat" element={<ZakatPage />} />
-          </Route>
+          {/* توجيه المستخدم مباشرة إلى لوحة التحكم */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/accounting" element={<AccountingPage />} />
+          <Route path="/hr" element={<HRPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/clients" element={<ClientsPage />} />
+          <Route path="/financial" element={<FinancialPage />} />
+          <Route path="/zakat" element={<ZakatPage />} />
 
           {/* صفحة 404 */}
-          <Route path="*" element={<Navigate to="/auth/login" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
