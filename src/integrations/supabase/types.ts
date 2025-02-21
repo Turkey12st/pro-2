@@ -12,15 +12,12 @@ export type Database = {
       "1": {
         Row: {
           created_at: string
-          id: number
         }
         Insert: {
           created_at?: string
-          id?: number
         }
         Update: {
           created_at?: string
-          id?: number
         }
         Relationships: []
       }
@@ -28,19 +25,16 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
-          id: string
           name: string
         }
         Insert: {
           created_at?: string
           description?: string | null
-          id?: string
           name: string
         }
         Update: {
           created_at?: string
           description?: string | null
-          id?: string
           name?: string
         }
         Relationships: []
@@ -50,7 +44,6 @@ export type Database = {
           created_at: string
           form_data: Json
           form_type: string
-          id: string
           updated_at: string
           user_id: string
         }
@@ -58,7 +51,6 @@ export type Database = {
           created_at?: string
           form_data: Json
           form_type: string
-          id?: string
           updated_at?: string
           user_id: string
         }
@@ -66,7 +58,6 @@ export type Database = {
           created_at?: string
           form_data?: Json
           form_type?: string
-          id?: string
           updated_at?: string
           user_id?: string
         }
@@ -78,7 +69,6 @@ export type Database = {
           approval_date: string | null
           created_at: string
           effective_date: string | null
-          id: string
           new_capital: number
           notes: string | null
           previous_capital: number
@@ -90,7 +80,6 @@ export type Database = {
           approval_date?: string | null
           created_at?: string
           effective_date?: string | null
-          id?: string
           new_capital: number
           notes?: string | null
           previous_capital: number
@@ -102,7 +91,6 @@ export type Database = {
           approval_date?: string | null
           created_at?: string
           effective_date?: string | null
-          id?: string
           new_capital?: number
           notes?: string | null
           previous_capital?: number
@@ -116,7 +104,6 @@ export type Database = {
           available_capital: number
           created_at: string
           fiscal_year: number
-          id: string
           last_updated: string
           notes: string | null
           reserved_capital: number
@@ -127,7 +114,6 @@ export type Database = {
           available_capital: number
           created_at?: string
           fiscal_year: number
-          id?: string
           last_updated?: string
           notes?: string | null
           reserved_capital: number
@@ -138,7 +124,6 @@ export type Database = {
           available_capital?: number
           created_at?: string
           fiscal_year?: number
-          id?: string
           last_updated?: string
           notes?: string | null
           reserved_capital?: number
@@ -153,7 +138,6 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
-          id: string
           reference_id: string | null
           reference_type: string | null
           transaction_date: string
@@ -164,7 +148,6 @@ export type Database = {
           category: string
           created_at?: string
           description?: string | null
-          id?: string
           reference_id?: string | null
           reference_type?: string | null
           transaction_date: string
@@ -175,7 +158,6 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
-          id?: string
           reference_id?: string | null
           reference_type?: string | null
           transaction_date?: string
@@ -212,7 +194,6 @@ export type Database = {
           cr_number: string | null
           created_at: string
           email: string | null
-          id: string
           metadata: Json | null
           name: string
           phone: string | null
@@ -226,7 +207,6 @@ export type Database = {
           cr_number?: string | null
           created_at?: string
           email?: string | null
-          id?: string
           metadata?: Json | null
           name: string
           phone?: string | null
@@ -240,7 +220,6 @@ export type Database = {
           cr_number?: string | null
           created_at?: string
           email?: string | null
-          id?: string
           metadata?: Json | null
           name?: string
           phone?: string | null
@@ -262,7 +241,6 @@ export type Database = {
           created_at: string
           document_url: string | null
           expiry_date: string
-          id: string
           issue_date: string
           metadata: Json | null
           number: string | null
@@ -275,7 +253,6 @@ export type Database = {
           created_at?: string
           document_url?: string | null
           expiry_date: string
-          id?: string
           issue_date: string
           metadata?: Json | null
           number?: string | null
@@ -288,7 +265,6 @@ export type Database = {
           created_at?: string
           document_url?: string | null
           expiry_date?: string
-          id?: string
           issue_date?: string
           metadata?: Json | null
           number?: string | null
@@ -307,6 +283,7 @@ export type Database = {
           created_at: string
           establishment_date: string
           id: string
+          "Unified National Number": number
         }
         Insert: {
           commercial_registration: string
@@ -315,6 +292,7 @@ export type Database = {
           created_at?: string
           establishment_date: string
           id?: string
+          "Unified National Number": number
         }
         Update: {
           commercial_registration?: string
@@ -323,6 +301,7 @@ export type Database = {
           created_at?: string
           establishment_date?: string
           id?: string
+          "Unified National Number"?: number
         }
         Relationships: []
       }
@@ -331,7 +310,6 @@ export type Database = {
           contact_info: Json | null
           created_at: string
           documents: Json | null
-          id: string
           name: string
           ownership_percentage: number
           partner_type: string | null
@@ -341,7 +319,6 @@ export type Database = {
           contact_info?: Json | null
           created_at?: string
           documents?: Json | null
-          id?: string
           name: string
           ownership_percentage: number
           partner_type?: string | null
@@ -351,7 +328,6 @@ export type Database = {
           contact_info?: Json | null
           created_at?: string
           documents?: Json | null
-          id?: string
           name?: string
           ownership_percentage?: number
           partner_type?: string | null
@@ -446,6 +422,21 @@ export type Database = {
         }
         Relationships: []
       }
+      example_table: {
+        Row: {
+          data: string | null
+          id: number
+        }
+        Insert: {
+          data?: string | null
+          id?: never
+        }
+        Update: {
+          data?: string | null
+          id?: never
+        }
+        Relationships: []
+      }
       financials: {
         Row: {
           amount: number
@@ -453,7 +444,6 @@ export type Database = {
           created_at: string
           description: string | null
           due_date: string | null
-          id: string
           metadata: Json | null
           paid_date: string | null
           recurring: boolean | null
@@ -469,7 +459,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
-          id?: string
           metadata?: Json | null
           paid_date?: string | null
           recurring?: boolean | null
@@ -485,7 +474,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
-          id?: string
           metadata?: Json | null
           paid_date?: string | null
           recurring?: boolean | null
@@ -619,6 +607,30 @@ export type Database = {
           status?: string
           title?: string
           type?: string
+        }
+        Relationships: []
+      }
+      "Pro-1.1": {
+        Row: {
+          created_at: string
+        }
+        Insert: {
+          created_at?: string
+        }
+        Update: {
+          created_at?: string
+        }
+        Relationships: []
+      }
+      "Pro1. 1": {
+        Row: {
+          created_at: string
+        }
+        Insert: {
+          created_at?: string
+        }
+        Update: {
+          created_at?: string
         }
         Relationships: []
       }
@@ -932,15 +944,12 @@ export type Database = {
       T: {
         Row: {
           created_at: string
-          id: number
         }
         Insert: {
           created_at?: string
-          id?: number
         }
         Update: {
           created_at?: string
-          id?: number
         }
         Relationships: []
       }
@@ -994,7 +1003,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_unified_national_number: {
+        Args: {
+          company_id: string
+        }
+        Returns: string
+      }
+      update_company_information: {
+        Args: {
+          p_company_id: string
+          p_unified_national_number: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

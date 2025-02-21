@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import debounce from 'lodash/debounce';
 import { useToast } from './use-toast';
 
-export function useAutoSave<T>({ 
+export function useAutoSave<T extends Record<string, any>>({ 
   formType, 
   data, 
   onLoad 
@@ -28,7 +28,7 @@ export function useAutoSave<T>({
           .select('form_data')
           .eq('user_id', user.id)
           .eq('form_type', formType)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         if (savedData) {
@@ -50,14 +50,16 @@ export function useAutoSave<T>({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const saveObject = {
+        user_id: user.id,
+        form_type: formType,
+        form_data: formData as any,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('auto_saves')
-        .upsert({
-          user_id: user.id,
-          form_type: formType,
-          form_data: formData,
-          updated_at: new Date().toISOString()
-        }, {
+        .upsert(saveObject, {
           onConflict: 'user_id,form_type'
         });
 
