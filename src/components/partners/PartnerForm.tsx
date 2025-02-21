@@ -13,6 +13,7 @@ import {
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAutoSave } from "@/hooks/useAutoSave";
 
 type PartnerFormData = {
   name: string;
@@ -40,6 +41,13 @@ export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
   const [formData, setFormData] = useState<PartnerFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  // تفعيل الحفظ التلقائي
+  useAutoSave({
+    formType: "partner",
+    data: formData,
+    onLoad: (savedData) => setFormData(savedData),
+  });
 
   const handleSubmit = async () => {
     try {
