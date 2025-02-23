@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,22 +13,11 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoSave } from "@/hooks/useAutoSave";
-import { validateData } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import type { Partner } from "@/types/database";
 
-type PartnerFormData = {
-  name: string;
-  partner_type: string;
-  ownership_percentage: number;
-  share_value: number;
-  contact_info: {
-    email: string;
-    phone: string;
-  };
-};
-
-const initialFormData: PartnerFormData = {
+const initialFormData: Omit<Partner, 'id' | 'created_at' | 'updated_at'> = {
   name: "",
   partner_type: "individual",
   ownership_percentage: 0,
@@ -38,15 +26,15 @@ const initialFormData: PartnerFormData = {
     email: "",
     phone: "",
   },
+  documents: []
 };
 
 export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
-  const [formData, setFormData] = useState<PartnerFormData>(initialFormData);
+  const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // تفعيل الحفظ التلقائي
   useAutoSave({
     formType: "partner",
     data: formData,
@@ -78,16 +66,6 @@ export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
 
       setIsSubmitting(true);
       console.log("بدء عملية حفظ الشريك...", formData);
-
-      // التحقق من الاتصال بقاعدة البيانات
-      const { data: connectionTest, error: connectionError } = await supabase
-        .from("company_partners")
-        .select("count")
-        .limit(1);
-
-      if (connectionError) {
-        throw new Error("لا يمكن الاتصال بقاعدة البيانات. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.");
-      }
 
       const { data, error } = await supabase
         .from("company_partners")

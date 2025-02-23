@@ -8,25 +8,19 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import type { CapitalManagement } from "@/types/database";
 
-type CapitalFormData = {
-  fiscal_year: number;
-  total_capital: number;
-  available_capital: number;
-  reserved_capital: number;
-  notes: string;
-};
-
-const initialFormData: CapitalFormData = {
+const initialFormData: Omit<CapitalManagement, 'id' | 'created_at' | 'last_updated'> = {
   fiscal_year: new Date().getFullYear(),
   total_capital: 0,
   available_capital: 0,
   reserved_capital: 0,
   notes: "",
+  turnover_rate: 0
 };
 
 export default function CapitalForm({ onSuccess }: { onSuccess: () => void }) {
-  const [formData, setFormData] = useState<CapitalFormData>(initialFormData);
+  const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -60,18 +54,8 @@ export default function CapitalForm({ onSuccess }: { onSuccess: () => void }) {
       setIsSubmitting(true);
       console.log("بدء عملية حفظ رأس المال...", formData);
 
-      // التحقق من الاتصال بقاعدة البيانات
-      const { data: connectionTest, error: connectionError } = await supabase
-        .from("capital_management")
-        .select("count")
-        .limit(1);
-
-      if (connectionError) {
-        throw new Error("لا يمكن الاتصال بقاعدة البيانات. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.");
-      }
-
       const { data, error } = await supabase
-        .from("capital_management")
+        .from("Capital_Management")
         .insert([formData])
         .select();
 
