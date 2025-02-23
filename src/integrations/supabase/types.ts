@@ -99,7 +99,7 @@ export type Database = {
         }
         Relationships: []
       }
-      capital_management: {
+      Capital_Management: {
         Row: {
           available_capital: number
           created_at: string
@@ -275,7 +275,7 @@ export type Database = {
         }
         Relationships: []
       }
-      company_info: {
+      Company_Info: {
         Row: {
           commercial_registration: string
           company_name: string
