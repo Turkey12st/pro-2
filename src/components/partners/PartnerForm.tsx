@@ -11,9 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { validateData } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 type PartnerFormData = {
   name: string;
@@ -40,6 +43,7 @@ const initialFormData: PartnerFormData = {
 export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
   const [formData, setFormData] = useState<PartnerFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   // تفعيل الحفظ التلقائي
@@ -49,26 +53,64 @@ export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
     onLoad: (savedData) => setFormData(savedData),
   });
 
+  const validateFormData = () => {
+    const errors = [];
+    if (!formData.name.trim()) {
+      errors.push("اسم الشريك مطلوب");
+    }
+    if (formData.ownership_percentage <= 0 || formData.ownership_percentage > 100) {
+      errors.push("نسبة الملكية يجب أن تكون بين 1 و 100");
+    }
+    if (formData.share_value < 0) {
+      errors.push("قيمة الحصة يجب أن تكون أكبر من أو تساوي صفر");
+    }
+    return errors;
+  };
+
   const handleSubmit = async () => {
     try {
-      setIsSubmitting(true);
+      setError(null);
+      const errors = validateFormData();
+      if (errors.length > 0) {
+        setError(errors.join("\n"));
+        return;
+      }
 
-      const { error } = await supabase
+      setIsSubmitting(true);
+      console.log("بدء عملية حفظ الشريك...", formData);
+
+      // التحقق من الاتصال بقاعدة البيانات
+      const { data: connectionTest, error: connectionError } = await supabase
         .from("company_partners")
-        .insert([formData]);
+        .select("count")
+        .limit(1);
+
+      if (connectionError) {
+        throw new Error("لا يمكن الاتصال بقاعدة البيانات. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.");
+      }
+
+      const { data, error } = await supabase
+        .from("company_partners")
+        .insert([formData])
+        .select();
 
       if (error) throw error;
 
+      console.log("تم حفظ الشريك بنجاح:", data);
+
       toast({
         title: "تم إضافة الشريك بنجاح",
+        description: `تم إضافة ${formData.name} كشريك جديد`
       });
       
+      setFormData(initialFormData);
       onSuccess();
-    } catch (error) {
-      console.error("Error saving partner:", error);
+    } catch (error: any) {
+      console.error("خطأ في حفظ الشريك:", error);
+      setError(error.message || "حدث خطأ أثناء حفظ بيانات الشريك");
       toast({
         title: "خطأ في الحفظ",
-        description: "حدث خطأ أثناء حفظ بيانات الشريك",
+        description: error.message || "حدث خطأ أثناء حفظ بيانات الشريك",
         variant: "destructive",
       });
     } finally {
@@ -79,6 +121,13 @@ export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <Card>
       <CardContent className="pt-6 space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <div className="space-y-2">
           <Label>اسم الشريك</Label>
           <Input
@@ -112,6 +161,8 @@ export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
             <Label>نسبة الملكية (%)</Label>
             <Input
               type="number"
+              min="0"
+              max="100"
               value={formData.ownership_percentage}
               onChange={(e) =>
                 setFormData((prev) => ({
@@ -126,6 +177,7 @@ export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
             <Label>قيمة الحصة (ريال)</Label>
             <Input
               type="number"
+              min="0"
               value={formData.share_value}
               onChange={(e) =>
                 setFormData((prev) => ({
