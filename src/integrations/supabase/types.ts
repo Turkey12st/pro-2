@@ -63,6 +63,21 @@ export type Database = {
         }
         Relationships: []
       }
+      capital: {
+        Row: {
+          amount: number
+          id: number
+        }
+        Insert: {
+          amount: number
+          id?: number
+        }
+        Update: {
+          amount?: number
+          id?: number
+        }
+        Relationships: []
+      }
       capital_history: {
         Row: {
           amount: number
@@ -194,6 +209,7 @@ export type Database = {
           cr_number: string | null
           created_at: string
           email: string | null
+          id: string
           metadata: Json | null
           name: string
           phone: string | null
@@ -207,6 +223,7 @@ export type Database = {
           cr_number?: string | null
           created_at?: string
           email?: string | null
+          id?: string
           metadata?: Json | null
           name: string
           phone?: string | null
@@ -220,6 +237,7 @@ export type Database = {
           cr_number?: string | null
           created_at?: string
           email?: string | null
+          id?: string
           metadata?: Json | null
           name?: string
           phone?: string | null
@@ -625,18 +643,6 @@ export type Database = {
         }
         Relationships: []
       }
-      "Pro1. 1": {
-        Row: {
-          created_at: string
-        }
-        Insert: {
-          created_at?: string
-        }
-        Update: {
-          created_at?: string
-        }
-        Relationships: []
-      }
       project_categories: {
         Row: {
           created_at: string
@@ -943,18 +949,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      T: {
-        Row: {
-          created_at: string
-        }
-        Insert: {
-          created_at?: string
-        }
-        Update: {
-          created_at?: string
-        }
-        Relationships: []
       }
       zakat_calculations: {
         Row: {
