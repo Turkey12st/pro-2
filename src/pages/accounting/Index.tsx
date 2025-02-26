@@ -1,4 +1,5 @@
-import { useState } from "react";
+// src/pages/accounting/Index.tsx
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/components/AppLayout";
 import { Calculator, Plus, Trash2, Edit } from "lucide-react";
@@ -11,7 +12,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import JournalEntryForm from "./components/JournalEntryForm";
+import JournalEntryForm from "@/components/JournalEntryForm";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // نوع بيانات القيد المحاسبي
 type JournalEntry = {
@@ -20,32 +23,79 @@ type JournalEntry = {
   amount: number;
 };
 
+// مفتاح تخزين البيانات في localStorage
+const STORAGE_KEY = "journalEntries";
+
+// Hook مخصص لإدارة البيانات في localStorage
+function useLocalStorage<T>(key: string, initialValue: T) {
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.error("Error reading localStorage:", error);
+      return initialValue;
+    }
+  });
+
+  const setValue = (value: T | ((val: T) => T)) => {
+    try {
+      const valueToStore =
+        value instanceof Function ? value(storedValue) : value;
+      setStoredValue(valueToStore);
+      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+    } catch (error) {
+      console.error("Error writing to localStorage:", error);
+    }
+  };
+
+  return [storedValue, setValue] as const;
+}
+
 export default function AccountingPage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [journalEntries, setJournalEntries] = useLocalStorage<JournalEntry[]>(
+    STORAGE_KEY,
+    []
+  );
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
 
   // إضافة قيد جديد
   const handleAddEntry = (newEntry: Omit<JournalEntry, "id">) => {
-    const entryWithId = { ...newEntry, id: Date.now().toString() }; // إنشاء معرف فريد باستخدام التوقيت
+    if (!newEntry.description || newEntry.amount <= 0) {
+      toast.error("يرجى إدخال وصف صحيح ومبلغ أكبر من صفر.");
+      return;
+    }
+
+    const entryWithId = { ...newEntry, id: Date.now().toString() };
     setJournalEntries((prevEntries) => [...prevEntries, entryWithId]);
+    toast.success("تمت إضافة القيد بنجاح!");
     setIsOpen(false);
   };
 
   // حذف قيد
   const handleDeleteEntry = (id: string) => {
-    setJournalEntries((prevEntries) =>
-      prevEntries.filter((entry) => entry.id !== id)
-    );
+    if (window.confirm("هل أنت متأكد من أنك تريد حذف هذا القيد؟")) {
+      setJournalEntries((prevEntries) =>
+        prevEntries.filter((entry) => entry.id !== id)
+      );
+      toast.success("تم حذف القيد بنجاح!");
+    }
   };
 
   // تعديل قيد
   const handleEditEntry = (updatedEntry: JournalEntry) => {
+    if (!updatedEntry.description || updatedEntry.amount <= 0) {
+      toast.error("يرجى إدخال وصف صحيح ومبلغ أكبر من صفر.");
+      return;
+    }
+
     setJournalEntries((prevEntries) =>
       prevEntries.map((entry) =>
         entry.id === updatedEntry.id ? updatedEntry : entry
       )
     );
+    toast.success("تم تعديل القيد بنجاح!");
     setEditingEntry(null);
     setIsOpen(false);
   };
