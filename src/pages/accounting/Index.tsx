@@ -56,7 +56,12 @@ export default function AccountingPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [journalEntries, setJournalEntries] = useLocalStorage<JournalEntry[]>(
     STORAGE_KEY,
-    []
+    [
+      // قائمة القيود الجاهزة
+      { id: "1", description: "رسوم السجل التجاري", amount: 1775 },
+      { id: "2", description: "مستخرج السجل التجاري", amount: 100 },
+      { id: "3", description: "مصروف رحلة مكة للمهندس محمد", amount: 100 },
+    ]
   );
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
 
@@ -188,11 +193,3 @@ export default function AccountingPage() {
     </AppLayout>
   );
 }
-npm install react-toastify
-useEffect(() => {
-  if (typeof window !== "undefined") {
-    const storedEntries = localStorage.getItem(STORAGE_KEY);
-    if (storedEntries) setJournalEntries(JSON.parse(storedEntries));
-  }
-}, []);
-
