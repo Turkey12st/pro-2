@@ -14,7 +14,7 @@ import { formatNumber } from "@/lib/utils";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,12 +25,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import type { Partner } from "@/types/database";
 
 export default function PartnersList() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [partnerToDelete, setPartnerToDelete] = useState<Partner | null>(null);
@@ -45,9 +53,7 @@ export default function PartnersList() {
 
       if (error) throw error;
       
-      // تحويل البيانات لتطابق نوع Partner
       return data.map(partner => {
-        // معالجة بيانات الاتصال
         const contactInfo = typeof partner.contact_info === 'object' && partner.contact_info
           ? {
               email: (partner.contact_info as Record<string, string>).email || undefined,
@@ -55,7 +61,6 @@ export default function PartnersList() {
             }
           : { email: undefined, phone: undefined };
 
-        // معالجة الوثائق
         const documents = Array.isArray(partner.documents) ? partner.documents : [];
 
         return {
@@ -84,6 +89,7 @@ export default function PartnersList() {
 
       toast({
         title: "تم حذف الشريك بنجاح",
+        description: `تم حذف الشريك ${partner.name} بنجاح`,
       });
 
       queryClient.invalidateQueries({ queryKey: ["partners"] });
@@ -111,6 +117,22 @@ export default function PartnersList() {
 
   return (
     <>
+      <div className="mb-4 flex justify-end">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={() => navigate("/partners/new")} className="gap-2">
+                <Plus className="h-4 w-4" />
+                إضافة شريك جديد
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>إضافة شريك جديد للشركة</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -139,19 +161,42 @@ export default function PartnersList() {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        setPartnerToDelete(partner);
-                        setDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => navigate(`/partners/edit/${partner.id}`)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>تعديل بيانات الشريك</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => {
+                              setPartnerToDelete(partner);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>حذف الشريك</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </TableCell>
               </TableRow>
