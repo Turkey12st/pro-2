@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -45,17 +46,30 @@ export default function PartnersList() {
       if (error) throw error;
       
       // تحويل البيانات لتطابق نوع Partner
-      return data.map(partner => ({
-        id: crypto.randomUUID(), // إنشاء معرف فريد لكل شريك
-        name: partner.name,
-        partner_type: partner.partner_type || 'individual',
-        ownership_percentage: partner.ownership_percentage,
-        share_value: partner.share_value || 0,
-        contact_info: partner.contact_info || {},
-        documents: partner.documents || [],
-        created_at: partner.created_at,
-        updated_at: partner.updated_at
-      }));
+      return data.map(partner => {
+        // معالجة بيانات الاتصال
+        const contactInfo = typeof partner.contact_info === 'object' && partner.contact_info
+          ? {
+              email: (partner.contact_info as Record<string, string>).email || undefined,
+              phone: (partner.contact_info as Record<string, string>).phone || undefined,
+            }
+          : { email: undefined, phone: undefined };
+
+        // معالجة الوثائق
+        const documents = Array.isArray(partner.documents) ? partner.documents : [];
+
+        return {
+          id: crypto.randomUUID(),
+          name: partner.name,
+          partner_type: partner.partner_type || 'individual',
+          ownership_percentage: partner.ownership_percentage,
+          share_value: partner.share_value || 0,
+          contact_info: contactInfo,
+          documents: documents,
+          created_at: partner.created_at,
+          updated_at: partner.updated_at
+        } satisfies Partner;
+      });
     },
   });
 
@@ -64,7 +78,7 @@ export default function PartnersList() {
       const { error } = await supabase
         .from("company_partners")
         .delete()
-        .match({ name: partner.name, created_at: partner.created_at }); // استخدام اسم الشريك وتاريخ الإنشاء للتطابق
+        .match({ name: partner.name, created_at: partner.created_at });
 
       if (error) throw error;
 
@@ -119,7 +133,7 @@ export default function PartnersList() {
                 </TableCell>
                 <TableCell>{partner.ownership_percentage}%</TableCell>
                 <TableCell>{formatNumber(partner.share_value)} ريال</TableCell>
-                <TableCell>{partner.contact_info?.email || '-'}</TableCell>
+                <TableCell>{partner.contact_info.email || '-'}</TableCell>
                 <TableCell>
                   {format(new Date(partner.created_at), 'dd MMMM yyyy', { locale: ar })}
                 </TableCell>
