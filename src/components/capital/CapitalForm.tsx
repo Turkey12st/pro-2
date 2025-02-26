@@ -1,81 +1,51 @@
-
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import type { CapitalManagement } from "@/types/database";
+import { useQuery } from "@tanstack/react-query";
 
-const initialFormData: Omit<CapitalManagement, 'id' | 'created_at' | 'last_updated'> = {
-  fiscal_year: new Date().getFullYear(),
-  total_capital: 0,
-  available_capital: 0,
-  reserved_capital: 0,
-  notes: "",
-  turnover_rate: 0
-};
-
-export default function CapitalForm({ onSuccess }: { onSuccess: () => void }) {
-  const [formData, setFormData] = useState(initialFormData);
+export default function CapitalForm() {
+  const [capitalAmount, setCapitalAmount] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const validateFormData = () => {
-    const errors = [];
-    if (formData.total_capital <= 0) {
-      errors.push("إجمالي رأس المال يجب أن يكون أكبر من صفر");
+  const { data: currentCapital } = useQuery({
+    queryKey: ['current_capital'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("capital_management")
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
     }
-    if (formData.available_capital < 0) {
-      errors.push("رأس المال المتاح يجب أن يكون أكبر من أو يساوي صفر");
-    }
-    if (formData.reserved_capital < 0) {
-      errors.push("رأس المال المحجوز يجب أن يكون أكبر من أو يساوي صفر");
-    }
-    if (formData.available_capital + formData.reserved_capital > formData.total_capital) {
-      errors.push("مجموع رأس المال المتاح والمحجوز يجب أن لا يتجاوز إجمالي رأس المال");
-    }
-    return errors;
-  };
+  });
 
   const handleSubmit = async () => {
     try {
-      setError(null);
-      const errors = validateFormData();
-      if (errors.length > 0) {
-        setError(errors.join("\n"));
-        return;
-      }
-
       setIsSubmitting(true);
-      console.log("بدء عملية حفظ رأس المال...", formData);
 
-      const { data, error } = await supabase
-        .from("Capital_Management")
-        .insert([formData])
-        .select();
+      const { error } = await supabase
+        .from('capital')
+        .insert([{ amount: capitalAmount }]);
 
       if (error) throw error;
 
-      console.log("تم حفظ بيانات رأس المال بنجاح:", data);
-
       toast({
-        title: "تم الحفظ بنجاح",
-        description: `تم إضافة رأس المال للسنة المالية ${formData.fiscal_year}`
+        title: "تم تحديث رأس المال بنجاح",
+        description: "تم حفظ المبلغ في قاعدة البيانات",
       });
-      
-      setFormData(initialFormData);
-      onSuccess();
-    } catch (error: any) {
-      console.error("خطأ في حفظ رأس المال:", error);
-      setError(error.message || "حدث خطأ أثناء حفظ بيانات رأس المال");
+    } catch (error) {
+      console.error('Error saving capital:', error);
       toast({
         title: "خطأ في الحفظ",
-        description: error.message || "حدث خطأ أثناء حفظ بيانات رأس المال",
+        description: "حدث خطأ أثناء حفظ المبلغ",
         variant: "destructive",
       });
     } finally {
@@ -85,94 +55,27 @@ export default function CapitalForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <Card>
-      <CardContent className="pt-6 space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>السنة المالية</Label>
-            <Input
-              type="number"
-              value={formData.fiscal_year}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  fiscal_year: parseInt(e.target.value) || new Date().getFullYear(),
-                }))
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>إجمالي رأس المال</Label>
-            <Input
-              type="number"
-              min="0"
-              value={formData.total_capital}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  total_capital: parseFloat(e.target.value) || 0,
-                }))
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>رأس المال المتاح</Label>
-            <Input
-              type="number"
-              min="0"
-              value={formData.available_capital}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  available_capital: parseFloat(e.target.value) || 0,
-                }))
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>رأس المال المحجوز</Label>
-            <Input
-              type="number"
-              min="0"
-              value={formData.reserved_capital}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  reserved_capital: parseFloat(e.target.value) || 0,
-                }))
-              }
-            />
-          </div>
-        </div>
-
+      <CardHeader>
+        <CardTitle>إدارة رأس المال</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label>ملاحظات</Label>
+          <Label htmlFor="capital">
+            المبلغ الحالي: {currentCapital ? currentCapital.total_capital : 'جاري التحميل...'}
+          </Label>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="capital">أدخل المبلغ الجديد</Label>
           <Input
-            value={formData.notes}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                notes: e.target.value,
-              }))
-            }
+            type="number"
+            id="capital"
+            placeholder="أدخل المبلغ هنا"
+            value={capitalAmount}
+            onChange={(e) => setCapitalAmount(Number(e.target.value))}
           />
         </div>
-
-        <Button 
-          onClick={handleSubmit} 
-          className="w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "جاري الحفظ..." : "إضافة رأس مال جديد"}
+        <Button onClick={handleSubmit} className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "جاري الحفظ..." : "حفظ المبلغ"}
         </Button>
       </CardContent>
     </Card>

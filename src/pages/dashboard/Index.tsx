@@ -23,7 +23,7 @@ export default function DashboardPage() {
     queryKey: ['company_info'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("Company_Info")
+        .from("company_info")
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -53,7 +53,7 @@ export default function DashboardPage() {
     queryKey: ['capital_management'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("Capital_Management")
+        .from("capital_management")
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1)

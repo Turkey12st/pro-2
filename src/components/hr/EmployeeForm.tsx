@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Employee } from "@/types/hr";
@@ -25,7 +24,13 @@ const initialEmployeeState: Omit<Employee, 'id' | 'created_at' | 'created_by'> =
   housingAllowance: 0,
   transportationAllowance: 0,
   otherAllowances: [],
-  gosiSubscription: 0
+  gosiSubscription: 0,
+  employeeGosiContribution: 0,
+  companyGosiContribution: 0,
+  medicalInsuranceCost: 0,
+  visaFees: 0,
+  transferFees: 0,
+  laborFees: 0
 };
 
 export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
@@ -133,6 +138,12 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
           transportation_allowance: employee.transportationAllowance,
           other_allowances: employee.otherAllowances,
           gosi_subscription: employee.gosiSubscription,
+          employee_gosi_contribution: employee.employeeGosiContribution,
+          company_gosi_contribution: employee.companyGosiContribution,
+          medical_insurance_cost: employee.medicalInsuranceCost,
+          visa_fees: employee.visaFees,
+          transfer_fees: employee.transferFees,
+          labor_fees: employee.laborFees,
           created_by: user.id
         }]);
 

@@ -14,7 +14,7 @@ import { formatNumber } from "@/lib/utils";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, AlertCircle } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,19 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-
-type Partner = {
-  id: string;
-  name: string;
-  partner_type: string;
-  ownership_percentage: number;
-  share_value: number;
-  contact_info: {
-    email?: string;
-    phone?: string;
-  };
-  created_at: string;
-};
+import type { Partner } from "@/types/database";
 
 export default function PartnersList() {
   const { toast } = useToast();
@@ -56,7 +44,21 @@ export default function PartnersList() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Partner[];
+      
+      // Transform the data to match Partner type
+      const transformedData = data.map(partner => ({
+        id: partner.id || crypto.randomUUID(),
+        name: partner.name,
+        partner_type: partner.partner_type,
+        ownership_percentage: partner.ownership_percentage,
+        share_value: partner.share_value || 0,
+        contact_info: partner.contact_info,
+        documents: partner.documents,
+        created_at: partner.created_at,
+        updated_at: partner.updated_at
+      })) as Partner[];
+
+      return transformedData;
     },
   });
 
