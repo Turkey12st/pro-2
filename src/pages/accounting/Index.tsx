@@ -193,3 +193,8 @@ export default function AccountingPage() {
     </AppLayout>
   );
 }
+// قبل التعديل:
+<span>{entry.description} - {entry.amount} ر.س</span>
+
+// بعد التعديل:
+<span>{entry.description} - {entry.amount} SAR</span>
