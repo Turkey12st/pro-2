@@ -18,22 +18,35 @@ import EmployeeForm from "@/components/hr/EmployeeForm";
 import { EmployeeCostCalculator } from "@/components/hr/EmployeeCalculator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const queryClient = new QueryClient();
 
+function formatNumber(num: number) {
+  return new Intl.NumberFormat('ar-SA').format(num);
+}
+
 export default function HRPage() {
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("list");
 
-  // استعلام عن بيانات الموظفين
-  const { data: employeesData } = useQuery({
+  const { data: employeesData, isLoading, error } = useQuery({
     queryKey: ["employees"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("employees")
         .select("*");
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching employees:", error);
+        toast({
+          title: "خطأ في جلب البيانات",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
       return data;
     },
   });
@@ -51,6 +64,49 @@ export default function HRPage() {
     const employeeMonth = new Date(emp.created_at).getMonth();
     return employeeMonth === currentMonth;
   }).length || 0;
+
+  if (error) {
+    toast({
+      title: "خطأ في تحميل البيانات",
+      description: "حدث خطأ أثناء محاولة تحميل بيانات الموظفين",
+      variant: "destructive",
+    });
+  }
+
+  const handleExportToExcel = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("*");
+      
+      if (error) throw error;
+
+      // تحويل البيانات إلى صيغة CSV
+      const csvContent = "data:text/csv;charset=utf-8," + 
+        Object.keys(data[0]).join(",") + "\n" +
+        data.map(row => Object.values(row).join(",")).join("\n");
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "employees.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "تم التصدير بنجاح",
+        description: "تم تصدير بيانات الموظفين بنجاح",
+      });
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      toast({
+        title: "خطأ في التصدير",
+        description: "حدث خطأ أثناء محاولة تصدير البيانات",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <AppLayout>
@@ -84,6 +140,7 @@ export default function HRPage() {
               variant="outline" 
               size="sm" 
               className="flex items-center gap-2 flex-1 sm:flex-none"
+              onClick={handleExportToExcel}
             >
               <FileText className="h-4 w-4" />
               تصدير إلى Excel

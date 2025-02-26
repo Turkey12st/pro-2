@@ -9,18 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      "1": {
-        Row: {
-          created_at: string
-        }
-        Insert: {
-          created_at?: string
-        }
-        Update: {
-          created_at?: string
-        }
-        Relationships: []
-      }
       allowance_types: {
         Row: {
           created_at: string
@@ -114,7 +102,7 @@ export type Database = {
         }
         Relationships: []
       }
-      Capital_Management: {
+      capital_management: {
         Row: {
           available_capital: number
           created_at: string
@@ -293,7 +281,7 @@ export type Database = {
         }
         Relationships: []
       }
-      Company_Info: {
+      company_Info: {
         Row: {
           commercial_registration: string
           company_name: string
