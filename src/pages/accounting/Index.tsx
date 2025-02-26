@@ -189,4 +189,10 @@ export default function AccountingPage() {
   );
 }
 npm install react-toastify
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    const storedEntries = localStorage.getItem(STORAGE_KEY);
+    if (storedEntries) setJournalEntries(JSON.parse(storedEntries));
+  }
+}, []);
 
