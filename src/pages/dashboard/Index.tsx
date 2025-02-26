@@ -1,4 +1,3 @@
-
 import AppLayout from "@/components/AppLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { NotificationsList } from "@/components/dashboard/NotificationsList";
@@ -19,11 +18,11 @@ import type { CompanyInfo, Partner, CapitalManagement } from "@/types/database";
 
 export default function DashboardPage() {
   // جلب معلومات الشركة
-  const { data: companyData, isLoading: isLoadingCompany } = useQuery({
+  const { data: companyData, isLoading: isLoadingCompany, isError: isErrorCompany } = useQuery({
     queryKey: ['company_info'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("company_Info") // تم تغيير الاسم ليطابق اسم الجدول في قاعدة البيانات
+        .from("company_info") // تم تصحيح اسم الجدول
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -35,7 +34,7 @@ export default function DashboardPage() {
   });
 
   // جلب الشركاء
-  const { data: partners, isLoading: isLoadingPartners } = useQuery({
+  const { data: partners, isLoading: isLoadingPartners, isError: isErrorPartners } = useQuery({
     queryKey: ['partners'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -49,7 +48,7 @@ export default function DashboardPage() {
   });
 
   // جلب بيانات رأس المال
-  const { data: capitalData, isLoading: isLoadingCapital } = useQuery({
+  const { data: capitalData, isLoading: isLoadingCapital, isError: isErrorCapital } = useQuery({
     queryKey: ['capital_management'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -63,6 +62,11 @@ export default function DashboardPage() {
       return data as CapitalManagement;
     }
   });
+
+  // معالجة الأخطاء العامة
+  if (isErrorCompany || isErrorPartners || isErrorCapital) {
+    return <div className="text-red-500">حدث خطأ أثناء جلب البيانات</div>;
+  }
 
   return (
     <AppLayout>
@@ -87,7 +91,7 @@ export default function DashboardPage() {
                   <p><strong>نوع الشركة:</strong> {companyData.company_type}</p>
                   <p><strong>تاريخ التأسيس:</strong> {companyData.establishment_date}</p>
                   <p><strong>رقم السجل التجاري:</strong> {companyData.commercial_registration}</p>
-                  <p><strong>الرقم الموحد:</strong> {companyData["Unified National Number"]}</p>
+                  <p><strong>الرقم الموحد:</strong> {companyData.unified_national_number}</p> {/* تم تصحيح اسم العمود */}
                 </div>
               ) : (
                 <Alert>
@@ -99,7 +103,6 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -132,23 +135,20 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
-
         {/* بطاقات المؤشرات الرئيسية */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             title="رأس المال المتاح"
-            value={capitalData ? `${capitalData.available_capital?.toLocaleString()} ريال` : "0 ريال"}
-            description={capitalData ? `من إجمالي ${capitalData.total_capital?.toLocaleString()} ريال` : "لا يوجد بيانات"}
+            value={capitalData?.available_capital?.toLocaleString() || "0 ريال"}
+            description={`من إجمالي ${capitalData?.total_capital?.toLocaleString() || "0"} ريال`}
             icon={Wallet}
           />
-
           <StatCard
             title="الشركاء"
             value={partners?.length || 0}
             description="إجمالي عدد الشركاء"
             icon={Users}
           />
-
           <StatCard
             title="التأمينات الاجتماعية"
             value={"محتسب تلقائياً"}
@@ -156,13 +156,11 @@ export default function DashboardPage() {
             icon={FileCheck}
           />
         </div>
-
         {/* المخططات والتنبيهات */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <NotificationsList />
           <CashFlowChart />
         </div>
-
         <FinancialChart />
       </div>
     </AppLayout>
