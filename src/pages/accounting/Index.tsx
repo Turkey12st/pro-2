@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/components/AppLayout";
-import { Calculator, Plus } from "lucide-react";
+import { Calculator, Plus, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,14 +12,41 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import JournalEntryForm from "./components/JournalEntryForm";
-import { JournalEntry } from "./types";
+
+// نوع بيانات القيد المحاسبي
+type JournalEntry = {
+  id: string;
+  description: string;
+  amount: number;
+};
 
 export default function AccountingPage() {
   const [isOpen, setIsOpen] = useState(false);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]); // لتخزين القيود المحاسبية
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
 
-  const handleSuccess = (newEntry: JournalEntry) => {
-    setJournalEntries((prevEntries) => [...prevEntries, newEntry]); // إضافة القيد الجديد إلى القائمة
+  // إضافة قيد جديد
+  const handleAddEntry = (newEntry: Omit<JournalEntry, "id">) => {
+    const entryWithId = { ...newEntry, id: Date.now().toString() }; // إنشاء معرف فريد باستخدام التوقيت
+    setJournalEntries((prevEntries) => [...prevEntries, entryWithId]);
+    setIsOpen(false);
+  };
+
+  // حذف قيد
+  const handleDeleteEntry = (id: string) => {
+    setJournalEntries((prevEntries) =>
+      prevEntries.filter((entry) => entry.id !== id)
+    );
+  };
+
+  // تعديل قيد
+  const handleEditEntry = (updatedEntry: JournalEntry) => {
+    setJournalEntries((prevEntries) =>
+      prevEntries.map((entry) =>
+        entry.id === updatedEntry.id ? updatedEntry : entry
+      )
+    );
+    setEditingEntry(null);
     setIsOpen(false);
   };
 
@@ -37,30 +64,67 @@ export default function AccountingPage() {
             {/* زر إضافة قيد جديد */}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full">
+                <Button className="w-full mb-4">
                   <Plus className="h-4 w-4 ml-2" />
                   إضافة قيد محاسبي جديد
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                  <DialogTitle>إضافة قيد محاسبي</DialogTitle>
+                  <DialogTitle>
+                    {editingEntry ? "تعديل قيد محاسبي" : "إضافة قيد محاسبي"}
+                  </DialogTitle>
                   <DialogDescription>
                     أدخل تفاصيل القيد المحاسبي. جميع الحقول مطلوبة.
                   </DialogDescription>
                 </DialogHeader>
-                <JournalEntryForm onSuccess={handleSuccess} onClose={() => setIsOpen(false)} />
+                <JournalEntryForm
+                  initialData={editingEntry}
+                  onSuccess={(data) =>
+                    editingEntry
+                      ? handleEditEntry({ ...data, id: editingEntry.id })
+                      : handleAddEntry(data)
+                  }
+                  onClose={() => {
+                    setIsOpen(false);
+                    setEditingEntry(null);
+                  }}
+                />
               </DialogContent>
             </Dialog>
 
             {/* عرض قائمة القيود المحاسبية */}
             <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-4">القيود المحاسبية المضافة:</h3>
+              <h3 className="text-lg font-semibold mb-4">القيود المحاسبية:</h3>
               {journalEntries.length > 0 ? (
                 <ul className="space-y-2">
-                  {journalEntries.map((entry, index) => (
-                    <li key={index} className="p-2 border rounded-md">
-                      {entry.description} - {entry.amount} ر.س
+                  {journalEntries.map((entry) => (
+                    <li
+                      key={entry.id}
+                      className="p-2 border rounded-md flex justify-between items-center"
+                    >
+                      <span>
+                        {entry.description} - {entry.amount} ر.س
+                      </span>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingEntry(entry);
+                            setIsOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteEntry(entry.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </li>
                   ))}
                 </ul>
