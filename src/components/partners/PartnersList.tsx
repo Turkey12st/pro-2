@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -45,20 +44,18 @@ export default function PartnersList() {
 
       if (error) throw error;
       
-      // Transform the data to match Partner type
-      const transformedData = data.map(partner => ({
-        id: partner.id || crypto.randomUUID(),
+      // تحويل البيانات لتطابق نوع Partner
+      return data.map(partner => ({
+        id: crypto.randomUUID(), // إنشاء معرف فريد لكل شريك
         name: partner.name,
-        partner_type: partner.partner_type,
+        partner_type: partner.partner_type || 'individual',
         ownership_percentage: partner.ownership_percentage,
         share_value: partner.share_value || 0,
-        contact_info: partner.contact_info,
-        documents: partner.documents,
+        contact_info: partner.contact_info || {},
+        documents: partner.documents || [],
         created_at: partner.created_at,
         updated_at: partner.updated_at
-      })) as Partner[];
-
-      return transformedData;
+      }));
     },
   });
 
@@ -67,7 +64,7 @@ export default function PartnersList() {
       const { error } = await supabase
         .from("company_partners")
         .delete()
-        .eq("id", partner.id);
+        .match({ name: partner.name, created_at: partner.created_at }); // استخدام اسم الشريك وتاريخ الإنشاء للتطابق
 
       if (error) throw error;
 

@@ -10,17 +10,17 @@ export interface CompanyInfo {
 }
 
 export interface Partner {
-  id?: string;
+  id: string;
   name: string;
   partner_type: string;
   ownership_percentage: number;
   share_value: number;
   contact_info: {
-    email: string;
-    phone: string;
+    email?: string;
+    phone?: string;
   };
   documents: any[];
-  created_at?: string;
+  created_at: string;
   updated_at?: string;
 }
 

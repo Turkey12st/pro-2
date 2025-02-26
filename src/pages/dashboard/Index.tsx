@@ -23,7 +23,7 @@ export default function DashboardPage() {
     queryKey: ['company_info'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("company_info")
+        .from("company_Info") // تم تغيير الاسم ليطابق اسم الجدول في قاعدة البيانات
         .select('*')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -36,7 +36,7 @@ export default function DashboardPage() {
 
   // جلب الشركاء
   const { data: partners, isLoading: isLoadingPartners } = useQuery({
-    queryKey: ['company_partners'],
+    queryKey: ['partners'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("company_partners")
