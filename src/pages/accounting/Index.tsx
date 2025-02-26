@@ -42,7 +42,7 @@ export default function AccountingPage() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                  <DialogTitle>إضافة قيد محاسبي جديد</DialogTitle>
+                  <DialogTitle>إضافة قيد محاسبي </DialogTitle>
                   <DialogDescription>
                     أدخل تفاصيل القيد المحاسبي. جميع الحقول مطلوبة.
                   </DialogDescription>
