@@ -7,6 +7,13 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ClientFormData = {
   name: string;
@@ -15,7 +22,7 @@ type ClientFormData = {
   vat_number: string;
   cr_number: string;
   contact_person: string;
-  type: string;
+  type: "company" | "individual";
 };
 
 const initialFormData: ClientFormData = {
@@ -31,6 +38,7 @@ const initialFormData: ClientFormData = {
 export default function ClientForm({ onSuccess }: { onSuccess: () => void }) {
   const [formData, setFormData] = useState<ClientFormData>(initialFormData);
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useAutoSave({
     formType: "client",
@@ -39,13 +47,30 @@ export default function ClientForm({ onSuccess }: { onSuccess: () => void }) {
   });
 
   const handleSubmit = async () => {
+    if (!formData.name) {
+      toast({
+        variant: "destructive",
+        title: "خطأ في البيانات",
+        description: "يرجى إدخال اسم العميل",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      const { error } = await supabase.from("clients").insert([formData]);
+      const { error } = await supabase.from("clients").insert([
+        {
+          ...formData,
+          metadata: {},
+          address: {},
+        }
+      ]);
 
       if (error) throw error;
 
       toast({
         title: "تم إضافة العميل بنجاح",
+        description: `تم إضافة العميل ${formData.name} بنجاح`,
       });
 
       onSuccess();
@@ -56,6 +81,8 @@ export default function ClientForm({ onSuccess }: { onSuccess: () => void }) {
         title: "خطأ في إضافة العميل",
         description: "حدث خطأ أثناء حفظ بيانات العميل",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -63,12 +90,31 @@ export default function ClientForm({ onSuccess }: { onSuccess: () => void }) {
     <Card>
       <CardContent className="pt-6 space-y-4">
         <div className="space-y-2">
+          <Label>نوع العميل</Label>
+          <Select
+            value={formData.type}
+            onValueChange={(value: "company" | "individual") =>
+              setFormData((prev) => ({ ...prev, type: value }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="اختر نوع العميل" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="company">شركة</SelectItem>
+              <SelectItem value="individual">فرد</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
           <Label>اسم العميل</Label>
           <Input
             value={formData.name}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, name: e.target.value }))
             }
+            required
           />
         </div>
 
@@ -126,8 +172,12 @@ export default function ClientForm({ onSuccess }: { onSuccess: () => void }) {
           </div>
         </div>
 
-        <Button onClick={handleSubmit} className="w-full">
-          إضافة العميل
+        <Button 
+          onClick={handleSubmit} 
+          className="w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "جاري الحفظ..." : "إضافة العميل"}
         </Button>
       </CardContent>
     </Card>
