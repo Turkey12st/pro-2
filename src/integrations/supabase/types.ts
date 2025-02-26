@@ -300,7 +300,9 @@ export type Database = {
           company_type: string
           created_at: string
           establishment_date: string
+          hrsd_number: string | null
           id: string
+          social_insurance_number: string | null
           "Unified National Number": number
         }
         Insert: {
@@ -309,7 +311,9 @@ export type Database = {
           company_type: string
           created_at?: string
           establishment_date: string
+          hrsd_number?: string | null
           id?: string
+          social_insurance_number?: string | null
           "Unified National Number": number
         }
         Update: {
@@ -318,7 +322,9 @@ export type Database = {
           company_type?: string
           created_at?: string
           establishment_date?: string
+          hrsd_number?: string | null
           id?: string
+          social_insurance_number?: string | null
           "Unified National Number"?: number
         }
         Relationships: []
@@ -361,6 +367,7 @@ export type Database = {
           base_salary: number | null
           birth_date: string
           branch: string | null
+          company_gosi_contribution: number | null
           contract_type: string
           cost_breakdown: Json | null
           created_at: string
@@ -369,6 +376,7 @@ export type Database = {
           documents: Json | null
           documents_expiry: Json | null
           email: string
+          employee_gosi_contribution: number | null
           employee_type: string | null
           employment_number: string | null
           gosi_subscription: number | null
@@ -376,6 +384,8 @@ export type Database = {
           id: string
           identity_number: string
           joining_date: string
+          labor_fees: number | null
+          medical_insurance_cost: number | null
           name: string
           nationality: string
           other_allowances: Json | null
@@ -383,12 +393,15 @@ export type Database = {
           photo_url: string | null
           position: string
           salary: number
+          transfer_fees: number | null
           transportation_allowance: number | null
+          visa_fees: number | null
         }
         Insert: {
           base_salary?: number | null
           birth_date: string
           branch?: string | null
+          company_gosi_contribution?: number | null
           contract_type: string
           cost_breakdown?: Json | null
           created_at?: string
@@ -397,6 +410,7 @@ export type Database = {
           documents?: Json | null
           documents_expiry?: Json | null
           email: string
+          employee_gosi_contribution?: number | null
           employee_type?: string | null
           employment_number?: string | null
           gosi_subscription?: number | null
@@ -404,6 +418,8 @@ export type Database = {
           id?: string
           identity_number: string
           joining_date: string
+          labor_fees?: number | null
+          medical_insurance_cost?: number | null
           name: string
           nationality: string
           other_allowances?: Json | null
@@ -411,12 +427,15 @@ export type Database = {
           photo_url?: string | null
           position: string
           salary: number
+          transfer_fees?: number | null
           transportation_allowance?: number | null
+          visa_fees?: number | null
         }
         Update: {
           base_salary?: number | null
           birth_date?: string
           branch?: string | null
+          company_gosi_contribution?: number | null
           contract_type?: string
           cost_breakdown?: Json | null
           created_at?: string
@@ -425,6 +444,7 @@ export type Database = {
           documents?: Json | null
           documents_expiry?: Json | null
           email?: string
+          employee_gosi_contribution?: number | null
           employee_type?: string | null
           employment_number?: string | null
           gosi_subscription?: number | null
@@ -432,6 +452,8 @@ export type Database = {
           id?: string
           identity_number?: string
           joining_date?: string
+          labor_fees?: number | null
+          medical_insurance_cost?: number | null
           name?: string
           nationality?: string
           other_allowances?: Json | null
@@ -439,7 +461,9 @@ export type Database = {
           photo_url?: string | null
           position?: string
           salary?: number
+          transfer_fees?: number | null
           transportation_allowance?: number | null
+          visa_fees?: number | null
         }
         Relationships: []
       }
@@ -502,6 +526,39 @@ export type Database = {
           reference_type?: string | null
           status?: string
           transaction_type?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
+      government_fees: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string | null
+          effective_date: string
+          id: string
+          status: string | null
+          type: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          description?: string | null
+          effective_date: string
+          id?: string
+          status?: string | null
+          type: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          effective_date?: string
+          id?: string
+          status?: string | null
           type?: string
         }
         Relationships: []
@@ -949,6 +1006,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sponsorship_transfer_fees: {
+        Row: {
+          created_at: string
+          effective_date: string
+          fee_amount: number
+          id: string
+          transfer_count: number
+        }
+        Insert: {
+          created_at?: string
+          effective_date: string
+          fee_amount: number
+          id?: string
+          transfer_count: number
+        }
+        Update: {
+          created_at?: string
+          effective_date?: string
+          fee_amount?: number
+          id?: string
+          transfer_count?: number
+        }
+        Relationships: []
       }
       zakat_calculations: {
         Row: {

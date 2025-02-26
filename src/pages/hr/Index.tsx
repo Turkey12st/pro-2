@@ -12,17 +12,45 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import EmployeeList from "@/components/hr/EmployeeList";
 import EmployeeForm from "@/components/hr/EmployeeForm";
 import { EmployeeCostCalculator } from "@/components/hr/EmployeeCalculator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
 export default function HRPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("list");
+
+  // استعلام عن بيانات الموظفين
+  const { data: employeesData } = useQuery({
+    queryKey: ["employees"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("*");
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // حساب إجمالي الرواتب والتأمينات
+  const totalEmployees = employeesData?.length || 0;
+  const totalSalaries = employeesData?.reduce((sum, emp) => 
+    sum + (emp.salary || 0), 0) || 0;
+  const totalGosi = employeesData?.reduce((sum, emp) => 
+    sum + (emp.employee_gosi_contribution || 0) + (emp.company_gosi_contribution || 0), 0) || 0;
+
+  // حساب الموظفين الجدد هذا الشهر
+  const currentMonth = new Date().getMonth();
+  const newEmployeesCount = employeesData?.filter(emp => {
+    const employeeMonth = new Date(emp.created_at).getMonth();
+    return employeeMonth === currentMonth;
+  }).length || 0;
 
   return (
     <AppLayout>
@@ -78,9 +106,9 @@ export default function HRPage() {
               <Users2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">{totalEmployees}</div>
               <p className="text-xs text-muted-foreground">
-                +2 موظف جديد هذا الشهر
+                +{newEmployeesCount} موظف جديد هذا الشهر
               </p>
             </CardContent>
           </Card>
@@ -90,7 +118,7 @@ export default function HRPage() {
               <Calculator className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">45,000 ريال</div>
+              <div className="text-2xl font-bold">{formatNumber(totalSalaries)} ريال</div>
               <p className="text-xs text-muted-foreground">
                 تم تحديث التكاليف آخر مرة اليوم
               </p>
@@ -102,9 +130,9 @@ export default function HRPage() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4,387 ريال</div>
+              <div className="text-2xl font-bold">{formatNumber(totalGosi)} ريال</div>
               <p className="text-xs text-muted-foreground">
-                مستحقات شهر فبراير 2024
+                مستحقات التأمينات الشهرية
               </p>
             </CardContent>
           </Card>

@@ -1,4 +1,3 @@
-
 export type Employee = {
   id: string;
   created_at: string;
@@ -26,6 +25,12 @@ export type Employee = {
     amount: number;
   }[];
   gosiSubscription: number;
+  employeeGosiContribution: number;
+  companyGosiContribution: number;
+  medicalInsuranceCost: number;
+  visaFees: number;
+  transferFees: number;
+  laborFees: number;
 };
 
 export type DbEmployee = {
@@ -55,6 +60,12 @@ export type DbEmployee = {
     amount: number;
   }[];
   gosi_subscription: number;
+  employee_gosi_contribution: number;
+  company_gosi_contribution: number;
+  medical_insurance_cost: number;
+  visa_fees: number;
+  transfer_fees: number;
+  labor_fees: number;
 };
 
 export type AllowanceType = {
@@ -108,7 +119,13 @@ export const mapDbEmployeeToEmployee = (dbEmployee: DbEmployee): Employee => ({
   housingAllowance: dbEmployee.housing_allowance,
   transportationAllowance: dbEmployee.transportation_allowance,
   otherAllowances: dbEmployee.other_allowances,
-  gosiSubscription: dbEmployee.gosi_subscription
+  gosiSubscription: dbEmployee.gosi_subscription,
+  employeeGosiContribution: dbEmployee.employee_gosi_contribution,
+  companyGosiContribution: dbEmployee.company_gosi_contribution,
+  medicalInsuranceCost: dbEmployee.medical_insurance_cost,
+  visaFees: dbEmployee.visa_fees,
+  transferFees: dbEmployee.transfer_fees,
+  laborFees: dbEmployee.labor_fees
 });
 
 export const mapEmployeeToDbEmployee = (employee: Employee): DbEmployee => ({
@@ -134,5 +151,11 @@ export const mapEmployeeToDbEmployee = (employee: Employee): DbEmployee => ({
   housing_allowance: employee.housingAllowance,
   transportation_allowance: employee.transportationAllowance,
   other_allowances: employee.otherAllowances,
-  gosi_subscription: employee.gosiSubscription
+  gosi_subscription: employee.gosiSubscription,
+  employee_gosi_contribution: employee.employeeGosiContribution,
+  company_gosi_contribution: employee.companyGosiContribution,
+  medical_insurance_cost: employee.medicalInsuranceCost,
+  visa_fees: employee.visaFees,
+  transfer_fees: employee.transferFees,
+  labor_fees: employee.laborFees
 });
