@@ -283,36 +283,57 @@ export type Database = {
       }
       company_Info: {
         Row: {
+          address: Json | null
+          bank_iban: string | null
+          bank_name: string | null
           commercial_registration: string
           company_name: string
           company_type: string
           created_at: string
+          economic_activity: string | null
           establishment_date: string
           hrsd_number: string | null
           id: string
+          license_expiry_date: string | null
+          nitaqat_activity: string | null
           social_insurance_number: string | null
+          tax_number: string | null
           "Unified National Number": number
         }
         Insert: {
+          address?: Json | null
+          bank_iban?: string | null
+          bank_name?: string | null
           commercial_registration: string
           company_name: string
           company_type: string
           created_at?: string
+          economic_activity?: string | null
           establishment_date: string
           hrsd_number?: string | null
           id?: string
+          license_expiry_date?: string | null
+          nitaqat_activity?: string | null
           social_insurance_number?: string | null
+          tax_number?: string | null
           "Unified National Number": number
         }
         Update: {
+          address?: Json | null
+          bank_iban?: string | null
+          bank_name?: string | null
           commercial_registration?: string
           company_name?: string
           company_type?: string
           created_at?: string
+          economic_activity?: string | null
           establishment_date?: string
           hrsd_number?: string | null
           id?: string
+          license_expiry_date?: string | null
+          nitaqat_activity?: string | null
           social_insurance_number?: string | null
+          tax_number?: string | null
           "Unified National Number"?: number
         }
         Relationships: []
@@ -367,6 +388,7 @@ export type Database = {
           employee_gosi_contribution: number | null
           employee_type: string | null
           employment_number: string | null
+          gosi_details: Json | null
           gosi_subscription: number | null
           housing_allowance: number | null
           id: string
@@ -401,6 +423,7 @@ export type Database = {
           employee_gosi_contribution?: number | null
           employee_type?: string | null
           employment_number?: string | null
+          gosi_details?: Json | null
           gosi_subscription?: number | null
           housing_allowance?: number | null
           id?: string
@@ -435,6 +458,7 @@ export type Database = {
           employee_gosi_contribution?: number | null
           employee_type?: string | null
           employment_number?: string | null
+          gosi_details?: Json | null
           gosi_subscription?: number | null
           housing_allowance?: number | null
           id?: string
@@ -553,10 +577,13 @@ export type Database = {
       }
       journal_entries: {
         Row: {
+          amount: number | null
           created_at: string
           created_by: string | null
           description: string
           entry_date: string
+          entry_name: string | null
+          financial_statement_section: string | null
           id: string
           posted_at: string | null
           posted_by: string | null
@@ -567,10 +594,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          amount?: number | null
           created_at?: string
           created_by?: string | null
           description: string
           entry_date: string
+          entry_name?: string | null
+          financial_statement_section?: string | null
           id?: string
           posted_at?: string | null
           posted_by?: string | null
@@ -581,10 +611,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          amount?: number | null
           created_at?: string
           created_by?: string | null
           description?: string
           entry_date?: string
+          entry_name?: string | null
+          financial_statement_section?: string | null
           id?: string
           posted_at?: string | null
           posted_by?: string | null

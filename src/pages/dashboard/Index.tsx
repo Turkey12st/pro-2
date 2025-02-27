@@ -1,3 +1,4 @@
+
 import AppLayout from "@/components/AppLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { NotificationsList } from "@/components/dashboard/NotificationsList";
@@ -81,6 +82,9 @@ export default function DashboardPage() {
           available_capital: 80000,
           reserved_capital: 20000,
           notes: 'بيانات افتراضية - يرجى تحديثها',
+          description: `رأس المال الكلي: إجمالي رأس مال الشركة المسجل
+رأس المال المتاح: المبلغ المتاح للاستثمار والمصروفات
+رأس المال المحجوز: المبلغ المخصص للالتزامات والمشاريع القائمة`,
           turnover_rate: 0,
           created_at: new Date().toISOString(),
           last_updated: new Date().toISOString()
@@ -164,7 +168,6 @@ export default function DashboardPage() {
                 <div className="space-y-2">
                   <p><strong>اسم الشركة:</strong> {companyData.company_name}</p>
                   <p><strong>نوع الشركة:</strong> {companyData.company_type}</p>
-                  <p><strong>رقم السجل التجاري:</strong> {companyData.commercial_registration}</p>
                   <p><strong>تاريخ التأسيس:</strong> {companyData.establishment_date}</p>
                   <p><strong>تاريخ انتهاء الترخيص:</strong> {companyData.license_expiry_date || 'غير محدد'}</p>
                   <p><strong>الرقم الموحد:</strong> {companyData.unified_national_number}</p>
