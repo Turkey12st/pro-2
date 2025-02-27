@@ -6,13 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface JournalEntryFormProps {
   initialData?: {
     description: string;
     amount: number;
+    entry_type?: string;
   };
-  onSuccess: (data: { description: string; amount: number }) => void;
+  onSuccess: (data: { description: string; amount: number; entry_type: string }) => void;
   onClose: () => void;
 }
 
@@ -24,6 +26,7 @@ export default function JournalEntryForm({
   const { toast } = useToast();
   const [description, setDescription] = useState(initialData?.description || "");
   const [amount, setAmount] = useState(initialData?.amount || 0);
+  const [entryType, setEntryType] = useState(initialData?.entry_type || "income");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,23 +54,45 @@ export default function JournalEntryForm({
     console.info("بدء عملية حفظ القيد المحاسبي...");
 
     try {
-      // حفظ القيد في قاعدة البيانات
-      const { error } = await supabase.from("journal_entries").insert({
+      // تحضير بيانات القيد المحاسبي
+      const entryData = {
         description,
         amount,
-        entry_date: new Date().toISOString(),
-        entry_type: amount > 0 ? "income" : "expense",
-        status: "draft",
-      });
+        entry_date: new Date().toISOString().split('T')[0],
+        entry_type: entryType,
+        status: "active",
+        total_debit: entryType === 'expense' ? amount : 0,
+        total_credit: entryType === 'income' ? amount : 0,
+      };
 
-      if (error) throw error;
+      // حفظ القيد في قاعدة البيانات
+      const { error } = await supabase.from("journal_entries").insert(entryData);
+
+      if (error) {
+        // في حالة عدم وجود عمود amount، نحاول استخدام الأعمدة الأخرى
+        if (error.message.includes("amount")) {
+          const altEntryData = {
+            description,
+            entry_date: new Date().toISOString().split('T')[0],
+            entry_type: entryType,
+            status: "active",
+            total_debit: entryType === 'expense' ? amount : 0,
+            total_credit: entryType === 'income' ? amount : 0,
+          };
+          
+          const { error: altError } = await supabase.from("journal_entries").insert(altEntryData);
+          if (altError) throw altError;
+        } else {
+          throw error;
+        }
+      }
 
       toast({
         title: "تم الحفظ بنجاح",
         description: "تم حفظ القيد المحاسبي بنجاح",
       });
 
-      onSuccess({ description, amount });
+      onSuccess({ description, amount, entry_type: entryType });
     } catch (error) {
       console.error("خطأ في حفظ القيد المحاسبي:", error);
       toast({
@@ -102,6 +127,21 @@ export default function JournalEntryForm({
           placeholder="أدخل المبلغ"
           required
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="entry_type">نوع القيد</Label>
+        <Select 
+          value={entryType} 
+          onValueChange={setEntryType}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="اختر نوع القيد" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="income">إيراد</SelectItem>
+            <SelectItem value="expense">مصروف</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="flex justify-end space-x-2 space-x-reverse">
         <Button type="button" variant="outline" onClick={onClose}>

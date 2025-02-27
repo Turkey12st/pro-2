@@ -50,23 +50,45 @@ export function useAutoSave<T extends Record<string, any>>({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const saveObject = {
-        user_id: user.id,
-        form_type: formType,
-        form_data: formData as any,
-        updated_at: new Date().toISOString()
-      };
-
-      const { error } = await supabase
+      // Comprobar primero si ya existe un registro
+      const { data: existingRecord, error: queryError } = await supabase
         .from('auto_saves')
-        .upsert(saveObject, {
-          onConflict: 'user_id,form_type'
-        });
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('form_type', formType)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (queryError) throw queryError;
+
+      if (existingRecord) {
+        // Actualizar el registro existente
+        const { error: updateError } = await supabase
+          .from('auto_saves')
+          .update({
+            form_data: formData as any,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+          .eq('form_type', formType);
+
+        if (updateError) throw updateError;
+      } else {
+        // Insertar un nuevo registro
+        const { error: insertError } = await supabase
+          .from('auto_saves')
+          .insert({
+            user_id: user.id,
+            form_type: formType,
+            form_data: formData as any,
+            updated_at: new Date().toISOString()
+          });
+
+        if (insertError) throw insertError;
+      }
 
       toast({
         description: "تم حفظ البيانات تلقائياً",
+        duration: 3000,
       });
     } catch (error) {
       console.error('Error saving data:', error);
@@ -80,7 +102,7 @@ export function useAutoSave<T extends Record<string, any>>({
 
   // Debounced save
   const debouncedSave = useCallback(
-    debounce((formData: T) => saveData(formData), 1000),
+    debounce((formData: T) => saveData(formData), 2000),
     [saveData]
   );
 
@@ -88,6 +110,10 @@ export function useAutoSave<T extends Record<string, any>>({
     if (!isLoading && data) {
       debouncedSave(data);
     }
+    
+    return () => {
+      debouncedSave.flush();
+    };
   }, [data, debouncedSave, isLoading]);
 
   return { isLoading };

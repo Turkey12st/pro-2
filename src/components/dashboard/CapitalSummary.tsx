@@ -54,7 +54,9 @@ export function CapitalSummary({ data, isLoading = false }: CapitalSummaryProps)
   }
 
   const { total_capital, available_capital, reserved_capital } = data;
-  const capitalUsagePercentage = ((total_capital - available_capital) / total_capital) * 100;
+  const capitalUsagePercentage = total_capital > 0 
+    ? ((total_capital - available_capital) / total_capital) * 100 
+    : 0;
 
   const handleCapitalIncrease = async () => {
     if (!increaseAmount || Number(increaseAmount) <= 0) {
@@ -72,29 +74,54 @@ export function CapitalSummary({ data, isLoading = false }: CapitalSummaryProps)
       const increasedAmount = Number(increaseAmount);
       const newTotalCapital = total_capital + increasedAmount;
       const newAvailableCapital = available_capital + increasedAmount;
+      const currentDate = new Date().toISOString().split('T')[0];
+      const updateNotes = `${data.notes || ''}\n${currentDate}: زيادة رأس المال بمبلغ ${increasedAmount} ريال. السبب: ${increaseReason}`;
 
-      // تحديث رأس المال
-      const { error } = await supabase
-        .from("capital_management")
-        .update({
-          total_capital: newTotalCapital,
-          available_capital: newAvailableCapital,
-          notes: `${data.notes || ''}\n${new Date().toISOString().split('T')[0]}: زيادة رأس المال بمبلغ ${increasedAmount} ريال. السبب: ${increaseReason}`,
-          last_updated: new Date().toISOString()
-        })
-        .eq("id", data.id);
+      // تحديث رأس المال في الجدول capital_management
+      if (data.id) {
+        const { error } = await supabase
+          .from("capital_management")
+          .update({
+            total_capital: newTotalCapital,
+            available_capital: newAvailableCapital,
+            notes: updateNotes,
+            last_updated: new Date().toISOString()
+          })
+          .eq("id", data.id);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // إنشاء سجل جديد إذا لم يكن هناك سجل موجود
+        const { error } = await supabase
+          .from("capital_management")
+          .insert({
+            fiscal_year: new Date().getFullYear(),
+            total_capital: newTotalCapital,
+            available_capital: newAvailableCapital,
+            reserved_capital: reserved_capital || 0,
+            notes: updateNotes
+          });
 
-      // تسجيل الزيادة في سجل رأس المال
-      await supabase.from("capital_history").insert({
-        amount: increasedAmount,
-        operation_type: "increase",
-        notes: increaseReason,
-        previous_total: total_capital,
-        new_total: newTotalCapital,
-        created_at: new Date().toISOString()
-      });
+        if (error) throw error;
+      }
+
+      // تسجيل الزيادة في سجل تاريخ رأس المال
+      const { error: historyError } = await supabase
+        .from("capital_history")
+        .insert({
+          amount: increasedAmount,
+          transaction_type: "increase", // للتوافق مع أي تغييرات في الهيكل
+          notes: increaseReason,
+          previous_capital: total_capital,
+          new_capital: newTotalCapital,
+          effective_date: currentDate,
+          status: 'approved',
+          created_at: new Date().toISOString()
+        });
+
+      if (historyError) {
+        console.warn("تم تحديث رأس المال لكن فشل تسجيل التاريخ:", historyError);
+      }
 
       toast({
         title: "تمت زيادة رأس المال بنجاح",
@@ -127,7 +154,7 @@ export function CapitalSummary({ data, isLoading = false }: CapitalSummaryProps)
           رأس المال
         </CardTitle>
         <CardDescription>
-          الإحصائيات المالية للسنة المالية {data.fiscal_year}
+          الإحصائيات المالية للسنة المالية {data.fiscal_year || new Date().getFullYear()}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
