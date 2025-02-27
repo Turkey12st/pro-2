@@ -1,3 +1,4 @@
+
 // src/pages/accounting/Index.tsx
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +14,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import JournalEntryForm from "@/components/JournalEntryForm";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // نوع بيانات القيد المحاسبي
 type JournalEntry = {
@@ -56,51 +57,178 @@ export default function AccountingPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [journalEntries, setJournalEntries] = useLocalStorage<JournalEntry[]>(
     STORAGE_KEY,
-    [
-      // قائمة القيود الجاهزة
-      { id: "1", description: "رسوم السجل التجاري", amount: 1775 },
-      { id: "2", description: "مستخرج السجل التجاري", amount: 100 },
-      { id: "3", description: "مصروف رحلة مكة للمهندس محمد", amount: 100 },
-    ]
+    []
   );
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+
+  // جلب القيود المحاسبية من قاعدة البيانات
+  useEffect(() => {
+    const fetchJournalEntries = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("journal_entries")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const formattedEntries = data.map(entry => ({
+            id: entry.id,
+            description: entry.description,
+            amount: entry.amount
+          }));
+          setJournalEntries(formattedEntries);
+        } else if (journalEntries.length === 0) {
+          // إذا لم تكن هناك بيانات في قاعدة البيانات وكانت القائمة المحلية فارغة، قم بإضافة بيانات افتراضية
+          setJournalEntries([
+            { id: "1", description: "رسوم السجل التجاري", amount: 1775 },
+            { id: "2", description: "مستخرج السجل التجاري", amount: 100 },
+            { id: "3", description: "مصروف رحلة مكة للمهندس محمد", amount: 100 },
+          ]);
+        }
+      } catch (error) {
+        console.error("خطأ في جلب القيود المحاسبية:", error);
+        // استخدم البيانات الافتراضية إذا فشل الاتصال بقاعدة البيانات
+        if (journalEntries.length === 0) {
+          setJournalEntries([
+            { id: "1", description: "رسوم السجل التجاري", amount: 1775 },
+            { id: "2", description: "مستخرج السجل التجاري", amount: 100 },
+            { id: "3", description: "مصروف رحلة مكة للمهندس محمد", amount: 100 },
+          ]);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchJournalEntries();
+  }, []);
 
   // إضافة قيد جديد
-  const handleAddEntry = (newEntry: Omit<JournalEntry, "id">) => {
+  const handleAddEntry = async (newEntry: Omit<JournalEntry, "id">) => {
     if (!newEntry.description || newEntry.amount <= 0) {
-      toast.error("يرجى إدخال وصف صحيح ومبلغ أكبر من صفر.");
+      toast({
+        variant: "destructive",
+        title: "خطأ في البيانات",
+        description: "يرجى إدخال وصف صحيح ومبلغ أكبر من صفر.",
+      });
       return;
     }
-    const entryWithId = { ...newEntry, id: Date.now().toString() };
-    setJournalEntries((prevEntries) => [...prevEntries, entryWithId]);
-    toast.success("تمت إضافة القيد بنجاح!");
-    setIsOpen(false);
+
+    try {
+      // حفظ القيد في قاعدة البيانات
+      const { data, error } = await supabase
+        .from("journal_entries")
+        .insert({
+          description: newEntry.description,
+          amount: newEntry.amount,
+          entry_date: new Date().toISOString(),
+          entry_type: newEntry.amount > 0 ? "income" : "expense",
+          status: "active",
+        })
+        .select();
+
+      if (error) throw error;
+
+      const createdEntry = data[0];
+      const entryWithId = { 
+        id: createdEntry.id, 
+        description: createdEntry.description, 
+        amount: createdEntry.amount 
+      };
+      
+      setJournalEntries((prevEntries) => [...prevEntries, entryWithId]);
+      toast({
+        title: "تمت إضافة القيد بنجاح!",
+        description: "تم حفظ القيد المحاسبي في قاعدة البيانات",
+      });
+      setIsOpen(false);
+    } catch (error) {
+      console.error("خطأ في حفظ القيد المحاسبي:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في الحفظ",
+        description: "حدث خطأ أثناء محاولة حفظ القيد المحاسبي",
+      });
+    }
   };
 
   // حذف قيد
-  const handleDeleteEntry = (id: string) => {
+  const handleDeleteEntry = async (id: string) => {
     if (window.confirm("هل أنت متأكد من أنك تريد حذف هذا القيد؟")) {
-      setJournalEntries((prevEntries) =>
-        prevEntries.filter((entry) => entry.id !== id)
-      );
-      toast.success("تم حذف القيد بنجاح!");
+      try {
+        // حذف القيد من قاعدة البيانات
+        const { error } = await supabase
+          .from("journal_entries")
+          .delete()
+          .eq("id", id);
+
+        if (error) throw error;
+
+        setJournalEntries((prevEntries) =>
+          prevEntries.filter((entry) => entry.id !== id)
+        );
+        toast({
+          title: "تم حذف القيد بنجاح!",
+          description: "تم حذف القيد المحاسبي من قاعدة البيانات",
+        });
+      } catch (error) {
+        console.error("خطأ في حذف القيد المحاسبي:", error);
+        toast({
+          variant: "destructive",
+          title: "خطأ في الحذف",
+          description: "حدث خطأ أثناء محاولة حذف القيد المحاسبي",
+        });
+      }
     }
   };
 
   // تعديل قيد
-  const handleEditEntry = (updatedEntry: JournalEntry) => {
+  const handleEditEntry = async (updatedEntry: JournalEntry) => {
     if (!updatedEntry.description || updatedEntry.amount <= 0) {
-      toast.error("يرجى إدخال وصف صحيح ومبلغ أكبر من صفر.");
+      toast({
+        variant: "destructive",
+        title: "خطأ في البيانات",
+        description: "يرجى إدخال وصف صحيح ومبلغ أكبر من صفر.",
+      });
       return;
     }
-    setJournalEntries((prevEntries) =>
-      prevEntries.map((entry) =>
-        entry.id === updatedEntry.id ? updatedEntry : entry
-      )
-    );
-    toast.success("تم تعديل القيد بنجاح!");
-    setEditingEntry(null);
-    setIsOpen(false);
+
+    try {
+      // تحديث القيد في قاعدة البيانات
+      const { error } = await supabase
+        .from("journal_entries")
+        .update({
+          description: updatedEntry.description,
+          amount: updatedEntry.amount,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", updatedEntry.id);
+
+      if (error) throw error;
+
+      setJournalEntries((prevEntries) =>
+        prevEntries.map((entry) =>
+          entry.id === updatedEntry.id ? updatedEntry : entry
+        )
+      );
+      toast({
+        title: "تم تعديل القيد بنجاح!",
+        description: "تم تحديث القيد المحاسبي في قاعدة البيانات",
+      });
+      setEditingEntry(null);
+      setIsOpen(false);
+    } catch (error) {
+      console.error("خطأ في تعديل القيد المحاسبي:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في التعديل",
+        description: "حدث خطأ أثناء محاولة تعديل القيد المحاسبي",
+      });
+    }
   };
 
   // تصدير البيانات إلى ملف JSON
@@ -110,7 +238,10 @@ export default function AccountingPage() {
     downloadLink.href = "data:text/json;charset=utf-8," + encodeURIComponent(dataStr);
     downloadLink.download = "journal-entries.json";
     downloadLink.click();
-    toast.success("تم تصدير البيانات بنجاح!");
+    toast({
+      title: "تم تصدير البيانات بنجاح!",
+      description: "تم تصدير القيود المحاسبية إلى ملف JSON",
+    });
   };
 
   // استيراد البيانات من ملف JSON
@@ -123,9 +254,16 @@ export default function AccountingPage() {
         try {
           const parsedData = JSON.parse(content);
           setJournalEntries(parsedData);
-          toast.success("تم استيراد البيانات بنجاح!");
+          toast({
+            title: "تم استيراد البيانات بنجاح!",
+            description: "تم استيراد القيود المحاسبية من ملف JSON",
+          });
         } catch (error) {
-          toast.error("خطأ في استيراد البيانات. يرجى التحقق من الملف.");
+          toast({
+            variant: "destructive",
+            title: "خطأ في استيراد البيانات",
+            description: "يرجى التحقق من الملف.",
+          });
         }
       };
       reader.readAsText(file);
@@ -161,7 +299,7 @@ export default function AccountingPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <JournalEntryForm
-                  initialData={editingEntry}
+                  initialData={editingEntry || undefined}
                   onSuccess={(data) =>
                     editingEntry
                       ? handleEditEntry({ ...data, id: editingEntry.id })
@@ -182,7 +320,7 @@ export default function AccountingPage() {
                 تصدير البيانات
               </Button>
               <label htmlFor="importFile" className="cursor-pointer">
-                <Button variant="outline">
+                <Button variant="outline" as="span">
                   <Upload className="h-4 w-4 mr-2" />
                   استيراد البيانات
                 </Button>
@@ -199,7 +337,9 @@ export default function AccountingPage() {
             {/* عرض قائمة القيود المحاسبية */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-4">القيود المحاسبية:</h3>
-              {journalEntries.length > 0 ? (
+              {isLoading ? (
+                <p className="text-center py-4">جاري تحميل البيانات...</p>
+              ) : journalEntries.length > 0 ? (
                 <ul className="space-y-2">
                   {journalEntries.map((entry) => (
                     <li

@@ -5,7 +5,7 @@ export interface CompanyInfo {
   company_type: string;
   establishment_date: string;
   commercial_registration: string;
-  "Unified National Number": number;
+  unified_national_number: number;
   created_at: string;
 }
 
@@ -34,4 +34,11 @@ export interface CapitalManagement {
   turnover_rate?: number;
   created_at?: string;
   last_updated?: string;
+}
+
+export interface FinancialSummary {
+  total_income: number;
+  total_expenses: number;
+  net_profit: number;
+  profit_margin: number;
 }
