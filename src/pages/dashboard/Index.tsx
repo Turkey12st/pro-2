@@ -16,17 +16,29 @@ import {
   Building2,
   AlertCircle,
   ArrowUpCircle,
-  ArrowDownCircle
+  ArrowDownCircle,
+  PenLine
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { CompanyInfoForm } from "@/components/company/CompanyInfoForm";
 import type { CompanyInfo, Partner, CapitalManagement, FinancialSummary as FinancialSummaryType } from "@/types/database";
 
 export default function DashboardPage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [showCompanyDialog, setShowCompanyDialog] = useState(false);
 
   // جلب معلومات الشركة
-  const { data: companyData, isLoading: isLoadingCompany, isError: isErrorCompany } = useQuery({
+  const { data: companyData, isLoading: isLoadingCompany, isError: isErrorCompany, refetch: refetchCompany } = useQuery({
     queryKey: ['company_info'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,10 +51,10 @@ export default function DashboardPage() {
       if (error) throw error;
       
       // تحويل البيانات إلى النوع الصحيح
-      return {
+      return data ? {
         ...data,
         unified_national_number: data?.["Unified National Number"]?.toString() || ""
-      } as CompanyInfo;
+      } as CompanyInfo : null;
     }
   });
 
@@ -82,9 +94,7 @@ export default function DashboardPage() {
           available_capital: 80000,
           reserved_capital: 20000,
           notes: 'بيانات افتراضية - يرجى تحديثها',
-          description: `رأس المال الكلي: إجمالي رأس مال الشركة المسجل
-رأس المال المتاح: المبلغ المتاح للاستثمار والمصروفات
-رأس المال المحجوز: المبلغ المخصص للالتزامات والمشاريع القائمة`,
+          description: `رأس المال الكلي: إجمالي رأس مال الشركة المسجل\nرأس المال المتاح: المبلغ المتاح للاستثمار والمصروفات\nرأس المال المحجوز: المبلغ المخصص للالتزامات والمشاريع القائمة`,
           turnover_rate: 0,
           created_at: new Date().toISOString(),
           last_updated: new Date().toISOString()
@@ -95,32 +105,53 @@ export default function DashboardPage() {
     }
   });
 
-  // جلب ملخص الأداء المالي
+  // جلب ملخص الأداء المالي - تم إصلاح مشكلة entry_type
   const { data: financialSummary, isLoading: isLoadingFinancial } = useQuery({
     queryKey: ['financial_summary'],
     queryFn: async () => {
-      const { data: entries, error } = await supabase
-        .from("journal_entries")
-        .select('total_credit, total_debit, entry_type')
-        .in('status', ['active', 'posted']);
-      
-      if (error) throw error;
+      try {
+        // في حالة عدم وجود حقل entry_type، نعتمد على تفاصيل أخرى
+        const { data: entries, error } = await supabase
+          .from("journal_entries")
+          .select('*')
+          .in('status', ['active', 'posted']);
+        
+        if (error) throw error;
+        
+        if (!entries || entries.length === 0) {
+          return {
+            total_income: 0,
+            total_expenses: 0,
+            net_profit: 0,
+            profit_margin: 0
+          } as FinancialSummaryType;
+        }
 
-      const totalIncome = entries?.reduce((sum, entry) => 
-        sum + (entry.entry_type === 'income' ? entry.total_credit : 0), 0) || 0;
-      
-      const totalExpenses = entries?.reduce((sum, entry) => 
-        sum + (entry.entry_type === 'expense' ? entry.total_debit : 0), 0) || 0;
+        // حساب الإيرادات والمصروفات - استناداً إلى total_debit و total_credit
+        const totalIncome = entries.reduce((sum, entry) => 
+          sum + (entry.total_credit || 0), 0);
+        
+        const totalExpenses = entries.reduce((sum, entry) => 
+          sum + (entry.total_debit || 0), 0);
 
-      const netProfit = totalIncome - totalExpenses;
-      const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
+        const netProfit = totalIncome - totalExpenses;
+        const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
 
-      return {
-        total_income: totalIncome,
-        total_expenses: totalExpenses,
-        net_profit: netProfit,
-        profit_margin: profitMargin
-      } as FinancialSummaryType;
+        return {
+          total_income: totalIncome,
+          total_expenses: totalExpenses,
+          net_profit: netProfit,
+          profit_margin: profitMargin
+        } as FinancialSummaryType;
+      } catch (error) {
+        console.error('Error calculating financial summary:', error);
+        return {
+          total_income: 0,
+          total_expenses: 0,
+          net_profit: 0,
+          profit_margin: 0
+        } as FinancialSummaryType;
+      }
     }
   });
 
@@ -147,6 +178,12 @@ export default function DashboardPage() {
     );
   }
 
+  // تحديث بيانات الشركة
+  const handleCompanyFormSubmit = () => {
+    setShowCompanyDialog(false);
+    refetchCompany();
+  };
+
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto space-y-6 p-6">
@@ -159,6 +196,23 @@ export default function DashboardPage() {
                   <Building2 className="h-5 w-5" />
                   معلومات الشركة
                 </CardTitle>
+                <Dialog open={showCompanyDialog} onOpenChange={setShowCompanyDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <PenLine className="h-4 w-4 mr-2" />
+                      {companyData ? 'تعديل' : 'إضافة'}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                      <DialogTitle>{companyData ? 'تعديل معلومات الشركة' : 'إضافة معلومات الشركة'}</DialogTitle>
+                      <DialogDescription>
+                        أدخل بيانات الشركة الأساسية. جميع الحقول المميزة بـ * مطلوبة.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <CompanyInfoForm initialData={companyData} onSuccess={handleCompanyFormSubmit} />
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardHeader>
             <CardContent>
@@ -168,6 +222,7 @@ export default function DashboardPage() {
                 <div className="space-y-2">
                   <p><strong>اسم الشركة:</strong> {companyData.company_name}</p>
                   <p><strong>نوع الشركة:</strong> {companyData.company_type}</p>
+                  <p><strong>رقم السجل التجاري:</strong> {companyData.commercial_registration}</p>
                   <p><strong>تاريخ التأسيس:</strong> {companyData.establishment_date}</p>
                   <p><strong>تاريخ انتهاء الترخيص:</strong> {companyData.license_expiry_date || 'غير محدد'}</p>
                   <p><strong>الرقم الموحد:</strong> {companyData.unified_national_number}</p>
@@ -182,32 +237,27 @@ export default function DashboardPage() {
                     : 'غير محدد'}</p>
                 </div>
               ) : (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    لا توجد معلومات للشركة. قم بإضافة المعلومات الأساسية.
-                  </AlertDescription>
-                </Alert>
+                <div className="text-center py-6">
+                  <Alert className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      لا توجد معلومات للشركة. يرجى إضافة البيانات الأساسية.
+                    </AlertDescription>
+                  </Alert>
+                  <Button onClick={() => setShowCompanyDialog(true)}>
+                    إضافة معلومات الشركة
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
           
-          {/* تحديث كارت رأس المال مع إضافة الوصف */}
+          {/* كارت رأس المال */}
           <CapitalSummary 
-            data={{
-              ...capitalData || {
-                fiscal_year: new Date().getFullYear(),
-                total_capital: 0,
-                available_capital: 0,
-                reserved_capital: 0,
-                notes: ''
-              },
-              description: `
-                رأس المال الكلي: إجمالي رأس مال الشركة المسجل
-                رأس المال المتاح: المبلغ المتاح للاستثمار والمصروفات
-                رأس المال المحجوز: المبلغ المخصص للالتزامات والمشاريع القائمة
-              `
-            }} 
+            data={capitalData ? {
+              ...capitalData,
+              description: `رأس المال الكلي: إجمالي رأس مال الشركة المسجل\nرأس المال المتاح: المبلغ المتاح للاستثمار والمصروفات\nرأس المال المحجوز: المبلغ المخصص للالتزامات والمشاريع القائمة`
+            } : undefined} 
             isLoading={isLoadingCapital} 
           />
         </div>
@@ -219,13 +269,13 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             title="رأس المال المتاح"
-            value={capitalData?.available_capital?.toLocaleString() || "0 ريال"}
+            value={`${capitalData?.available_capital?.toLocaleString() || "0"} ريال`}
             description={`من إجمالي ${capitalData?.total_capital?.toLocaleString() || "0"} ريال`}
             icon={Wallet}
           />
           <StatCard
             title="الإيرادات"
-            value={financialSummary?.total_income?.toLocaleString() || "0 ريال"}
+            value={`${financialSummary?.total_income?.toLocaleString() || "0"} ريال`}
             description="إجمالي الإيرادات"
             icon={ArrowUpCircle}
             trend={financialSummary?.net_profit >= 0 ? {
@@ -236,7 +286,7 @@ export default function DashboardPage() {
           />
           <StatCard
             title="المصروفات"
-            value={financialSummary?.total_expenses?.toLocaleString() || "0 ريال"}
+            value={`${financialSummary?.total_expenses?.toLocaleString() || "0"} ريال`}
             description="إجمالي المصروفات"
             icon={ArrowDownCircle}
           />

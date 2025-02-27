@@ -46,7 +46,9 @@ export default function ClientForm({ onSuccess }: { onSuccess: () => void }) {
     onLoad: (savedData) => setFormData(savedData),
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     if (!formData.name) {
       toast({
         variant: "destructive",
@@ -108,7 +110,9 @@ export default function ClientForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
 
         <div className="space-y-2">
-          <Label>اسم العميل</Label>
+          <Label>
+            اسم العميل <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.name}
             onChange={(e) =>
@@ -127,6 +131,7 @@ export default function ClientForm({ onSuccess }: { onSuccess: () => void }) {
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, email: e.target.value }))
               }
+              dir="ltr"
             />
           </div>
 
@@ -138,38 +143,45 @@ export default function ClientForm({ onSuccess }: { onSuccess: () => void }) {
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, phone: e.target.value }))
               }
+              dir="ltr"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>الرقم الضريبي</Label>
-            <Input
-              value={formData.vat_number}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, vat_number: e.target.value }))
-              }
-            />
-          </div>
+          {formData.type === "company" && (
+            <>
+              <div className="space-y-2">
+                <Label>الرقم الضريبي</Label>
+                <Input
+                  value={formData.vat_number}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, vat_number: e.target.value }))
+                  }
+                  dir="ltr"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>السجل التجاري</Label>
-            <Input
-              value={formData.cr_number}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, cr_number: e.target.value }))
-              }
-            />
-          </div>
+              <div className="space-y-2">
+                <Label>السجل التجاري</Label>
+                <Input
+                  value={formData.cr_number}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, cr_number: e.target.value }))
+                  }
+                  dir="ltr"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>الشخص المسؤول</Label>
-            <Input
-              value={formData.contact_person}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, contact_person: e.target.value }))
-              }
-            />
-          </div>
+              <div className="space-y-2">
+                <Label>الشخص المسؤول</Label>
+                <Input
+                  value={formData.contact_person}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, contact_person: e.target.value }))
+                  }
+                />
+              </div>
+            </>
+          )}
         </div>
 
         <Button 

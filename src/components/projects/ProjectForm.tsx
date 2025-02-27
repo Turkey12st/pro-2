@@ -8,6 +8,7 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type ProjectFormData = {
   title: string;
@@ -45,22 +46,26 @@ export default function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("يجب تسجيل الدخول أولاً");
-      }
-
       if (!formData.title || !formData.start_date) {
-        throw new Error("يرجى إدخال جميع البيانات المطلوبة");
+        throw new Error("يرجى إدخال عنوان المشروع وتاريخ البداية على الأقل");
       }
 
-      const { error } = await supabase
+      // إنشاء كائن البيانات للإرسال
+      const projectData = {
+        title: formData.title,
+        description: formData.description,
+        start_date: formData.start_date,
+        end_date: formData.end_date || null,
+        budget: formData.budget || 0,
+        status: formData.status,
+        priority: formData.priority,
+        progress: 0
+      };
+
+      const { data, error } = await supabase
         .from("projects")
-        .insert({
-          ...formData,
-          created_by: user.id,
-          created_at: new Date().toISOString()
-        });
+        .insert([projectData])
+        .select();
 
       if (error) throw error;
 
@@ -88,7 +93,9 @@ export default function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
         <CardContent className="pt-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">عنوان المشروع</Label>
+              <Label htmlFor="title">
+                عنوان المشروع <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="title"
                 required
@@ -112,7 +119,9 @@ export default function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="start_date">تاريخ البداية</Label>
+                <Label htmlFor="start_date">
+                  تاريخ البداية <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="start_date"
                   type="date"
@@ -137,11 +146,12 @@ export default function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="budget">الميزانية</Label>
+                <Label htmlFor="budget">الميزانية (ريال)</Label>
                 <Input
                   id="budget"
                   type="number"
                   min="0"
+                  dir="ltr"
                   value={formData.budget}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -150,6 +160,41 @@ export default function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
                     }))
                   }
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">حالة المشروع</Label>
+                <Select 
+                  value={formData.status}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر حالة المشروع" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="planned">مخطط له</SelectItem>
+                    <SelectItem value="in-progress">قيد التنفيذ</SelectItem>
+                    <SelectItem value="completed">مكتمل</SelectItem>
+                    <SelectItem value="cancelled">ملغي</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="priority">الأولوية</Label>
+                <Select 
+                  value={formData.priority}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر أولوية المشروع" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">منخفضة</SelectItem>
+                    <SelectItem value="medium">متوسطة</SelectItem>
+                    <SelectItem value="high">عالية</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
