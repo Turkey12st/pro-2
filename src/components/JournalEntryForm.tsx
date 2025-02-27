@@ -11,10 +11,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface JournalEntryFormProps {
   initialData?: {
     description: string;
+    entry_name: string;
     amount: number;
     entry_type?: string;
+    financial_statement_section?: string;
   };
-  onSuccess: (data: { description: string; amount: number; entry_type: string }) => void;
+  onSuccess: (data: {
+    description: string;
+    entry_name: string;
+    amount: number;
+    entry_type: string;
+    financial_statement_section: string;
+  }) => void;
   onClose: () => void;
 }
 
@@ -25,18 +33,22 @@ export default function JournalEntryForm({
 }: JournalEntryFormProps) {
   const { toast } = useToast();
   const [description, setDescription] = useState(initialData?.description || "");
+  const [entryName, setEntryName] = useState(initialData?.entry_name || "");
   const [amount, setAmount] = useState(initialData?.amount || 0);
   const [entryType, setEntryType] = useState(initialData?.entry_type || "income");
+  const [financialSection, setFinancialSection] = useState(
+    initialData?.financial_statement_section || "income_statement"
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!description) {
+    if (!description || !entryName) {
       toast({
         variant: "destructive",
         title: "خطأ",
-        description: "يرجى إدخال وصف للقيد المحاسبي",
+        description: "يرجى إدخال جميع البيانات المطلوبة",
       });
       return;
     }
@@ -51,48 +63,38 @@ export default function JournalEntryForm({
     }
 
     setIsSubmitting(true);
-    console.info("بدء عملية حفظ القيد المحاسبي...");
 
     try {
-      // تحضير بيانات القيد المحاسبي
       const entryData = {
         description,
+        entry_name: entryName,
         amount,
         entry_date: new Date().toISOString().split('T')[0],
         entry_type: entryType,
+        financial_statement_section: financialSection,
         status: "active",
         total_debit: entryType === 'expense' ? amount : 0,
         total_credit: entryType === 'income' ? amount : 0,
       };
 
-      // حفظ القيد في قاعدة البيانات
-      const { error } = await supabase.from("journal_entries").insert(entryData);
+      const { error } = await supabase
+        .from("journal_entries")
+        .insert(entryData);
 
-      if (error) {
-        // في حالة عدم وجود عمود amount، نحاول استخدام الأعمدة الأخرى
-        if (error.message.includes("amount")) {
-          const altEntryData = {
-            description,
-            entry_date: new Date().toISOString().split('T')[0],
-            entry_type: entryType,
-            status: "active",
-            total_debit: entryType === 'expense' ? amount : 0,
-            total_credit: entryType === 'income' ? amount : 0,
-          };
-          
-          const { error: altError } = await supabase.from("journal_entries").insert(altEntryData);
-          if (altError) throw altError;
-        } else {
-          throw error;
-        }
-      }
+      if (error) throw error;
 
       toast({
         title: "تم الحفظ بنجاح",
         description: "تم حفظ القيد المحاسبي بنجاح",
       });
 
-      onSuccess({ description, amount, entry_type: entryType });
+      onSuccess({
+        description,
+        entry_name: entryName,
+        amount,
+        entry_type: entryType,
+        financial_statement_section: financialSection
+      });
     } catch (error) {
       console.error("خطأ في حفظ القيد المحاسبي:", error);
       toast({
@@ -107,6 +109,16 @@ export default function JournalEntryForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="entry_name">اسم القيد</Label>
+        <Input
+          id="entry_name"
+          value={entryName}
+          onChange={(e) => setEntryName(e.target.value)}
+          placeholder="أدخل اسم القيد المحاسبي"
+          required
+        />
+      </div>
       <div className="space-y-2">
         <Label htmlFor="description">الوصف</Label>
         <Textarea
@@ -130,16 +142,26 @@ export default function JournalEntryForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="entry_type">نوع القيد</Label>
-        <Select 
-          value={entryType} 
-          onValueChange={setEntryType}
-        >
+        <Select value={entryType} onValueChange={setEntryType}>
           <SelectTrigger>
             <SelectValue placeholder="اختر نوع القيد" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="income">إيراد</SelectItem>
             <SelectItem value="expense">مصروف</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="financial_section">القائمة المالية</Label>
+        <Select value={financialSection} onValueChange={setFinancialSection}>
+          <SelectTrigger>
+            <SelectValue placeholder="اختر القائمة المالية" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="income_statement">قائمة الدخل</SelectItem>
+            <SelectItem value="balance_sheet">الميزانية العمومية</SelectItem>
+            <SelectItem value="cash_flow">قائمة التدفقات النقدية</SelectItem>
           </SelectContent>
         </Select>
       </div>

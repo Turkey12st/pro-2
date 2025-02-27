@@ -1,4 +1,3 @@
-
 import AppLayout from "@/components/AppLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { NotificationsList } from "@/components/dashboard/NotificationsList";
@@ -37,7 +36,12 @@ export default function DashboardPage() {
         .maybeSingle();
       
       if (error) throw error;
-      return data as CompanyInfo;
+      
+      // تحويل البيانات إلى النوع الصحيح
+      return {
+        ...data,
+        unified_national_number: data?.["Unified National Number"]?.toString() || ""
+      } as CompanyInfo;
     }
   });
 
@@ -91,91 +95,28 @@ export default function DashboardPage() {
   const { data: financialSummary, isLoading: isLoadingFinancial } = useQuery({
     queryKey: ['financial_summary'],
     queryFn: async () => {
-      try {
-        // التحقق من وجود عمود amount في جدول journal_entries
-        const { data: entries, error: entriesError } = await supabase
-          .from("journal_entries")
-          .select('id, total_debit, total_credit, entry_date')
-          .limit(1);
-          
-        if (entriesError) throw entriesError;
-        
-        let totalIncome = 0;
-        let totalExpenses = 0;
-        
-        // تحديد طريقة حساب الإيرادات والمصروفات بناءً على هيكل الجدول
-        if (entries && entries.length > 0 && 'total_debit' in entries[0]) {
-          // استخدام total_debit و total_credit للحساب
-          const { data: incomeData, error: incomeError } = await supabase
-            .from("journal_entries")
-            .select('total_credit, total_debit')
-            .gte('total_credit', 0);
-          
-          if (incomeError) throw incomeError;
-          
-          const { data: expensesData, error: expensesError } = await supabase
-            .from("journal_entries")
-            .select('total_debit, total_credit')
-            .gte('total_debit', 0);
-          
-          if (expensesError) throw expensesError;
-          
-          totalIncome = incomeData?.reduce((acc, curr) => acc + (curr.total_credit || 0), 0) || 0;
-          totalExpenses = expensesData?.reduce((acc, curr) => acc + (curr.total_debit || 0), 0) || 0;
-        } else {
-          // محاولة استخدام عمود amount
-          const { data: incomeData, error: incomeError } = await supabase
-            .from("journal_entries")
-            .select('amount')
-            .gt('amount', 0);
-          
-          if (incomeError) {
-            console.error("Error fetching income data:", incomeError);
-            // استخدام بيانات غير واقعية في حالة الخطأ
-            return {
-              total_income: 125000,
-              total_expenses: 75000,
-              net_profit: 50000,
-              profit_margin: 40
-            } as FinancialSummaryType;
-          }
-          
-          const { data: expensesData, error: expensesError } = await supabase
-            .from("journal_entries")
-            .select('amount')
-            .lt('amount', 0);
-          
-          if (expensesError) throw expensesError;
-          
-          totalIncome = incomeData?.reduce((acc, curr) => acc + (curr.amount > 0 ? curr.amount : 0), 0) || 0;
-          totalExpenses = Math.abs(expensesData?.reduce((acc, curr) => acc + (curr.amount < 0 ? curr.amount : 0), 0) || 0);
-        }
-        
-        const netProfit = totalIncome - totalExpenses;
-        const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
-        
-        return {
-          total_income: totalIncome,
-          total_expenses: totalExpenses,
-          net_profit: netProfit,
-          profit_margin: profitMargin
-        } as FinancialSummaryType;
-      } catch (error) {
-        console.error("Error in financial summary:", error);
-        // استخدام بيانات افتراضية في حالة الفشل
-        return {
-          total_income: 125000,
-          total_expenses: 75000,
-          net_profit: 50000,
-          profit_margin: 40
-        } as FinancialSummaryType;
-      }
-    },
-    placeholderData: {
-      total_income: 0,
-      total_expenses: 0,
-      net_profit: 0,
-      profit_margin: 0
+      const { data: entries, error } = await supabase
+        .from("journal_entries")
+        .select('total_credit, total_debit, entry_type')
+        .in('status', ['active', 'posted']);
+      
+      if (error) throw error;
+
+      const totalIncome = entries?.reduce((sum, entry) => 
+        sum + (entry.entry_type === 'income' ? entry.total_credit : 0), 0) || 0;
+      
+      const totalExpenses = entries?.reduce((sum, entry) => 
+        sum + (entry.entry_type === 'expense' ? entry.total_debit : 0), 0) || 0;
+
+      const netProfit = totalIncome - totalExpenses;
+      const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
+
+      return {
+        total_income: totalIncome,
+        total_expenses: totalExpenses,
+        net_profit: netProfit,
+        profit_margin: profitMargin
+      } as FinancialSummaryType;
     }
   });
 
@@ -223,9 +164,19 @@ export default function DashboardPage() {
                 <div className="space-y-2">
                   <p><strong>اسم الشركة:</strong> {companyData.company_name}</p>
                   <p><strong>نوع الشركة:</strong> {companyData.company_type}</p>
-                  <p><strong>تاريخ التأسيس:</strong> {companyData.establishment_date}</p>
                   <p><strong>رقم السجل التجاري:</strong> {companyData.commercial_registration}</p>
+                  <p><strong>تاريخ التأسيس:</strong> {companyData.establishment_date}</p>
+                  <p><strong>تاريخ انتهاء الترخيص:</strong> {companyData.license_expiry_date || 'غير محدد'}</p>
                   <p><strong>الرقم الموحد:</strong> {companyData.unified_national_number}</p>
+                  <p><strong>رقم المنشأة في التأمينات:</strong> {companyData.social_insurance_number}</p>
+                  <p><strong>نشاط نطاقات:</strong> {companyData.nitaqat_activity || 'غير محدد'}</p>
+                  <p><strong>النشاط الاقتصادي:</strong> {companyData.economic_activity || 'غير محدد'}</p>
+                  <p><strong>الرقم الضريبي:</strong> {companyData.tax_number || 'غير محدد'}</p>
+                  <p><strong>اسم البنك:</strong> {companyData.bank_name || 'غير محدد'}</p>
+                  <p><strong>رقم الآيبان:</strong> {companyData.bank_iban || 'غير محدد'}</p>
+                  <p><strong>العنوان:</strong> {companyData.address ? 
+                    `${companyData.address.street || ''}, ${companyData.address.city || ''} ${companyData.address.postal_code || ''}` 
+                    : 'غير محدد'}</p>
                 </div>
               ) : (
                 <Alert>
@@ -237,41 +188,25 @@ export default function DashboardPage() {
               )}
             </CardContent>
           </Card>
-          {capitalData && !isLoadingCapital ? (
-            <CapitalSummary data={capitalData} isLoading={isLoadingCapital} />
-          ) : (
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    الشركاء
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {isLoadingPartners ? (
-                  <div className="text-center py-4">جاري التحميل...</div>
-                ) : partners && partners.length > 0 ? (
-                  <div className="space-y-2">
-                    {partners.map((partner) => (
-                      <div key={partner.id} className="flex justify-between items-center">
-                        <span>{partner.name}</span>
-                        <span>{partner.ownership_percentage}%</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      لا يوجد شركاء مسجلين. قم بإضافة الشركاء.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          
+          {/* تحديث كارت رأس المال مع إضافة الوصف */}
+          <CapitalSummary 
+            data={{
+              ...capitalData || {
+                fiscal_year: new Date().getFullYear(),
+                total_capital: 0,
+                available_capital: 0,
+                reserved_capital: 0,
+                notes: ''
+              },
+              description: `
+                رأس المال الكلي: إجمالي رأس مال الشركة المسجل
+                رأس المال المتاح: المبلغ المتاح للاستثمار والمصروفات
+                رأس المال المحجوز: المبلغ المخصص للالتزامات والمشاريع القائمة
+              `
+            }} 
+            isLoading={isLoadingCapital} 
+          />
         </div>
 
         {/* ملخص الأداء المالي */}
