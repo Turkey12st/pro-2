@@ -86,7 +86,7 @@ export function CapitalSummary({ data, isLoading = false }: CapitalSummaryProps)
             available_capital: newAvailableCapital,
             notes: updateNotes,
             last_updated: new Date().toISOString()
-          } as Partial<CapitalManagement>)
+          })
           .eq("id", data.id);
 
         if (error) throw error;
@@ -100,7 +100,7 @@ export function CapitalSummary({ data, isLoading = false }: CapitalSummaryProps)
             available_capital: newAvailableCapital,
             reserved_capital: reserved_capital || 0,
             notes: updateNotes
-          } as Partial<CapitalManagement>);
+          });
 
         if (error) throw error;
       }

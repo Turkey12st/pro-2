@@ -1,157 +1,208 @@
-
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { Document } from "@/types/database";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { format } from "date-fns";
+import { DatePicker } from "@/components/ui/date-picker";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { Document } from "@/types/database";
+import { useState } from "react";
+import { FileUploader } from "@/components/ui/file-uploader";
+import { MultiSelect } from "@/components/ui/multi-select";
+
+const documentSchema = z.object({
+  title: z.string().min(2, {
+    message: "عنوان المستند يجب أن يحتوي على حرفين على الأقل",
+  }),
+  type: z.string({
+    required_error: "يرجى اختيار نوع المستند",
+  }),
+  number: z.string().optional(),
+  issue_date: z.date({
+    required_error: "يرجى اختيار تاريخ الإصدار",
+  }),
+  expiry_date: z.date({
+    required_error: "يرجى اختيار تاريخ الانتهاء",
+  }),
+  reminder_days: z.array(z.number()).optional(),
+  notes: z.string().optional(),
+});
+
+type DocumentFormValues = z.infer<typeof documentSchema>;
+
+const documentTypes = [
+  { label: "سجل تجاري", value: "commercial_register" },
+  { label: "رخصة بلدية", value: "municipality_license" },
+  { label: "شهادة الزكاة", value: "zakat_certificate" },
+  { label: "شهادة الغرفة التجارية", value: "chamber_certificate" },
+  { label: "شهادة السعودة", value: "saudization_certificate" },
+  { label: "شهادة التأمينات", value: "insurance_certificate" },
+  { label: "شهادة القيمة المضافة", value: "vat_certificate" },
+  { label: "عقد تأسيس", value: "establishment_contract" },
+  { label: "أخرى", value: "other" },
+];
+
+const reminderOptions = [
+  { label: "قبل يوم واحد", value: 1 },
+  { label: "قبل 3 أيام", value: 3 },
+  { label: "قبل أسبوع", value: 7 },
+  { label: "قبل أسبوعين", value: 14 },
+  { label: "قبل شهر", value: 30 },
+  { label: "قبل شهرين", value: 60 },
+  { label: "قبل 3 أشهر", value: 90 },
+];
 
 interface DocumentFormProps {
-  initialData?: Document | null;
-  onSuccess: () => void;
+  initialData?: Document;
+  onSuccess?: () => void;
 }
 
 export function DocumentForm({ initialData, onSuccess }: DocumentFormProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<Partial<Document>>(
-    initialData || {
-      title: "",
-      type: "",
-      number: "",
-      issue_date: format(new Date(), "yyyy-MM-dd"),
-      expiry_date: format(new Date(new Date().setFullYear(new Date().getFullYear() + 1)), "yyyy-MM-dd"),
-      reminder_days: [30, 14, 7],
-      status: "active",
-      document_url: "",
-      metadata: {}
-    }
-  );
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
 
-  const documentTypes = [
-    { value: "cr", label: "سجل تجاري" },
-    { value: "vat", label: "شهادة ضريبة القيمة المضافة" },
-    { value: "gosi", label: "شهادة التأمينات الاجتماعية" },
-    { value: "zakat", label: "شهادة الزكاة" },
-    { value: "municipality", label: "رخصة البلدية" },
-    { value: "civil_defense", label: "رخصة الدفاع المدني" },
-    { value: "saudization", label: "شهادة السعودة" },
-    { value: "license", label: "ترخيص المنشأة" },
-    { value: "other", label: "أخرى" }
-  ];
-
-  const reminderOptions = [
-    { id: 90, label: "90 يوم" },
-    { id: 60, label: "60 يوم" },
-    { id: 30, label: "30 يوم" },
-    { id: 14, label: "14 يوم" },
-    { id: 7, label: "7 أيام" },
-    { id: 3, label: "3 أيام" },
-    { id: 1, label: "يوم واحد" }
-  ];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleTypeChange = (value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      type: value
-    }));
-  };
-
-  const handleReminderChange = (id: number, checked: boolean) => {
-    setFormData((prev) => {
-      const newReminderDays = [...(prev.reminder_days || [])];
-      
-      if (checked) {
-        if (!newReminderDays.includes(id)) {
-          newReminderDays.push(id);
+  const form = useForm<DocumentFormValues>({
+    resolver: zodResolver(documentSchema),
+    defaultValues: initialData
+      ? {
+          ...initialData,
+          issue_date: new Date(initialData.issue_date),
+          expiry_date: new Date(initialData.expiry_date),
+          reminder_days: initialData.reminder_days || [],
+          notes: initialData.metadata?.notes || "",
         }
-      } else {
-        const index = newReminderDays.indexOf(id);
-        if (index > -1) {
-          newReminderDays.splice(index, 1);
+      : {
+          title: "",
+          type: "",
+          number: "",
+          reminder_days: [30],
+          notes: "",
+        },
+  });
+
+  const onSubmit = async (data: DocumentFormValues) => {
+    setIsSubmitting(true);
+    try {
+      let documentUrl = initialData?.document_url || null;
+
+      // Upload document if provided
+      if (documentFile) {
+        const fileName = `documents/${Date.now()}_${documentFile.name}`;
+        const { error: uploadError, data: uploadData } = await supabase.storage
+          .from("company-documents")
+          .upload(fileName, documentFile);
+
+        if (uploadError) throw uploadError;
+        
+        if (uploadData) {
+          const { data: urlData } = supabase.storage
+            .from("company-documents")
+            .getPublicUrl(fileName);
+          
+          documentUrl = urlData.publicUrl;
         }
       }
-      
-      return {
-        ...prev,
-        reminder_days: newReminderDays
-      };
-    });
-  };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (!formData.title || !formData.type || !formData.issue_date || !formData.expiry_date) {
-      toast({
-        variant: "destructive",
-        title: "خطأ في البيانات",
-        description: "يرجى ملء جميع الحقول المطلوبة"
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
+      // Calculate document status
+      const today = new Date();
+      const expiryDate = data.expiry_date;
+      const daysUntilExpiry = Math.ceil(
+        (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      
+      let status: "active" | "expired" | "soon-expire" = "active";
+      if (daysUntilExpiry < 0) {
+        status = "expired";
+      } else if (daysUntilExpiry <= 30) {
+        status = "soon-expire";
+      }
+
       const documentData = {
-        title: formData.title,
-        type: formData.type,
-        number: formData.number,
-        issue_date: formData.issue_date,
-        expiry_date: formData.expiry_date,
-        status: formData.status || "active",
-        reminder_days: formData.reminder_days || [30, 14, 7],
-        document_url: formData.document_url,
-        metadata: formData.metadata || {}
+        title: data.title,
+        type: data.type,
+        number: data.number || null,
+        issue_date: data.issue_date.toISOString().split("T")[0],
+        expiry_date: data.expiry_date.toISOString().split("T")[0],
+        status,
+        reminder_days: data.reminder_days || [30],
+        document_url: documentUrl,
+        metadata: {
+          notes: data.notes,
+          ...(initialData?.metadata ? (initialData.metadata as Record<string, unknown> || {}) : {}),
+        },
       };
-      
-      let result;
-      
+
       if (initialData?.id) {
-        result = await supabase
+        // Update existing document
+        const { error } = await supabase
           .from("company_documents")
           .update(documentData)
           .eq("id", initialData.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "تم تحديث المستند بنجاح",
+          description: "تم تحديث بيانات المستند في النظام",
+        });
       } else {
-        result = await supabase
+        // Create new document
+        const { error } = await supabase
           .from("company_documents")
-          .insert([documentData]);
+          .insert(documentData);
+
+        if (error) throw error;
+
+        toast({
+          title: "تم إضافة المستند بنجاح",
+          description: "تمت إضافة المستند الجديد إلى النظام",
+        });
       }
+
+      // Refresh documents data
+      queryClient.invalidateQueries({ queryKey: ["company_documents"] });
       
-      if (result.error) throw result.error;
+      // Call onSuccess callback if provided
+      if (onSuccess) onSuccess();
       
-      toast({
-        title: initialData ? "تم تحديث المستند بنجاح" : "تم إضافة المستند بنجاح",
-        description: "تم حفظ بيانات المستند في قاعدة البيانات"
-      });
-      
-      onSuccess();
+      // Reset form if creating new document
+      if (!initialData) {
+        form.reset({
+          title: "",
+          type: "",
+          number: "",
+          reminder_days: [30],
+          notes: "",
+        });
+        setDocumentFile(null);
+      }
     } catch (error) {
-      console.error("خطأ في حفظ المستند:", error);
+      console.error("Error saving document:", error);
       toast({
         variant: "destructive",
-        title: "خطأ في الحفظ",
-        description: "حدث خطأ أثناء حفظ بيانات المستند"
+        title: "خطأ في حفظ المستند",
+        description: "حدث خطأ أثناء محاولة حفظ المستند. يرجى المحاولة مرة أخرى.",
       });
     } finally {
       setIsSubmitting(false);
@@ -159,124 +210,166 @@ export function DocumentForm({ initialData, onSuccess }: DocumentFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Card>
-        <CardContent className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">
-              عنوان المستند <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="title"
-              name="title"
-              value={formData.title || ""}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="type">
-              نوع المستند <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={formData.type || ""}
-              onValueChange={handleTypeChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="اختر نوع المستند" />
-              </SelectTrigger>
-              <SelectContent>
-                {documentTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="number">رقم المستند</Label>
-            <Input
-              id="number"
-              name="number"
-              value={formData.number || ""}
-              onChange={handleInputChange}
-              dir="ltr"
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="issue_date">
-                تاريخ الإصدار <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="issue_date"
-                name="issue_date"
-                type="date"
-                value={formData.issue_date || ""}
-                onChange={handleInputChange}
-                required
-              />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>عنوان المستند *</FormLabel>
+                <FormControl>
+                  <Input placeholder="أدخل عنوان المستند" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>نوع المستند *</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر نوع المستند" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {documentTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="number"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>رقم المستند</FormLabel>
+                <FormControl>
+                  <Input placeholder="أدخل رقم المستند (اختياري)" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="issue_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>تاريخ الإصدار *</FormLabel>
+                <DatePicker
+                  date={field.value}
+                  setDate={field.onChange}
+                  locale="ar"
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="expiry_date"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>تاريخ الانتهاء *</FormLabel>
+                <DatePicker
+                  date={field.value}
+                  setDate={field.onChange}
+                  locale="ar"
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="reminder_days"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>تذكير قبل الانتهاء</FormLabel>
+                <MultiSelect
+                  options={reminderOptions}
+                  selected={field.value?.map(v => v.toString()) || []}
+                  onChange={(values) => field.onChange(values.map(v => parseInt(v)))}
+                  placeholder="اختر أوقات التذكير"
+                />
+                <FormDescription>
+                  اختر متى تريد أن يتم تذكيرك قبل انتهاء المستند
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>ملاحظات</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="أدخل أي ملاحظات إضافية حول المستند"
+                  className="min-h-[100px]"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="space-y-2">
+          <FormLabel>ملف المستند</FormLabel>
+          <FileUploader
+            value={documentFile}
+            onChange={setDocumentFile}
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+            maxSize={5}
+          />
+          {initialData?.document_url && !documentFile && (
+            <div className="text-sm text-muted-foreground">
+              <a
+                href={initialData.document_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                عرض الملف الحالي
+              </a>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="expiry_date">
-                تاريخ الانتهاء <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="expiry_date"
-                name="expiry_date"
-                type="date"
-                value={formData.expiry_date || ""}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label>تنبيهات قبل الانتهاء</Label>
-            <div className="flex flex-wrap gap-4">
-              {reminderOptions.map((option) => (
-                <div key={option.id} className="flex items-center space-x-2 space-x-reverse">
-                  <Checkbox 
-                    id={`reminder-${option.id}`} 
-                    checked={formData.reminder_days?.includes(option.id) || false}
-                    onCheckedChange={(checked) => handleReminderChange(option.id, checked === true)}
-                  />
-                  <label
-                    htmlFor={`reminder-${option.id}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {option.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="document_url">رابط المستند</Label>
-            <Input
-              id="document_url"
-              name="document_url"
-              value={formData.document_url || ""}
-              onChange={handleInputChange}
-              dir="ltr"
-              placeholder="https://"
-            />
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="mt-6 flex justify-end gap-2">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "جاري الحفظ..." : (initialData ? "تحديث المستند" : "إضافة المستند")}
+          )}
+        </div>
+
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting
+            ? "جاري الحفظ..."
+            : initialData
+            ? "تحديث المستند"
+            : "إضافة المستند"}
         </Button>
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }
