@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
@@ -89,7 +88,11 @@ export default function Dashboard() {
           nitaqat_activity: data.nitaqat_activity,
           economic_activity: data.economic_activity,
           tax_number: data.tax_number,
-          address: data.address,
+          address: typeof data.address === 'object' ? data.address : {
+            street: "",
+            city: "",
+            postal_code: ""
+          },
           license_expiry_date: data.license_expiry_date,
           created_at: data.created_at
         };

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -59,7 +58,6 @@ export function CapitalIncreaseDialog({ capitalData }: CapitalIncreaseDialogProp
       const currentDate = new Date().toISOString().split('T')[0];
       const updateNotes = `${notes || ''}\n${currentDate}: زيادة رأس المال بمبلغ ${increasedAmount} ريال. السبب: ${increaseReason}`;
 
-      // تحديث رأس المال في الجدول capital_management
       if (capitalData.id) {
         const updateData: CapitalUpdate = {
           total_capital: newTotalCapital,
@@ -75,7 +73,6 @@ export function CapitalIncreaseDialog({ capitalData }: CapitalIncreaseDialogProp
 
         if (error) throw error;
       } else {
-        // إنشاء سجل جديد إذا لم يكن هناك سجل موجود
         const { error } = await supabase
           .from("capital_management")
           .insert({
@@ -89,7 +86,6 @@ export function CapitalIncreaseDialog({ capitalData }: CapitalIncreaseDialogProp
         if (error) throw error;
       }
 
-      // تسجيل الزيادة في سجل تاريخ رأس المال
       const { error: historyError } = await supabase
         .from("capital_history")
         .insert({
@@ -112,7 +108,6 @@ export function CapitalIncreaseDialog({ capitalData }: CapitalIncreaseDialogProp
         description: `تمت إضافة ${formatNumber(increasedAmount)} ريال إلى رأس المال`,
       });
 
-      // إعادة تحميل بيانات رأس المال
       queryClient.invalidateQueries({ queryKey: ["capital_management"] });
 
       setIsIncreaseDialogOpen(false);
