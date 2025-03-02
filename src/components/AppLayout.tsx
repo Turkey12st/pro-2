@@ -1,8 +1,7 @@
 
 import { SidebarProvider, Sidebar, SidebarContent, SidebarTrigger } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
 import { Menu } from "lucide-react";
+import { useState } from "react";
 import { AppNavigation } from "./AppNavigation";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

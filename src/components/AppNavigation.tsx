@@ -19,10 +19,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
+  Tooltip,
   TooltipTrigger,
+  TooltipContent,
 } from "@/components/ui/tooltip"
 import {
   Accordion,
@@ -183,7 +183,7 @@ export function AppNavigation() {
               <Accordion type="single" collapsible key={item.title}>
                 <AccordionItem value={item.title} className="border-none">
                   <AccordionTrigger className="group flex items-center justify-between py-2 text-sm font-medium transition-colors hover:underline">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center gap-2">
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </div>
@@ -194,7 +194,7 @@ export function AppNavigation() {
                         <Button
                           key={child.title}
                           variant="ghost"
-                          className={`flex w-full items-center justify-start space-x-2 py-2 text-sm transition-colors ${isActive(child.href) ? 'text-primary' : 'hover:underline'}`}
+                          className={`flex w-full items-center justify-start gap-2 py-2 text-sm transition-colors ${isActive(child.href) ? 'text-primary' : 'hover:underline'}`}
                           onClick={() => router.push(child.href)}
                         >
                           <child.icon className="h-4 w-4" />
@@ -209,7 +209,7 @@ export function AppNavigation() {
               <Button
                 key={item.title}
                 variant="ghost"
-                className={`flex w-full items-center justify-start space-x-2 py-2 text-sm transition-colors ${isActive(item.href) ? 'text-primary' : 'hover:underline'}`}
+                className={`flex w-full items-center justify-start gap-2 py-2 text-sm transition-colors ${isActive(item.href) ? 'text-primary' : 'hover:underline'}`}
                 onClick={() => router.push(item.href)}
               >
                 <item.icon className="h-4 w-4" />
@@ -233,10 +233,10 @@ export function AppNavigation() {
                   </span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56 bg-white">
                 <DropdownMenuLabel>حسابي</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/settings")}>
+                <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
                   الإعدادات
                 </DropdownMenuItem>
