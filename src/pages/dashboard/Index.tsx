@@ -75,26 +75,28 @@ export default function Dashboard() {
         console.error("Error fetching company info:", error);
       } else if (data) {
         // Transform data to match CompanyInfo interface
+        const addressData = typeof data.address === 'object' ? data.address : { street: "", city: "", postal_code: "" };
+        
         const companyData: CompanyInfo = {
           id: data.id,
           company_name: data.company_name,
           company_type: data.company_type,
           establishment_date: data.establishment_date,
           commercial_registration: data.commercial_registration,
-          unified_national_number: data["Unified National Number"],
+          unified_national_number: data["Unified National Number"]?.toString() || "",
           social_insurance_number: data.social_insurance_number || "",
           hrsd_number: data.hrsd_number || "",
-          bank_name: data.bank_name,
-          bank_iban: data.bank_iban,
-          nitaqat_activity: data.nitaqat_activity,
-          economic_activity: data.economic_activity,
-          tax_number: data.tax_number,
-          address: typeof data.address === 'object' ? data.address : {
-            street: "",
-            city: "",
-            postal_code: ""
+          bank_name: data.bank_name || "",
+          bank_iban: data.bank_iban || "",
+          nitaqat_activity: data.nitaqat_activity || "",
+          economic_activity: data.economic_activity || "",
+          tax_number: data.tax_number || "",
+          address: {
+            street: addressData.street || "",
+            city: addressData.city || "",
+            postal_code: addressData.postal_code || ""
           },
-          license_expiry_date: data.license_expiry_date,
+          license_expiry_date: data.license_expiry_date || null,
           created_at: data.created_at
         };
         

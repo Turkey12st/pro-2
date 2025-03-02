@@ -33,6 +33,7 @@ import {
 import {
   BarChart,
   Building2,
+  Calculator,
   Calendar,
   Contact2,
   File,

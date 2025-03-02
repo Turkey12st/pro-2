@@ -24,14 +24,6 @@ interface CapitalIncreaseDialogProps {
   capitalData: CapitalManagement;
 }
 
-// تعريف نوع بيانات التحديث بشكل مباشر دون تضمين عميق
-interface CapitalUpdateData {
-  total_capital: number;
-  available_capital: number;
-  notes: string;
-  last_updated?: string;
-}
-
 export function CapitalIncreaseDialog({ capitalData }: CapitalIncreaseDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -67,14 +59,14 @@ export function CapitalIncreaseDialog({ capitalData }: CapitalIncreaseDialogProp
       const currentDate = new Date().toISOString().split('T')[0];
       const updateNotes = `${notes || ''}\n${currentDate}: زيادة رأس المال بمبلغ ${increasedAmount} ريال. السبب: ${increaseReason}`;
 
-      if (capitalData.id) {
-        const updateData: CapitalUpdateData = {
-          total_capital: newTotalCapital,
-          available_capital: newAvailableCapital,
-          notes: updateNotes,
-          last_updated: new Date().toISOString()
-        };
+      const updateData = {
+        total_capital: newTotalCapital,
+        available_capital: newAvailableCapital,
+        notes: updateNotes,
+        last_updated: new Date().toISOString()
+      };
 
+      if (capitalData.id) {
         const { error } = await supabase
           .from("capital_management")
           .update(updateData)
