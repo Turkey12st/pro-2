@@ -24,6 +24,13 @@ interface CapitalIncreaseDialogProps {
   capitalData: CapitalManagement;
 }
 
+type CapitalUpdate = {
+  total_capital: number;
+  available_capital: number;
+  notes: string;
+  last_updated: string;
+};
+
 export function CapitalIncreaseDialog({ capitalData }: CapitalIncreaseDialogProps) {
   const [isIncreaseDialogOpen, setIsIncreaseDialogOpen] = useState(false);
   const [increaseAmount, setIncreaseAmount] = useState("");
@@ -54,14 +61,16 @@ export function CapitalIncreaseDialog({ capitalData }: CapitalIncreaseDialogProp
 
       // تحديث رأس المال في الجدول capital_management
       if (capitalData.id) {
+        const updateData: CapitalUpdate = {
+          total_capital: newTotalCapital,
+          available_capital: newAvailableCapital,
+          notes: updateNotes,
+          last_updated: new Date().toISOString()
+        };
+
         const { error } = await supabase
           .from("capital_management")
-          .update({
-            total_capital: newTotalCapital,
-            available_capital: newAvailableCapital,
-            notes: updateNotes,
-            last_updated: new Date().toISOString()
-          })
+          .update(updateData)
           .eq("id", capitalData.id);
 
         if (error) throw error;

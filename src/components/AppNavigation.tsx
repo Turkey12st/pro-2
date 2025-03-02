@@ -1,3 +1,4 @@
+
 import {
   Sheet,
   SheetContent,
@@ -46,9 +47,7 @@ import {
   Wallet,
   Files
 } from "lucide-react"
-import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
 
 interface MenuItem {
   title: string;
@@ -59,12 +58,26 @@ interface MenuItem {
 
 export function AppNavigation() {
   const [isMounted, setIsMounted] = useState(false);
-  const pathname = usePathname();
-  const router = useRouter();
-  const { user } = useUser();
+  const [pathname, setPathname] = useState("/");
+  const [user, setUser] = useState<any>(null); // Simplified user state
+
+  // Simple routing function
+  const router = {
+    push: (path: string) => {
+      window.location.href = path;
+    }
+  };
 
   useEffect(() => {
     setIsMounted(true);
+    setPathname(window.location.pathname);
+    
+    // Mock user data for UI rendering
+    setUser({
+      firstName: "مستخدم",
+      imageUrl: "",
+      username: "مستخدم النظام"
+    });
   }, []);
 
   if (!isMounted) {

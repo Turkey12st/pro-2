@@ -3,7 +3,7 @@ import { SidebarProvider, Sidebar, SidebarContent, SidebarTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Menu } from "lucide-react";
-import AppNavigation from "./AppNavigation";
+import { AppNavigation } from "./AppNavigation";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
