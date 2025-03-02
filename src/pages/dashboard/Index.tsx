@@ -1,4 +1,3 @@
-
 import AppLayout from "@/components/AppLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { NotificationsList } from "@/components/dashboard/NotificationsList";
@@ -36,6 +35,11 @@ import { CompanyInfoForm } from "@/components/company/CompanyInfoForm";
 import { addDays, format, differenceInDays } from "date-fns";
 import { Link } from "react-router-dom";
 import type { CompanyInfo, Partner, CapitalManagement, FinancialSummary as FinancialSummaryType, Document, SalarySummary as SalarySummaryType } from "@/types/database";
+
+// Define the type for the document with days_remaining added
+interface DocumentWithDaysRemaining extends Document {
+  days_remaining: number;
+}
 
 export default function DashboardPage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -177,7 +181,7 @@ export default function DashboardPage() {
       return data?.map(doc => ({
         ...doc,
         days_remaining: differenceInDays(new Date(doc.expiry_date), today)
-      })) || [];
+      })) as DocumentWithDaysRemaining[] || [];
     }
   });
 
