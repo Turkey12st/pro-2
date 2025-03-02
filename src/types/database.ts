@@ -1,4 +1,5 @@
 
+
 export interface CompanyInfo {
   id: string;
   company_name: string;
@@ -107,3 +108,4 @@ export interface SalarySummary {
   employees_count: number;
   status: 'upcoming' | 'due' | 'overdue' | 'paid';
 }
+

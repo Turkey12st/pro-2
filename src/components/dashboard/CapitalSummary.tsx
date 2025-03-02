@@ -110,7 +110,7 @@ export function CapitalSummary({ data, isLoading = false }: CapitalSummaryProps)
         .from("capital_history")
         .insert({
           amount: increasedAmount,
-          transaction_type: "increase", // للتوافق مع أي تغييرات في الهيكل
+          transaction_type: "increase",
           notes: increaseReason,
           previous_capital: total_capital,
           new_capital: newTotalCapital,

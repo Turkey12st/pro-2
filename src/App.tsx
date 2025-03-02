@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import PartnersPage from "./pages/partners/Index";
 import DashboardPage from "./pages/dashboard/Index";
 import FinancialPage from "./pages/financial/Index";
 import ZakatPage from "./pages/zakat/Index";
+import DocumentsPage from "./pages/documents/Index";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,27 +22,30 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/accounting" element={<AccountingPage />} />
-          <Route path="/hr" element={<HRPage />} />
-          <Route path="/projects" element={<ProjectsPage />} />
-          <Route path="/clients" element={<ClientsPage />} />
-          <Route path="/partners" element={<PartnersPage />} />
-          <Route path="/financial" element={<FinancialPage />} />
-          <Route path="/zakat" element={<ZakatPage />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/accounting" element={<AccountingPage />} />
+            <Route path="/hr" element={<HRPage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/clients" element={<ClientsPage />} />
+            <Route path="/partners" element={<PartnersPage />} />
+            <Route path="/financial" element={<FinancialPage />} />
+            <Route path="/zakat" element={<ZakatPage />} />
+            <Route path="documents" element={<DocumentsPage />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
