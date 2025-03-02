@@ -1,10 +1,11 @@
+
 export interface CompanyInfo {
   id: string;
   company_name: string;
   company_type: string;
   establishment_date: string;
   commercial_registration: string;
-  unified_national_number: string;
+  unified_national_number: string | number;
   social_insurance_number: string;
   hrsd_number: string;
   bank_name?: string;
@@ -68,4 +69,41 @@ export interface FinancialSummary {
   total_expenses: number;
   net_profit: number;
   profit_margin: number;
+}
+
+export interface Document {
+  id: string;
+  title: string;
+  type: string;
+  number?: string;
+  issue_date: string;
+  expiry_date: string;
+  status: 'active' | 'expired' | 'soon-expire';
+  reminder_days: number[];
+  document_url?: string;
+  metadata?: any;
+  created_at: string;
+}
+
+export interface SalaryRecord {
+  id: string;
+  employee_id: string;
+  base_salary: number;
+  housing_allowance: number;
+  transportation_allowance: number;
+  other_allowances: any[];
+  deductions: any[];
+  gosi_subscription: number;
+  total_salary: number;
+  payment_date: string;
+  status: 'pending' | 'paid' | 'cancelled';
+  created_at: string;
+}
+
+export interface SalarySummary {
+  total_salaries: number;
+  payment_date: string;
+  days_remaining: number;
+  employees_count: number;
+  status: 'upcoming' | 'due' | 'overdue' | 'paid';
 }

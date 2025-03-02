@@ -72,13 +72,18 @@ export function CompanyInfoForm({ initialData, onSuccess }: CompanyInfoFormProps
         throw new Error("يرجى ملء جميع الحقول المطلوبة");
       }
 
+      // تحويل الرقم الوطني الموحد إلى رقم
+      const unifiedNationalNumber = typeof formData.unified_national_number === 'string' 
+        ? parseFloat(formData.unified_national_number) 
+        : formData.unified_national_number;
+
       // بيانات للإدخال أو التحديث
       const companyData = {
         company_name: formData.company_name,
         company_type: formData.company_type,
         establishment_date: formData.establishment_date,
         commercial_registration: formData.commercial_registration,
-        "Unified National Number": formData.unified_national_number,
+        "Unified National Number": unifiedNationalNumber,
         social_insurance_number: formData.social_insurance_number,
         hrsd_number: formData.hrsd_number,
         bank_name: formData.bank_name,

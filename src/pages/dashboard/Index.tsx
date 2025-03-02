@@ -5,6 +5,7 @@ import { NotificationsList } from "@/components/dashboard/NotificationsList";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { FinancialChart } from "@/components/dashboard/FinancialChart";
 import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
+import { SalarySummary } from "@/components/dashboard/SalarySummary";
 import { CapitalSummary } from "@/components/dashboard/CapitalSummary";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +18,8 @@ import {
   AlertCircle,
   ArrowUpCircle,
   ArrowDownCircle,
-  PenLine
+  PenLine,
+  FileText
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useState, useEffect } from "react";
@@ -31,12 +33,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CompanyInfoForm } from "@/components/company/CompanyInfoForm";
-import type { CompanyInfo, Partner, CapitalManagement, FinancialSummary as FinancialSummaryType } from "@/types/database";
+import { addDays, format, differenceInDays } from "date-fns";
+import { Link } from "react-router-dom";
+import type { CompanyInfo, Partner, CapitalManagement, FinancialSummary as FinancialSummaryType, Document, SalarySummary as SalarySummaryType } from "@/types/database";
 
 export default function DashboardPage() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showCompanyDialog, setShowCompanyDialog] = useState(false);
-
+  
   // جلب معلومات الشركة
   const { data: companyData, isLoading: isLoadingCompany, isError: isErrorCompany, refetch: refetchCompany } = useQuery({
     queryKey: ['company_info'],
@@ -105,12 +109,11 @@ export default function DashboardPage() {
     }
   });
 
-  // جلب ملخص الأداء المالي - تم إصلاح مشكلة entry_type
+  // جلب ملخص الأداء المالي
   const { data: financialSummary, isLoading: isLoadingFinancial } = useQuery({
     queryKey: ['financial_summary'],
     queryFn: async () => {
       try {
-        // في حالة عدم وجود حقل entry_type، نعتمد على تفاصيل أخرى
         const { data: entries, error } = await supabase
           .from("journal_entries")
           .select('*')
@@ -127,7 +130,7 @@ export default function DashboardPage() {
           } as FinancialSummaryType;
         }
 
-        // حساب الإيرادات والمصروفات - استناداً إلى total_debit و total_credit
+        // حساب الإيرادات والمصروفات
         const totalIncome = entries.reduce((sum, entry) => 
           sum + (entry.total_credit || 0), 0);
         
@@ -155,12 +158,87 @@ export default function DashboardPage() {
     }
   });
 
+  // جلب المستندات التي ستنتهي قريباً
+  const { data: expiringDocuments, isLoading: isLoadingDocuments } = useQuery({
+    queryKey: ['expiring_documents'],
+    queryFn: async () => {
+      const today = new Date();
+      const thirtyDaysLater = addDays(today, 30);
+      
+      const { data, error } = await supabase
+        .from('company_documents')
+        .select('*')
+        .lte('expiry_date', format(thirtyDaysLater, 'yyyy-MM-dd'))
+        .gte('expiry_date', format(today, 'yyyy-MM-dd'))
+        .order('expiry_date', { ascending: true });
+      
+      if (error) throw error;
+      
+      return data?.map(doc => ({
+        ...doc,
+        days_remaining: differenceInDays(new Date(doc.expiry_date), today)
+      })) || [];
+    }
+  });
+
+  // جلب ملخص الرواتب
+  const { data: salarySummary, isLoading: isLoadingSalary } = useQuery({
+    queryKey: ['salary_summary'],
+    queryFn: async () => {
+      try {
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        
+        // تعيين تاريخ سداد الرواتب (27 من الشهر الحالي)
+        const paymentDate = new Date(currentYear, currentMonth, 27);
+        
+        // إذا كان تاريخ اليوم بعد 27، ننتقل للشهر التالي
+        if (today.getDate() > 27) {
+          paymentDate.setMonth(paymentDate.getMonth() + 1);
+        }
+        
+        // حساب عدد الأيام المتبقية
+        const daysRemaining = differenceInDays(paymentDate, today);
+        
+        // جلب سجلات الرواتب والموظفين
+        const { data: employees, error: employeesError } = await supabase
+          .from('employees')
+          .select('id, salary');
+        
+        if (employeesError) throw employeesError;
+        
+        // حساب إجمالي الرواتب
+        const totalSalaries = employees?.reduce((sum, emp) => sum + (emp.salary || 0), 0) || 0;
+        
+        // تحديد حالة السداد
+        let status: 'upcoming' | 'due' | 'overdue' | 'paid' = 'upcoming';
+        if (daysRemaining <= 0) {
+          status = 'due';
+        } else if (daysRemaining <= 5) {
+          status = 'upcoming';
+        }
+        
+        return {
+          total_salaries: totalSalaries,
+          payment_date: format(paymentDate, 'yyyy-MM-dd'),
+          days_remaining: daysRemaining,
+          employees_count: employees?.length || 0,
+          status: status
+        } as SalarySummaryType;
+      } catch (error) {
+        console.error('Error calculating salary summary:', error);
+        return null;
+      }
+    }
+  });
+
   // التأكد من تحميل البيانات قبل العرض لتجنب الأخطاء
   useEffect(() => {
-    if (!isLoadingCompany && !isLoadingPartners && !isLoadingCapital && !isLoadingFinancial) {
+    if (!isLoadingCompany && !isLoadingPartners && !isLoadingCapital && !isLoadingFinancial && !isLoadingDocuments && !isLoadingSalary) {
       setIsInitialLoad(false);
     }
-  }, [isLoadingCompany, isLoadingPartners, isLoadingCapital, isLoadingFinancial]);
+  }, [isLoadingCompany, isLoadingPartners, isLoadingCapital, isLoadingFinancial, isLoadingDocuments, isLoadingSalary]);
 
   // معالجة الأخطاء العامة
   if (isErrorCompany || isErrorPartners || isErrorCapital) {
@@ -262,11 +340,8 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* ملخص الأداء المالي */}
-        <FinancialSummary data={financialSummary} isLoading={isLoadingFinancial} />
-
         {/* بطاقات المؤشرات الرئيسية */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard
             title="رأس المال المتاح"
             value={`${capitalData?.available_capital?.toLocaleString() || "0"} ريال`}
@@ -292,12 +367,69 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* المخططات والتنبيهات */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <NotificationsList />
-          <CashFlowChart />
+        {/* ملخص الأداء المالي وملخص الرواتب */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <FinancialSummary data={financialSummary} isLoading={isLoadingFinancial} />
+          <SalarySummary data={salarySummary} isLoading={isLoadingSalary} />
         </div>
-        <FinancialChart />
+
+        {/* وثائق قاربت على الانتهاء والتنبيهات */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <FileText className="h-5 w-5" />
+                  وثائق قاربت على الانتهاء
+                </CardTitle>
+                <Link to="/documents">
+                  <Button variant="outline" size="sm">
+                    عرض الكل
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {isLoadingDocuments ? (
+                  <div className="text-center py-4">جاري التحميل...</div>
+                ) : !expiringDocuments || expiringDocuments.length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    لا توجد وثائق ستنتهي قريباً
+                  </div>
+                ) : (
+                  expiringDocuments.slice(0, 5).map((doc) => (
+                    <div key={doc.id} className="flex items-start gap-3 p-3 bg-muted rounded-lg">
+                      <AlertCircle className={`h-5 w-5 ${
+                        doc.days_remaining <= 7 ? 'text-destructive' : 
+                        doc.days_remaining <= 14 ? 'text-yellow-500' : 
+                        'text-blue-500'
+                      }`} />
+                      <div>
+                        <h4 className="font-medium">{doc.title}</h4>
+                        <div className="flex justify-between">
+                          <p className="text-sm text-muted-foreground">
+                            {doc.type}
+                          </p>
+                          <p className="text-sm font-medium">
+                            {doc.days_remaining} يوم متبقي
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          <NotificationsList />
+        </div>
+
+        {/* المخططات */}
+        <div className="space-y-6">
+          <CashFlowChart />
+          <FinancialChart />
+        </div>
       </div>
     </AppLayout>
   );
