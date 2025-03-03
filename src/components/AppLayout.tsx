@@ -1,6 +1,6 @@
 
 import { SidebarProvider, Sidebar, SidebarContent, SidebarTrigger } from "@/components/ui/sidebar";
-import { Menu, User, Settings, LogOut } from "lucide-react";
+import { Menu, User, Settings, LogOut, LayoutDashboard, Calculator, Users, Wallet, Calendar, Building } from "lucide-react";
 import { useState } from "react";
 import { AppNavigation } from "./AppNavigation";
 import { 
@@ -13,30 +13,83 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/useToast";
+import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [user] = useState({
     name: "مستخدم النظام",
     email: "user@example.com",
     imageUrl: ""
   });
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "تم تسجيل الخروج",
+        description: "تم تسجيل خروجك بنجاح",
+      });
+      navigate("/auth/login");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast({
+        title: "حدث خطأ",
+        description: "لم نتمكن من تسجيل خروجك. الرجاء المحاولة مرة أخرى.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const quickLinks = [
+    { icon: LayoutDashboard, label: "لوحة المعلومات", href: "/" },
+    { icon: Wallet, label: "المحاسبة", href: "/accounting" },
+    { icon: Users, label: "الموارد البشرية", href: "/hr" },
+    { icon: Calculator, label: "الزكاة والضرائب", href: "/zakat" },
+    { icon: Building, label: "المشاريع", href: "/projects" },
+    { icon: Calendar, label: "التقويم", href: "/calendar" },
+  ];
 
   return (
     <SidebarProvider>
       <div dir="rtl" className="min-h-screen flex w-full bg-background">
-        <Sidebar className="border-l">
+        <Sidebar className="border-l bg-card">
           <SidebarContent>
             <AppNavigation />
           </SidebarContent>
         </Sidebar>
         <main className="flex-1 overflow-hidden">
           <div className="h-16 border-b flex items-center justify-between px-6">
-            <SidebarTrigger>
-              <div className="p-2 hover:bg-accent rounded-md transition-colors">
-                <Menu className="h-5 w-5" />
-              </div>
-            </SidebarTrigger>
+            <div className="flex items-center gap-4">
+              <SidebarTrigger>
+                <div className="p-2 hover:bg-accent rounded-md transition-colors">
+                  <Menu className="h-5 w-5" />
+                </div>
+              </SidebarTrigger>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9 gap-1">
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span className="hidden md:inline">الانتقال السريع</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 bg-card">
+                  <DropdownMenuLabel>الانتقال السريع</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {quickLinks.map((link) => (
+                    <DropdownMenuItem key={link.href} asChild>
+                      <Link to={link.href} className="flex items-center gap-2 cursor-pointer">
+                        <link.icon className="h-4 w-4" />
+                        <span>{link.label}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -47,7 +100,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-white" align="end" forceMount>
+              <DropdownMenuContent className="w-56 bg-card" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user.name}</p>
@@ -66,7 +119,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <span>الإعدادات</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
                   <LogOut className="ml-2 h-4 w-4" />
                   <span>تسجيل الخروج</span>
                 </DropdownMenuItem>

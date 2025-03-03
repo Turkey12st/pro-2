@@ -1,177 +1,187 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusCircle } from "lucide-react";
-import { CapitalManagement } from "@/types/database";
-import { supabase } from "@/integrations/supabase/client";
+import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
-import { formatNumber } from "@/lib/utils";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { CapitalManagement } from "@/types/database";
 
-interface CapitalIncreaseDialogProps {
-  capitalData: CapitalManagement;
+interface CapitalUpdateData {
+  amount: number;
+  notes: string;
+  transaction_type: string;
 }
 
-export function CapitalIncreaseDialog({ capitalData }: CapitalIncreaseDialogProps) {
+export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalManagement }) {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [notes, setNotes] = useState("");
+  const [transactionType, setTransactionType] = useState<"increase" | "decrease">("increase");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isIncreaseDialogOpen, setIsIncreaseDialogOpen] = useState(false);
-  const [increasedAmount, setIncreasedAmount] = useState<number | "">("");
-  const [increaseReason, setIncreaseReason] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleIncrease = async () => {
-    if (typeof increasedAmount !== "number" || increasedAmount <= 0) {
-      toast({
-        variant: "destructive",
-        title: "خطأ في الإدخال",
-        description: "يرجى إدخال مبلغ صحيح أكبر من الصفر",
-      });
-      return;
-    }
-
-    if (!increaseReason.trim()) {
-      toast({
-        variant: "destructive",
-        title: "سبب الزيادة مطلوب",
-        description: "يرجى إدخال سبب زيادة رأس المال",
-      });
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      const newTotalCapital = (capitalData.total_capital || 0) + increasedAmount;
-      const newAvailableCapital = (capitalData.available_capital || 0) + increasedAmount;
-      const notes = capitalData.notes || "";
-      const currentDate = new Date().toISOString().split('T')[0];
-      const updateNotes = `${notes || ''}\n${currentDate}: زيادة رأس المال بمبلغ ${increasedAmount} ريال. السبب: ${increaseReason}`;
-
-      const updateData = {
-        total_capital: newTotalCapital,
-        available_capital: newAvailableCapital,
-        notes: updateNotes,
-        last_updated: new Date().toISOString()
-      };
-
-      if (capitalData.id) {
-        const { error } = await supabase
-          .from("capital_management")
-          .update(updateData)
-          .eq("id", capitalData.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("capital_management")
-          .insert({
-            fiscal_year: new Date().getFullYear(),
-            total_capital: newTotalCapital,
-            available_capital: newAvailableCapital,
-            reserved_capital: 0,
-            notes: updateNotes,
-          });
-
-        if (error) throw error;
-      }
-
-      const { error: historyError } = await supabase
+  const updateCapital = useMutation({
+    mutationFn: async (data: CapitalUpdateData) => {
+      // 1. إضافة سجل في جدول capital_history
+      const { data: historyResult, error: historyError } = await supabase
         .from("capital_history")
-        .insert({
-          transaction_type: "increase",
-          amount: increasedAmount,
-          previous_capital: capitalData.total_capital,
-          new_capital: newTotalCapital,
-          effective_date: new Date().toISOString().split('T')[0],
-          notes: increaseReason,
-        });
+        .insert([
+          {
+            previous_capital: capitalData.total_capital,
+            amount: data.amount,
+            new_capital: 
+              data.transaction_type === "increase" 
+                ? capitalData.total_capital + data.amount 
+                : capitalData.total_capital - data.amount,
+            transaction_type: data.transaction_type,
+            notes: data.notes,
+            effective_date: new Date().toISOString().split("T")[0],
+          },
+        ])
+        .select();
 
-      if (historyError) {
-        console.error("Error recording capital history:", historyError);
-      }
+      if (historyError) throw historyError;
 
-      setIncreasedAmount("");
-      setIncreaseReason("");
-      setIsSubmitting(false);
+      // 2. تحديث السجل في جدول capital_management
+      const newTotalCapital = 
+        data.transaction_type === "increase" 
+          ? capitalData.total_capital + data.amount 
+          : capitalData.total_capital - data.amount;
+          
+      const newAvailableCapital = 
+        data.transaction_type === "increase" 
+          ? capitalData.available_capital + data.amount 
+          : capitalData.available_capital - data.amount;
 
-      toast({
-        title: "تمت زيادة رأس المال بنجاح",
-        description: `تمت إضافة ${formatNumber(increasedAmount)} ريال إلى رأس المال`,
-      });
+      const { data: updateResult, error: updateError } = await supabase
+        .from("capital_management")
+        .update({
+          total_capital: newTotalCapital,
+          available_capital: newAvailableCapital,
+          last_updated: new Date().toISOString(),
+        })
+        .eq("fiscal_year", capitalData.fiscal_year)
+        .select();
 
+      if (updateError) throw updateError;
+
+      return { historyResult, updateResult };
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["capital_management"] });
-
-      setIsIncreaseDialogOpen(false);
-    } catch (error) {
-      console.error("Error increasing capital:", error);
-      setIsSubmitting(false);
       toast({
-        variant: "destructive",
-        title: "خطأ في العملية",
-        description: "حدث خطأ أثناء زيادة رأس المال، يرجى المحاولة مرة أخرى",
+        title: transactionType === "increase" ? "تم زيادة رأس المال" : "تم تخفيض رأس المال",
+        description: `تم تحديث قيمة رأس المال بنجاح`,
       });
+      setOpen(false);
+      setAmount("");
+      setNotes("");
+    },
+    onError: (error) => {
+      console.error("Error updating capital:", error);
+      toast({
+        title: "خطأ في تحديث رأس المال",
+        description: "حدث خطأ أثناء محاولة تحديث رأس المال",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!amount || Number(amount) <= 0) {
+      toast({
+        title: "خطأ في الإدخال",
+        description: "يرجى إدخال قيمة صحيحة أكبر من صفر",
+        variant: "destructive",
+      });
+      return;
     }
+
+    updateCapital.mutate({
+      amount: Number(amount),
+      notes,
+      transaction_type: transactionType,
+    });
   };
 
   return (
-    <Dialog open={isIncreaseDialogOpen} onOpenChange={setIsIncreaseDialogOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full">
-          <PlusCircle className="h-4 w-4 mr-2" />
-          زيادة رأس المال
+        <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+          <Plus className="h-4 w-4" />
+          <span>تحديث رأس المال</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>زيادة رأس المال</DialogTitle>
+          <DialogTitle>تحديث رأس المال</DialogTitle>
           <DialogDescription>
-            أدخل مبلغ الزيادة وسبب الزيادة في رأس المال
+            أدخل المبلغ المراد {transactionType === "increase" ? "إضافته إلى" : "خصمه من"} رأس المال.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="amount" className="text-right col-span-1">
-              المبلغ
-            </Label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex gap-4">
+            <Button
+              type="button"
+              variant={transactionType === "increase" ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setTransactionType("increase")}
+            >
+              زيادة
+            </Button>
+            <Button
+              type="button"
+              variant={transactionType === "decrease" ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setTransactionType("decrease")}
+            >
+              تخفيض
+            </Button>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="amount">المبلغ</Label>
             <Input
               id="amount"
               type="number"
-              value={increasedAmount}
-              onChange={(e) => setIncreasedAmount(e.target.value ? Number(e.target.value) : "")}
-              className="col-span-3"
-              placeholder="أدخل مبلغ الزيادة"
+              placeholder="أدخل المبلغ"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="reason" className="text-right col-span-1">
-              السبب
-            </Label>
+          <div className="space-y-2">
+            <Label htmlFor="notes">ملاحظات</Label>
             <Textarea
-              id="reason"
-              value={increaseReason}
-              onChange={(e) => setIncreaseReason(e.target.value)}
-              className="col-span-3"
-              placeholder="أدخل سبب زيادة رأس المال"
+              id="notes"
+              placeholder="أدخل ملاحظات حول سبب التحديث"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
             />
           </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={handleIncrease} disabled={isSubmitting}>
-            {isSubmitting ? "جار التنفيذ..." : "تأكيد الزيادة"}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={updateCapital.isPending}
+          >
+            {updateCapital.isPending
+              ? "جاري التحديث..."
+              : transactionType === "increase"
+              ? "زيادة رأس المال"
+              : "تخفيض رأس المال"}
           </Button>
-        </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

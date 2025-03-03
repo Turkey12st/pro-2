@@ -6,47 +6,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CapitalSummary } from "@/components/dashboard/CapitalSummary";
 import { NotificationsList } from "@/components/dashboard/NotificationsList";
 import { DocumentExpiryNotifications } from "@/components/dashboard/DocumentExpiryNotifications";
+import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
+import { SalarySummary } from "@/components/dashboard/SalarySummary";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyInfo } from "@/types/database";
-
-// Create placeholders for missing components
-const FinancialSummaryCard = () => (
-  <Card>
-    <CardContent className="p-6">
-      <h3 className="text-xl font-semibold mb-4">ملخص مالي</h3>
-      <p className="text-muted-foreground">
-        بيانات الملخص المالي غير متوفرة حالياً
-      </p>
-    </CardContent>
-  </Card>
-);
-
-const SalarySummaryCard = () => (
-  <Card>
-    <CardContent className="p-6">
-      <h3 className="text-xl font-semibold mb-4">ملخص الرواتب</h3>
-      <p className="text-muted-foreground">
-        بيانات ملخص الرواتب غير متوفرة حالياً
-      </p>
-    </CardContent>
-  </Card>
-);
-
-const ZakatCalculationCard = ({ companyInfo }: { companyInfo: CompanyInfo }) => (
-  <Card>
-    <CardContent className="p-6">
-      <h3 className="text-xl font-semibold mb-4">حاسبة الزكاة</h3>
-      <p className="text-muted-foreground">
-        حاسبة الزكاة غير متوفرة حالياً
-      </p>
-    </CardContent>
-  </Card>
-);
+import { ZakatCalculator } from "@/components/dashboard/ZakatCalculator";
+import { useToast } from "@/hooks/useToast";
 
 export default function Dashboard() {
   const [date, setDate] = useState(new Date());
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
+  const { toast } = useToast();
 
   const { data: capitalData, isLoading: isCapitalLoading } = useQuery({
     queryKey: ["capital_management"],
@@ -73,9 +44,31 @@ export default function Dashboard() {
 
       if (error) {
         console.error("Error fetching company info:", error);
+        toast({
+          title: "خطأ في جلب بيانات الشركة",
+          description: "يرجى التحقق من اتصالك بالإنترنت أو التواصل مع الإدارة",
+          variant: "destructive"
+        });
       } else if (data) {
-        // Transform data to match CompanyInfo interface
-        const addressData = typeof data.address === 'object' ? data.address : { street: "", city: "", postal_code: "" };
+        // تحويل بيانات العنوان إلى الشكل المناسب
+        let addressData;
+        
+        // التعامل مع حالة عدم وجود عنوان
+        if (!data.address) {
+          addressData = { street: "", city: "", postal_code: "" };
+        } 
+        // التعامل مع حالة إذا كان العنوان كائن
+        else if (typeof data.address === 'object' && !Array.isArray(data.address)) {
+          addressData = {
+            street: (data.address as any)?.street || "",
+            city: (data.address as any)?.city || "",
+            postal_code: (data.address as any)?.postal_code || ""
+          };
+        } 
+        // حالة إذا كان العنوان سلسلة نصية أو أي نوع آخر
+        else {
+          addressData = { street: "", city: "", postal_code: "" };
+        }
         
         const companyData: CompanyInfo = {
           id: data.id,
@@ -91,11 +84,7 @@ export default function Dashboard() {
           nitaqat_activity: data.nitaqat_activity || "",
           economic_activity: data.economic_activity || "",
           tax_number: data.tax_number || "",
-          address: {
-            street: addressData.street || "",
-            city: addressData.city || "",
-            postal_code: addressData.postal_code || ""
-          },
+          address: addressData,
           license_expiry_date: data.license_expiry_date || null,
           created_at: data.created_at
         };
@@ -105,7 +94,7 @@ export default function Dashboard() {
     };
 
     fetchCompanyInfo();
-  }, []);
+  }, [toast]);
 
   return (
     <div className="container mx-auto py-6">
@@ -122,8 +111,8 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <FinancialSummaryCard />
-        <SalarySummaryCard />
+        <FinancialSummary />
+        <SalarySummary />
         <CapitalSummary data={capitalData || {
           fiscal_year: new Date().getFullYear(),
           total_capital: 0,
@@ -140,10 +129,10 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <NotificationsList />
         {companyInfo ? (
-          <ZakatCalculationCard companyInfo={companyInfo} />
+          <ZakatCalculator companyInfo={companyInfo} />
         ) : (
           <Card>
-            <CardContent>
+            <CardContent className="p-6">
               <p className="text-muted-foreground">
                 جاري تحميل معلومات الشركة لحساب الزكاة...
               </p>
