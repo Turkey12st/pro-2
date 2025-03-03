@@ -10,7 +10,7 @@ import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
 import { SalarySummary } from "@/components/dashboard/SalarySummary";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CompanyInfo } from "@/types/database";
+import { CompanyInfo, FinancialSummaryType } from "@/types/database";
 import { ZakatCalculator } from "@/components/dashboard/ZakatCalculator";
 import { useToast } from "@/hooks/useToast";
 
@@ -33,6 +33,14 @@ export default function Dashboard() {
       return data;
     },
   });
+
+  // Define mock financial data
+  const financialData: FinancialSummaryType = {
+    total_income: 250000,
+    total_expenses: 180000,
+    net_profit: 70000,
+    profit_margin: 28
+  };
 
   useEffect(() => {
     const fetchCompanyInfo = async () => {
@@ -111,7 +119,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <FinancialSummary />
+        <FinancialSummary data={financialData} />
         <SalarySummary />
         <CapitalSummary data={capitalData || {
           fiscal_year: new Date().getFullYear(),
