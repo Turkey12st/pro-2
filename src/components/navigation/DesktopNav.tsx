@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { MenuItem } from "@/types/navigation";
+import type { MenuItem } from "@/types/navigation";
 
 interface DesktopNavProps {
   menuItems: MenuItem[];
