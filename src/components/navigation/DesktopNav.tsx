@@ -52,7 +52,7 @@ export function DesktopNav({ menuItems, groupedMenuItems = {}, isActive, user }:
             <div key={group} className="mb-4">
               <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground">{group}</h3>
               {items.map((item) => (
-                <MenuItem 
+                <NavMenuItem 
                   key={item.title} 
                   item={item} 
                   isActive={isActive} 
@@ -63,7 +63,7 @@ export function DesktopNav({ menuItems, groupedMenuItems = {}, isActive, user }:
           ))
         ) : (
           menuItems.map((item) => (
-            <MenuItem 
+            <NavMenuItem 
               key={item.title} 
               item={item} 
               isActive={isActive} 
@@ -94,8 +94,8 @@ export function DesktopNav({ menuItems, groupedMenuItems = {}, isActive, user }:
   );
 }
 
-// MenuItem component to handle rendering of menu items
-function MenuItem({ item, isActive, onClick }: { 
+// NavMenuItem component to handle rendering of menu items
+function NavMenuItem({ item, isActive, onClick }: { 
   item: MenuItem; 
   isActive: (href: string) => boolean; 
   onClick: (href: string) => void;

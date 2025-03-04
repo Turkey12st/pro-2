@@ -1,208 +1,155 @@
 
-import { 
-  BarChart, 
-  Building2, 
-  Calculator, 
-  Calendar, 
-  Contact2, 
-  File, 
-  LayoutDashboard, 
-  ListChecks, 
-  ShoppingBag, 
-  User, 
-  Wallet, 
-  Files,
-  Calculator as CalculatorIcon,
-  Search,
-  Clock,
+import {
+  LayoutDashboard,
+  Wallet,
+  Users,
+  Calculator,
+  FileText,
+  Building,
+  Calendar,
   Settings,
+  UserSquare2,
+  FolderKanban,
+  Briefcase,
   BookOpen,
-  HelpCircle,
-  ChevronRight,
-  DollarSign
+  Mail,
+  BarChart3,
+  Landmark,
+  FileBarChart,
+  CircleDollarSign,
+  Receipt,
+  FileCog,
+  ShieldCheck,
+  BadgeCheck,
 } from "lucide-react";
 import { MenuItem } from "@/types/navigation";
 
-export const getNavigationMenu = (): MenuItem[] => [
-  {
-    title: "الرئيسية",
-    icon: LayoutDashboard,
-    href: "/",
-    group: "نظرة عامة"
-  },
-  {
-    title: "المحاسبة",
-    icon: Wallet,
-    href: "/accounting",
-    group: "العمليات المالية",
-    children: [
-      {
-        title: "القيود المحاسبية",
-        icon: ListChecks,
-        href: "/accounting/journal-entries",
-      },
-      {
-        title: "الإيرادات والمصروفات",
-        icon: BarChart,
-        href: "/accounting/revenue-expenses",
-      },
-      {
-        title: "التقارير المالية",
-        icon: File,
-        href: "/accounting/reports",
-      },
-    ],
-  },
-  {
-    title: "المشاريع",
-    icon: Building2,
-    href: "/projects",
-    group: "العمليات الأساسية",
-    children: [
-      {
-        title: "قائمة المشاريع",
-        icon: ListChecks,
-        href: "/projects",
-      },
-      {
-        title: "تقارير المشاريع",
-        icon: File,
-        href: "/projects/reports",
-      },
-    ],
-  },
-  {
-    title: "الموارد البشرية",
-    icon: User,
-    href: "/hr",
-    group: "العمليات الأساسية",
-    children: [
-      {
-        title: "الموظفين",
-        icon: Contact2,
-        href: "/hr/employees",
-      },
-      {
-        title: "الرواتب",
-        icon: Wallet,
-        href: "/hr/salaries",
-      },
-      {
-        title: "حاسبة التكاليف",
-        icon: Calculator,
-        href: "/hr/cost-calculator",
-      },
-    ],
-  },
-  {
-    title: "المالية",
-    icon: BarChart,
-    href: "/financial",
-    group: "العمليات المالية",
-    children: [
-      {
-        title: "التدفقات النقدية",
-        icon: Wallet,
-        href: "/financial/cash-flow",
-      },
-      {
-        title: "الميزانية",
-        icon: File,
-        href: "/financial/budget",
-      },
-      {
-        title: "التقارير المالية",
-        icon: BarChart,
-        href: "/financial/reports",
-      },
-    ],
-  },
-  {
-    title: "العملاء",
-    icon: ShoppingBag,
-    href: "/clients",
-    group: "العمليات الأساسية",
-  },
-  {
-    title: "التقارير",
-    icon: File,
-    href: "/reports",
-    group: "التحليل والتقارير",
-    children: [
-      {
-        title: "تقارير مالية",
-        icon: BarChart,
-        href: "/reports/financial",
-      },
-      {
-        title: "تقارير الموارد البشرية",
-        icon: User,
-        href: "/reports/hr",
-      },
-      {
-        title: "تقارير المشاريع",
-        icon: Building2,
-        href: "/reports/projects",
-      },
-    ],
-  },
-  {
-    title: "الزكاة والضرائب",
-    icon: Calculator,
-    href: "/zakat",
-    new: true,
-    group: "العمليات المالية"
-  },
-  {
-    title: "الوثائق",
-    icon: Files,
-    href: "/documents",
-    group: "التحليل والتقارير"
-  },
-  {
-    title: "الأدوات",
-    icon: Settings,
-    href: "/tools",
-    group: "الأدوات والإعدادات",
-    children: [
-      {
-        title: "جدولة المهام",
-        icon: Calendar,
-        href: "/tools/scheduler",
-      },
-      {
-        title: "حاسبة القروض",
-        icon: CalculatorIcon,
-        href: "/tools/loan-calculator",
-      },
-      {
-        title: "مخطط الأعمال",
-        icon: Search,
-        href: "/tools/business-planner",
-      },
-      {
-        title: "سجل الأنشطة",
-        icon: Clock,
-        href: "/tools/activity-log",
-      },
-    ],
-  },
-  {
-    title: "المساعدة",
-    icon: HelpCircle,
-    href: "/help",
-    group: "الأدوات والإعدادات",
-    children: [
-      {
-        title: "دليل المستخدم",
-        icon: BookOpen,
-        href: "/help/user-guide",
-      },
-      {
-        title: "أسئلة شائعة",
-        icon: HelpCircle,
-        href: "/help/faq",
-      },
-    ],
-  },
-];
+export function getNavigationMenu(): MenuItem[] {
+  return [
+    {
+      title: "لوحة المعلومات",
+      icon: LayoutDashboard,
+      href: "/dashboard",
+      group: "الرئيسية",
+    },
+    {
+      title: "المحاسبة",
+      icon: Wallet,
+      href: "/accounting",
+      group: "المالية",
+      children: [
+        {
+          title: "القيود اليومية",
+          icon: FileText,
+          href: "/accounting",
+        },
+        {
+          title: "التقارير المالية",
+          icon: BarChart3,
+          href: "/financial",
+        },
+        {
+          title: "إدارة رأس المال",
+          icon: Landmark,
+          href: "/capital",
+        },
+      ],
+    },
+    {
+      title: "إدارة الشركاء",
+      icon: Briefcase,
+      href: "/partners",
+      group: "المالية",
+    },
+    {
+      title: "الزكاة والضرائب",
+      icon: Calculator,
+      href: "/zakat",
+      group: "المالية",
+      children: [
+        {
+          title: "حاسبة الزكاة",
+          icon: CircleDollarSign,
+          href: "/zakat",
+        },
+        {
+          title: "تقارير ضريبية",
+          icon: FileBarChart,
+          href: "/tax-reports",
+        },
+        {
+          title: "السجلات الضريبية",
+          icon: Receipt,
+          href: "/tax-records",
+        },
+      ],
+    },
+    {
+      title: "الموارد البشرية",
+      icon: Users,
+      href: "/hr",
+      group: "التشغيل",
+      children: [
+        {
+          title: "الموظفين",
+          icon: Users,
+          href: "/hr",
+        },
+        {
+          title: "كشف الرواتب",
+          icon: Receipt,
+          href: "/payroll",
+        },
+      ],
+    },
+    {
+      title: "إدارة المشاريع",
+      icon: FolderKanban,
+      href: "/projects",
+      group: "التشغيل",
+    },
+    {
+      title: "إدارة العملاء",
+      icon: UserSquare2,
+      href: "/clients",
+      group: "التشغيل",
+    },
+    {
+      title: "المستندات",
+      icon: FileText,
+      href: "/documents",
+      group: "الشركة",
+    },
+    {
+      title: "معلومات الشركة",
+      icon: Building,
+      href: "/company",
+      group: "الشركة",
+      children: [
+        {
+          title: "المعلومات الأساسية",
+          icon: BadgeCheck,
+          href: "/company",
+        },
+        {
+          title: "شهادات وتراخيص",
+          icon: ShieldCheck,
+          href: "/documents",
+        },
+      ],
+    },
+    {
+      title: "التقويم",
+      icon: Calendar,
+      href: "/calendar",
+      group: "أدوات",
+    },
+    {
+      title: "إدارة النظام",
+      icon: Settings,
+      href: "/settings",
+      group: "النظام",
+      disabled: false,
+    },
+  ];
+}

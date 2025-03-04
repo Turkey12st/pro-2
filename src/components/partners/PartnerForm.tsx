@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -29,11 +30,58 @@ const initialFormData: Omit<Partner, 'id' | 'created_at' | 'updated_at'> = {
   documents: []
 };
 
-export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
+export default function PartnerForm({ onSuccess, partnerId }: { onSuccess: () => void, partnerId?: string }) {
   const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (partnerId) {
+      setIsEditing(true);
+      fetchPartnerData(partnerId);
+    }
+  }, [partnerId]);
+
+  const fetchPartnerData = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("company_partners")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const contactInfo = typeof data.contact_info === 'object' && data.contact_info
+          ? {
+              email: (data.contact_info as Record<string, string>).email || "",
+              phone: (data.contact_info as Record<string, string>).phone || "",
+            }
+          : { email: "", phone: "" };
+
+        const documents = Array.isArray(data.documents) ? data.documents : [];
+
+        setFormData({
+          name: data.name,
+          partner_type: data.partner_type || 'individual',
+          ownership_percentage: data.ownership_percentage,
+          share_value: data.share_value || 0,
+          contact_info: contactInfo,
+          documents: documents
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching partner data:", err);
+      toast({
+        variant: "destructive",
+        title: "خطأ في استرجاع البيانات",
+        description: "لم نتمكن من استرجاع بيانات الشريك"
+      });
+    }
+  };
 
   useAutoSave({
     formType: "partner",
@@ -67,19 +115,36 @@ export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
       setIsSubmitting(true);
       console.log("بدء عملية حفظ الشريك...", formData);
 
-      const { data, error } = await supabase
-        .from("company_partners")
-        .insert([formData])
-        .select();
+      if (isEditing && partnerId) {
+        // تحديث الشريك الموجود
+        const { data, error } = await supabase
+          .from("company_partners")
+          .update(formData)
+          .eq("id", partnerId)
+          .select();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      console.log("تم حفظ الشريك بنجاح:", data);
+        console.log("تم تحديث الشريك بنجاح:", data);
+        toast({
+          title: "تم تحديث الشريك بنجاح",
+          description: `تم تحديث بيانات ${formData.name} بنجاح`
+        });
+      } else {
+        // إضافة شريك جديد
+        const { data, error } = await supabase
+          .from("company_partners")
+          .insert([formData])
+          .select();
 
-      toast({
-        title: "تم إضافة الشريك بنجاح",
-        description: `تم إضافة ${formData.name} كشريك جديد`
-      });
+        if (error) throw error;
+
+        console.log("تم حفظ الشريك بنجاح:", data);
+        toast({
+          title: "تم إضافة الشريك بنجاح",
+          description: `تم إضافة ${formData.name} كشريك جديد`
+        });
+      }
       
       setFormData(initialFormData);
       onSuccess();
@@ -200,7 +265,7 @@ export default function PartnerForm({ onSuccess }: { onSuccess: () => void }) {
           className="w-full"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "جاري الحفظ..." : "إضافة شريك جديد"}
+          {isSubmitting ? "جاري الحفظ..." : isEditing ? "تحديث بيانات الشريك" : "إضافة شريك جديد"}
         </Button>
       </CardContent>
     </Card>

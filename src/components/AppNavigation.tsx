@@ -13,6 +13,7 @@ export function AppNavigation() {
   const [pathname, setPathname] = useState("/");
   const [user, setUser] = useState<any>(null); // Simplified user state
   const [groupedMenuItems, setGroupedMenuItems] = useState<Record<string, MenuItem[]>>({});
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -26,10 +27,12 @@ export function AppNavigation() {
     });
 
     // Group menu items by their group property
-    const menuItems = getNavigationMenu();
+    const navItems = getNavigationMenu();
+    setMenuItems(navItems);
+    
     const grouped: Record<string, MenuItem[]> = {};
     
-    menuItems.forEach(item => {
+    navItems.forEach(item => {
       const group = item.group || "أخرى";
       if (!grouped[group]) {
         grouped[group] = [];
@@ -52,10 +55,13 @@ export function AppNavigation() {
     if (href === "/") {
       return pathname === "/";
     }
+    
+    if (href === "/dashboard" && pathname === "/dashboard") {
+      return true;
+    }
+    
     return pathname.startsWith(href);
   };
-
-  const menuItems = getNavigationMenu();
 
   return (
     <>

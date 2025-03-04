@@ -46,13 +46,20 @@ export default function PartnersList() {
   const { data: partners, isLoading } = useQuery({
     queryKey: ["partners"],
     queryFn: async () => {
+      console.log("جاري تحميل بيانات الشركاء...");
       const { data, error } = await supabase
         .from("company_partners")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("خطأ في استرجاع بيانات الشركاء:", error);
+        throw error;
+      }
       
+      console.log("تم استرجاع بيانات الشركاء:", data);
+      
+      // التحويل إلى كائن Partner منظم
       return data.map(partner => {
         const contactInfo = typeof partner.contact_info === 'object' && partner.contact_info
           ? {
@@ -64,7 +71,7 @@ export default function PartnersList() {
         const documents = Array.isArray(partner.documents) ? partner.documents : [];
 
         return {
-          id: crypto.randomUUID(),
+          id: partner.id || crypto.randomUUID(),
           name: partner.name,
           partner_type: partner.partner_type || 'individual',
           ownership_percentage: partner.ownership_percentage,
@@ -83,7 +90,7 @@ export default function PartnersList() {
       const { error } = await supabase
         .from("company_partners")
         .delete()
-        .match({ name: partner.name, created_at: partner.created_at });
+        .eq("id", partner.id);
 
       if (error) throw error;
 
@@ -111,6 +118,18 @@ export default function PartnersList() {
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
+      </div>
+    );
+  }
+
+  if (!partners || partners.length === 0) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-muted-foreground mb-4">لا يوجد شركاء حالياً</p>
+        <Button onClick={() => navigate("/partners/new")} className="gap-2">
+          <Plus className="h-4 w-4" />
+          إضافة شريك جديد
+        </Button>
       </div>
     );
   }

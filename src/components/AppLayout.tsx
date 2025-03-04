@@ -1,6 +1,6 @@
 
 import { SidebarProvider, Sidebar, SidebarContent, SidebarTrigger } from "@/components/ui/sidebar";
-import { Menu, User, Settings, LogOut, LayoutDashboard, Calculator, Users, Wallet, Calendar, Building } from "lucide-react";
+import { Menu, User, Settings, LogOut, LayoutDashboard, Calculator, Users, Wallet, Calendar, Building, FolderKanban, UserSquare2 } from "lucide-react";
 import { useState } from "react";
 import { AppNavigation } from "./AppNavigation";
 import { 
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -45,11 +45,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   const quickLinks = [
-    { icon: LayoutDashboard, label: "لوحة المعلومات", href: "/" },
+    { icon: LayoutDashboard, label: "لوحة المعلومات", href: "/dashboard" },
     { icon: Wallet, label: "المحاسبة", href: "/accounting" },
     { icon: Users, label: "الموارد البشرية", href: "/hr" },
+    { icon: Users, label: "الشركاء", href: "/partners" },
+    { icon: UserSquare2, label: "العملاء", href: "/clients" },
+    { icon: FolderKanban, label: "المشاريع", href: "/projects" },
     { icon: Calculator, label: "الزكاة والضرائب", href: "/zakat" },
-    { icon: Building, label: "المشاريع", href: "/projects" },
+    { icon: Building, label: "الشركة", href: "/company" },
     { icon: Calendar, label: "التقويم", href: "/calendar" },
   ];
 
