@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import { DesktopNav } from "./navigation/DesktopNav";
 import { MobileNav } from "./navigation/MobileNav";
 import { getNavigationMenu } from "@/data/navigationMenu";
+import { MenuItem } from "@/types/navigation";
 
 export function AppNavigation() {
   const [isMounted, setIsMounted] = useState(false);
@@ -11,6 +12,7 @@ export function AppNavigation() {
   const location = useLocation();
   const [pathname, setPathname] = useState("/");
   const [user, setUser] = useState<any>(null); // Simplified user state
+  const [groupedMenuItems, setGroupedMenuItems] = useState<Record<string, MenuItem[]>>({});
 
   useEffect(() => {
     setIsMounted(true);
@@ -22,6 +24,20 @@ export function AppNavigation() {
       imageUrl: "",
       username: "مستخدم النظام"
     });
+
+    // Group menu items by their group property
+    const menuItems = getNavigationMenu();
+    const grouped: Record<string, MenuItem[]> = {};
+    
+    menuItems.forEach(item => {
+      const group = item.group || "أخرى";
+      if (!grouped[group]) {
+        grouped[group] = [];
+      }
+      grouped[group].push(item);
+    });
+    
+    setGroupedMenuItems(grouped);
   }, [location]);
 
   useEffect(() => {
@@ -45,6 +61,7 @@ export function AppNavigation() {
     <>
       <DesktopNav 
         menuItems={menuItems} 
+        groupedMenuItems={groupedMenuItems}
         isActive={isActive} 
         user={user} 
       />

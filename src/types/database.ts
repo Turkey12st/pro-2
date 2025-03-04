@@ -64,12 +64,14 @@ export interface JournalEntry {
   updated_at: string;
 }
 
-export interface FinancialSummary {
+export interface FinancialSummaryType {
   total_income: number;
   total_expenses: number;
   net_profit: number;
   profit_margin: number;
 }
+
+export type FinancialSummary = FinancialSummaryType;
 
 export interface Document {
   id: string;

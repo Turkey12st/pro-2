@@ -7,4 +7,7 @@ export interface MenuItem {
   href: string;
   children?: MenuItem[];
   new?: boolean;
+  group?: string; // Group items for better organization
+  badge?: string; // For showing badges like "Beta", "New", etc.
+  disabled?: boolean; // For disabling menu items
 }

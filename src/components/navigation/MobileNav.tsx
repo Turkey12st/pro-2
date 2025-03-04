@@ -27,6 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { MenuItem } from "@/types/navigation";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
   menuItems: MenuItem[];
@@ -46,6 +47,16 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
     }
   };
 
+  // Group menu items by their group property
+  const groupedMenuItems: Record<string, MenuItem[]> = {};
+  menuItems.forEach(item => {
+    const group = item.group || "أخرى";
+    if (!groupedMenuItems[group]) {
+      groupedMenuItems[group] = [];
+    }
+    groupedMenuItems[group].push(item);
+  });
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
@@ -53,7 +64,7 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[85%] sm:w-[380px]">
+      <SheetContent side="right" className="w-[85%] sm:w-[380px] overflow-y-auto">
         <SheetHeader className="space-y-2">
           <SheetTitle>القائمة الرئيسية</SheetTitle>
           <SheetDescription>
@@ -61,50 +72,91 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
           </SheetDescription>
         </SheetHeader>
         <Separator className="my-4" />
+        
         <div className="flex flex-col space-y-1">
-          {menuItems.map((item) => (
-            item.children ? (
-              <Accordion type="single" collapsible key={item.title}>
-                <AccordionItem value={item.title} className="border-none">
-                  <AccordionTrigger className="py-2 text-sm font-medium">
-                    <div className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pl-8">
-                    <div className="flex flex-col space-y-2">
-                      {item.children.map((child) => (
-                        <Button
-                          key={child.title}
-                          variant="ghost"
-                          className={`flex w-full items-center justify-start gap-2 py-2 text-sm transition-colors ${isActive(child.href) ? 'text-primary' : 'hover:bg-muted'}`}
-                          onClick={() => handleMenuClick(child.href)}
-                        >
-                          <child.icon className="h-4 w-4" />
-                          <span>{child.title}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            ) : (
-              <Button
-                key={item.title}
-                variant="ghost"
-                className={`flex w-full items-center justify-start gap-2 py-2 text-sm transition-colors ${isActive(item.href) ? 'text-primary' : 'hover:bg-muted'}`}
-                onClick={() => handleMenuClick(item.href)}
-              >
-                <item.icon className="h-4 w-4" />
-                <span>{item.title}</span>
-                {item.new && (
-                  <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">جديد</span>
-                )}
-              </Button>
-            )
+          {/* Group sections */}
+          {Object.entries(groupedMenuItems).map(([group, items]) => (
+            <div key={group} className="mb-4">
+              <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground">{group}</h3>
+              {items.map((item) => (
+                item.children ? (
+                  <Accordion type="single" collapsible key={item.title}>
+                    <AccordionItem value={item.title} className="border-none">
+                      <AccordionTrigger className={cn(
+                        "py-2 text-sm font-medium",
+                        isActive(item.href) && "text-primary"
+                      )}>
+                        <div className="flex items-center gap-2">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                          {item.new && (
+                            <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
+                              جديد
+                            </span>
+                          )}
+                          {item.badge && (
+                            <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pl-8">
+                        <div className="flex flex-col space-y-2">
+                          {item.children.map((child) => (
+                            <Button
+                              key={child.title}
+                              variant="ghost"
+                              className={cn(
+                                "flex w-full items-center justify-start gap-2 py-2 text-sm transition-colors",
+                                isActive(child.href) ? 'text-primary' : 'hover:bg-muted',
+                                child.disabled && "opacity-50 cursor-not-allowed"
+                              )}
+                              onClick={() => handleMenuClick(child.href)}
+                              disabled={child.disabled}
+                            >
+                              <child.icon className="h-4 w-4" />
+                              <span>{child.title}</span>
+                              {child.new && (
+                                <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
+                                  جديد
+                                </span>
+                              )}
+                            </Button>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                ) : (
+                  <Button
+                    key={item.title}
+                    variant="ghost"
+                    className={cn(
+                      "flex w-full items-center justify-start gap-2 py-2 text-sm transition-colors",
+                      isActive(item.href) ? 'text-primary' : 'hover:bg-muted',
+                      item.disabled && "opacity-50 cursor-not-allowed"
+                    )}
+                    onClick={() => handleMenuClick(item.href)}
+                    disabled={item.disabled}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                    {item.new && (
+                      <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">جديد</span>
+                    )}
+                    {item.badge && (
+                      <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
+                        {item.badge}
+                      </span>
+                    )}
+                  </Button>
+                )
+              ))}
+            </div>
           ))}
         </div>
+        
         <Separator className="my-4" />
         {user ? (
           <DropdownMenu>

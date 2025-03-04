@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const { toast } = useToast();
 
+  // Fetch capital data from capital_management table
   const { data: capitalData, isLoading: isCapitalLoading } = useQuery({
     queryKey: ["capital_management"],
     queryFn: async () => {
@@ -29,18 +30,73 @@ export default function Dashboard() {
         .eq("fiscal_year", currentYear)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If no capital data exists, try to calculate from partners
+        const { data: partnersData, error: partnersError } = await supabase
+          .from("company_partners")
+          .select("share_value");
+
+        if (partnersError) throw partnersError;
+
+        // Calculate total capital from partners' share values
+        const totalCapital = partnersData.reduce((sum, partner) => sum + (partner.share_value || 0), 0);
+
+        return {
+          fiscal_year: currentYear,
+          total_capital: totalCapital,
+          available_capital: totalCapital * 0.8, // Assume 80% is available
+          reserved_capital: totalCapital * 0.2, // Assume 20% is reserved
+          notes: "Generated from partners data"
+        };
+      }
+      
       return data;
     },
   });
 
-  // Define mock financial data
-  const financialData: FinancialSummaryType = {
-    total_income: 250000,
-    total_expenses: 180000,
-    net_profit: 70000,
-    profit_margin: 28
-  };
+  // Fetch financial data from journal entries
+  const { data: financialData, isLoading: isFinancialLoading } = useQuery({
+    queryKey: ["financial_summary"],
+    queryFn: async () => {
+      // Get current year
+      const currentYear = new Date().getFullYear();
+      const startDate = `${currentYear}-01-01`;
+      const endDate = `${currentYear}-12-31`;
+
+      // Fetch income entries (total_credit > 0)
+      const { data: incomeData, error: incomeError } = await supabase
+        .from("journal_entries")
+        .select("total_credit")
+        .gt("total_credit", 0)
+        .gte("entry_date", startDate)
+        .lte("entry_date", endDate);
+
+      if (incomeError) console.error("Error fetching income:", incomeError);
+
+      // Fetch expense entries (total_debit > 0)
+      const { data: expenseData, error: expenseError } = await supabase
+        .from("journal_entries")
+        .select("total_debit")
+        .gt("total_debit", 0)
+        .gte("entry_date", startDate)
+        .lte("entry_date", endDate);
+
+      if (expenseError) console.error("Error fetching expenses:", expenseError);
+
+      // Calculate totals
+      const totalIncome = incomeData?.reduce((sum, item) => sum + (item.total_credit || 0), 0) || 0;
+      const totalExpenses = expenseData?.reduce((sum, item) => sum + (item.total_debit || 0), 0) || 0;
+      const netProfit = totalIncome - totalExpenses;
+      const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
+
+      return {
+        total_income: totalIncome,
+        total_expenses: totalExpenses,
+        net_profit: netProfit,
+        profit_margin: profitMargin
+      } as FinancialSummaryType;
+    }
+  });
 
   useEffect(() => {
     const fetchCompanyInfo = async () => {
@@ -48,7 +104,7 @@ export default function Dashboard() {
         .from('company_Info')
         .select('*')
         .limit(1)
-        .single();
+        .maybeSingle(); // Using maybeSingle instead of single to avoid errors when no data exists
 
       if (error) {
         console.error("Error fetching company info:", error);
@@ -119,7 +175,15 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <FinancialSummary data={financialData} />
+        <FinancialSummary 
+          data={financialData || {
+            total_income: 0,
+            total_expenses: 0,
+            net_profit: 0,
+            profit_margin: 0
+          }} 
+          isLoading={isFinancialLoading} 
+        />
         <SalarySummary />
         <CapitalSummary data={capitalData || {
           fiscal_year: new Date().getFullYear(),

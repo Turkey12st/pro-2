@@ -15,7 +15,11 @@ import {
   Calculator as CalculatorIcon,
   Search,
   Clock,
-  Settings
+  Settings,
+  BookOpen,
+  HelpCircle,
+  ChevronRight,
+  DollarSign
 } from "lucide-react";
 import { MenuItem } from "@/types/navigation";
 
@@ -24,11 +28,13 @@ export const getNavigationMenu = (): MenuItem[] => [
     title: "الرئيسية",
     icon: LayoutDashboard,
     href: "/",
+    group: "نظرة عامة"
   },
   {
     title: "المحاسبة",
     icon: Wallet,
     href: "/accounting",
+    group: "العمليات المالية",
     children: [
       {
         title: "القيود المحاسبية",
@@ -51,6 +57,7 @@ export const getNavigationMenu = (): MenuItem[] => [
     title: "المشاريع",
     icon: Building2,
     href: "/projects",
+    group: "العمليات الأساسية",
     children: [
       {
         title: "قائمة المشاريع",
@@ -68,6 +75,7 @@ export const getNavigationMenu = (): MenuItem[] => [
     title: "الموارد البشرية",
     icon: User,
     href: "/hr",
+    group: "العمليات الأساسية",
     children: [
       {
         title: "الموظفين",
@@ -90,6 +98,7 @@ export const getNavigationMenu = (): MenuItem[] => [
     title: "المالية",
     icon: BarChart,
     href: "/financial",
+    group: "العمليات المالية",
     children: [
       {
         title: "التدفقات النقدية",
@@ -112,11 +121,13 @@ export const getNavigationMenu = (): MenuItem[] => [
     title: "العملاء",
     icon: ShoppingBag,
     href: "/clients",
+    group: "العمليات الأساسية",
   },
   {
     title: "التقارير",
     icon: File,
     href: "/reports",
+    group: "التحليل والتقارير",
     children: [
       {
         title: "تقارير مالية",
@@ -140,16 +151,19 @@ export const getNavigationMenu = (): MenuItem[] => [
     icon: Calculator,
     href: "/zakat",
     new: true,
+    group: "العمليات المالية"
   },
   {
     title: "الوثائق",
     icon: Files,
     href: "/documents",
+    group: "التحليل والتقارير"
   },
   {
     title: "الأدوات",
     icon: Settings,
     href: "/tools",
+    group: "الأدوات والإعدادات",
     children: [
       {
         title: "جدولة المهام",
@@ -170,6 +184,24 @@ export const getNavigationMenu = (): MenuItem[] => [
         title: "سجل الأنشطة",
         icon: Clock,
         href: "/tools/activity-log",
+      },
+    ],
+  },
+  {
+    title: "المساعدة",
+    icon: HelpCircle,
+    href: "/help",
+    group: "الأدوات والإعدادات",
+    children: [
+      {
+        title: "دليل المستخدم",
+        icon: BookOpen,
+        href: "/help/user-guide",
+      },
+      {
+        title: "أسئلة شائعة",
+        icon: HelpCircle,
+        href: "/help/faq",
       },
     ],
   },
