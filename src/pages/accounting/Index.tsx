@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/components/AppLayout";
@@ -112,19 +113,23 @@ export default function AccountingPage() {
     }
 
     try {
+      // حساب قيم الدائن والمدين بناءً على نوع القيد
+      const total_debit = formData.entry_type === "expense" ? formData.amount : 0;
+      const total_credit = formData.entry_type === "income" ? formData.amount : 0;
+
       const { error } = editingEntry
         ? await supabase
             .from("journal_entries")
             .update({
               ...formData,
-              total_debit: formData.entry_type === "expense" ? formData.amount : 0,
-              total_credit: formData.entry_type === "income" ? formData.amount : 0,
+              total_debit,
+              total_credit,
             })
             .eq("id", editingEntry.id)
         : await supabase.from("journal_entries").insert([{
             ...formData,
-            total_debit: formData.entry_type === "expense" ? formData.amount : 0,
-            total_credit: formData.entry_type === "income" ? formData.amount : 0,
+            total_debit,
+            total_credit,
           }]);
 
       if (error) throw error;
@@ -172,7 +177,7 @@ export default function AccountingPage() {
       description: entry.description,
       entry_name: entry.entry_name || "",
       amount: entry.amount || 0,
-      entry_type: entry.entry_type,
+      entry_type: entry.entry_type || "income",
       financial_statement_section: entry.financial_statement_section || "income_statement",
       entry_date: entry.entry_date,
       total_debit: entry.total_debit || 0,
@@ -219,11 +224,13 @@ export default function AccountingPage() {
         const entries = JSON.parse(result) as JournalEntry[];
         if (!Array.isArray(entries)) throw new Error("صيغة الملف غير صحيحة");
 
+        // ضبط وتنظيف البيانات المستوردة
         const formattedEntries = entries.map(entry => ({
           ...entry,
           entry_name: entry.entry_name || "قيد مستورد",
           entry_date: entry.entry_date || format(new Date(), "yyyy-MM-dd"),
           financial_statement_section: entry.financial_statement_section || "income_statement",
+          entry_type: entry.entry_type || (entry.total_credit > 0 ? "income" : "expense"),
           total_debit: entry.total_debit || 0,
           total_credit: entry.total_credit || 0,
         }));

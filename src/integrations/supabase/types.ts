@@ -583,6 +583,7 @@ export type Database = {
           description: string
           entry_date: string
           entry_name: string | null
+          entry_type: string | null
           financial_statement_section: string | null
           id: string
           posted_at: string | null
@@ -600,6 +601,7 @@ export type Database = {
           description: string
           entry_date: string
           entry_name?: string | null
+          entry_type?: string | null
           financial_statement_section?: string | null
           id?: string
           posted_at?: string | null
@@ -617,6 +619,7 @@ export type Database = {
           description?: string
           entry_date?: string
           entry_name?: string | null
+          entry_type?: string | null
           financial_statement_section?: string | null
           id?: string
           posted_at?: string | null
