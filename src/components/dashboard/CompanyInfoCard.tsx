@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Building, FileText, FileCheck, CircleDollarSign, Landmark, Bank } from "lucide-react";
+import { Building, FileText, FileCheck, CircleDollarSign, Landmark, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
@@ -161,7 +161,7 @@ export function CompanyInfoCard() {
             </div>
             
             <div className="flex items-center">
-              <Bank className="h-4 w-4 ml-2 text-muted-foreground" />
+              <Banknote className="h-4 w-4 ml-2 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">الحساب البنكي:</span>
               <span className="mr-1 font-medium">{companyInfo?.bank_iban || "غير محدد"}</span>
             </div>

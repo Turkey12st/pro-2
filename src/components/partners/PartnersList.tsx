@@ -14,24 +14,13 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
 import PartnerForm from "./PartnerForm";
-
-interface Partner {
-  id?: string;  // تحديث لجعل الحقل اختياري
-  name: string;
-  partner_type: string;
-  ownership_percentage: number;
-  share_value: number;
-  contact_info: Json;
-  documents: Json;
-  created_at: string;
-  updated_at: string;
-}
+import { Partner } from "@/types/database";
 
 export default function PartnersList() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -63,7 +52,7 @@ export default function PartnersList() {
   }
 
   const handleEditPartner = (partner: Partner) => {
-    setSelectedPartner(partner);
+    setSelectedPartnerId(partner.id);
     setOpenDialog(true);
   };
 
@@ -97,7 +86,7 @@ export default function PartnersList() {
 
   const onPartnerSaved = () => {
     setOpenDialog(false);
-    setSelectedPartner(null);
+    setSelectedPartnerId(null);
     fetchPartners();
   };
 
@@ -122,23 +111,24 @@ export default function PartnersList() {
         <h2 className="text-xl font-bold">قائمة الشركاء</h2>
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
-            <Button onClick={() => setSelectedPartner(null)}>
+            <Button onClick={() => setSelectedPartnerId(null)}>
               <Plus className="h-4 w-4 ml-2" />
               إضافة شريك
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogTitle>
-              {selectedPartner ? "تعديل بيانات الشريك" : "إضافة شريك جديد"}
+              {selectedPartnerId ? "تعديل بيانات الشريك" : "إضافة شريك جديد"}
             </DialogTitle>
             <PartnerForm
-              partner={selectedPartner}
-              onSaved={onPartnerSaved}
+              partnerId={selectedPartnerId || undefined}
+              onSuccess={onPartnerSaved}
             />
           </DialogContent>
         </Dialog>
       </div>
 
+      {/* Loading, empty state, and partner cards */}
       {isLoading ? (
         <div className="text-center p-8">جاري التحميل...</div>
       ) : partners.length === 0 ? (
@@ -154,7 +144,7 @@ export default function PartnersList() {
           {partners.map((partner) => {
             const contact = getContactInfo(partner.contact_info);
             return (
-              <Card key={partner.created_at}>
+              <Card key={partner.id || partner.created_at}>
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-lg font-bold">
