@@ -58,7 +58,6 @@ export default function AccountingPage() {
     total_credit: 0,
   });
 
-  // جلب القيود المحاسبية من قاعدة البيانات
   const fetchJournalEntries = async () => {
     try {
       setIsLoading(true);
@@ -70,11 +69,11 @@ export default function AccountingPage() {
       if (error) throw error;
       setJournalEntries(data || []);
     } catch (error) {
-      console.error("خطأ في جلب القيود المحاسبية:", error);
+      console.error("خطأ في جلب القيود:", error);
       toast({
         variant: "destructive",
-        title: "خطأ في الاتصال",
-        description: "لم نتمكن من جلب القيود المحاسبية. يرجى المحاولة مرة أخرى.",
+        title: "خطأ",
+        description: "فشل في جلب البيانات. تحقق من الاتصال بالإنترنت",
       });
     } finally {
       setIsLoading(false);
@@ -107,7 +106,7 @@ export default function AccountingPage() {
       toast({
         variant: "destructive",
         title: "بيانات ناقصة",
-        description: "يرجى ملء جميع الحقول المطلوبة",
+        description: "تأكد من إدخال جميع الحقول المطلوبة",
       });
       return;
     }
@@ -140,7 +139,7 @@ export default function AccountingPage() {
       console.error("خطأ:", error);
       toast({
         variant: "destructive",
-        title: "خطأ",
+        title: "فشل في الحفظ",
         description: error instanceof Error ? error.message : "حدث خطأ غير معروف",
       });
     }
@@ -155,17 +154,14 @@ export default function AccountingPage() {
 
       if (error) throw error;
 
-      toast({
-        title: "تم الحذف",
-        description: "تم حذف القيد بنجاح",
-      });
+      toast({ title: "تم الحذف", description: "تم حذف القيد بنجاح" });
       setJournalEntries(journalEntries.filter(entry => entry.id !== id));
     } catch (error) {
       console.error("خطأ في الحذف:", error);
       toast({
         variant: "destructive",
-        title: "خطأ في الحذف",
-        description: "حدث خطأ أثناء محاولة حذف القيد",
+        title: "فشل في الحذف",
+        description: "حدث خطأ أثناء محاولة الحذف",
       });
     }
   };
@@ -201,23 +197,23 @@ export default function AccountingPage() {
 
   const exportData = () => {
     const dataStr = JSON.stringify(journalEntries, null, 2);
-    const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
-    const linkElement = document.createElement("a");
-    linkElement.setAttribute("href", dataUri);
-    linkElement.setAttribute("download", `journal-entries-${format(new Date(), "yyyy-MM-dd")}.json`);
-    linkElement.click();
+    const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`;
+    const link = document.createElement("a");
+    link.href = dataUri;
+    link.download = `journal-entries-${format(new Date(), "yyyy-MM-dd")}.json`;
+    link.click();
     toast({ title: "تم التصدير", description: "تم تصدير البيانات بنجاح" });
   };
 
-  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    const fileReader = new FileReader();
-    fileReader.readAsText(file, "UTF-8");
-    fileReader.onload = async (e) => {
+    const reader = new FileReader();
+    reader.readAsText(file, "UTF-8");
+    reader.onload = async (event) => {
       try {
-        const result = e.target?.result;
+        const result = event.target?.result;
         if (typeof result !== "string") return;
 
         const entries = JSON.parse(result) as JournalEntry[];
@@ -241,12 +237,12 @@ export default function AccountingPage() {
         console.error("خطأ في الاستيراد:", error);
         toast({
           variant: "destructive",
-          title: "خطأ في الاستيراد",
+          title: "فشل في الاستيراد",
           description: error instanceof Error ? error.message : "حدث خطأ غير معروف",
         });
       }
     };
-    event.target.value = "";
+    e.target.value = "";
   };
 
   return (
@@ -254,7 +250,7 @@ export default function AccountingPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
-            <span>النظام المحاسبي</span>
+            النظام المحاسبي
             <div className="flex gap-2">
               <Button onClick={exportData} variant="outline">
                 <Download className="mr-2" /> تصدير البيانات
