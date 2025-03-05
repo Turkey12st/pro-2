@@ -1,314 +1,330 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, Trash, Bell, Calendar, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CalendarClock, CheckCircle2, Clock, Plus, Trash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
 
-type Task = {
+type TaskPriority = "high" | "medium" | "low";
+type TaskStatus = "pending" | "completed" | "overdue";
+type TaskRepeat = "never" | "daily" | "weekly" | "monthly" | "yearly";
+
+interface Task {
   id: string;
   title: string;
   description: string;
   dueDate: Date;
-  priority: "high" | "medium" | "low";
-  status: "pending" | "completed";
-  repeat: "never" | "daily" | "weekly" | "monthly";
-};
+  priority: TaskPriority;
+  status: TaskStatus;
+  repeat: TaskRepeat;
+}
 
 export function TaskScheduler() {
-  const { toast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: "1",
-      title: "تجديد رخصة البلدية",
-      description: "يجب تجديد رخصة البلدية قبل انتهائها",
-      dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+      title: "تجديد السجل التجاري",
+      description: "تجديد السجل التجاري للشركة قبل انتهاء المدة الحالية",
+      dueDate: new Date(2024, 7, 15),
       priority: "high",
       status: "pending",
       repeat: "yearly"
     } as Task,
     {
       id: "2",
-      title: "تسليم ملفات الزكاة",
-      description: "تسليم ملفات الزكاة للهيئة العامة للزكاة والدخل",
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      title: "دفع التأمينات",
+      description: "إكمال إجراءات دفع التأمينات الاجتماعية للموظفين",
+      dueDate: new Date(2024, 6, 5),
+      priority: "medium",
+      status: "pending",
+      repeat: "monthly"
+    },
+    {
+      id: "3",
+      title: "إعداد تقرير الزكاة",
+      description: "إعداد وتجهيز جميع المستندات اللازمة لتقرير الزكاة السنوي",
+      dueDate: new Date(2024, 11, 20),
       priority: "medium",
       status: "pending",
       repeat: "yearly"
     } as Task
   ]);
-  
-  const [newTask, setNewTask] = useState<Partial<Task>>({
+
+  const [newTask, setNewTask] = useState<Omit<Task, "id" | "status">>({
     title: "",
     description: "",
     dueDate: new Date(),
     priority: "medium",
-    repeat: "never",
-    status: "pending"
+    repeat: "never"
   });
 
-  const handleAddTask = () => {
+  const addTask = () => {
     if (!newTask.title) {
       toast({
-        variant: "destructive",
         title: "خطأ",
-        description: "يرجى إدخال عنوان المهمة"
+        description: "يرجى إدخال عنوان المهمة",
+        variant: "destructive"
       });
       return;
     }
 
     const task: Task = {
+      ...newTask,
       id: Date.now().toString(),
-      title: newTask.title || "",
-      description: newTask.description || "",
-      dueDate: newTask.dueDate || new Date(),
-      priority: newTask.priority as "high" | "medium" | "low" || "medium",
-      repeat: newTask.repeat as "never" | "daily" | "weekly" | "monthly" || "never",
       status: "pending"
     };
 
     setTasks([...tasks, task]);
     
-    // إعادة تعيين النموذج
+    // Reset form
     setNewTask({
       title: "",
       description: "",
       dueDate: new Date(),
       priority: "medium",
-      repeat: "never",
-      status: "pending"
+      repeat: "never"
     });
 
     toast({
-      title: "تمت الإضافة بنجاح",
-      description: "تمت إضافة المهمة الجديدة بنجاح"
+      title: "تمت الإضافة",
+      description: "تم إضافة المهمة بنجاح"
     });
   };
 
-  const handleDeleteTask = (id: string) => {
-    setTasks(tasks.filter(task => task.id !== id));
+  const completeTask = (id: string) => {
+    const updatedTasks = tasks.map(task => 
+      task.id === id ? { ...task, status: "completed" as TaskStatus } : task
+    );
+    
+    setTasks(updatedTasks);
+    
+    toast({
+      title: "تمت المهمة",
+      description: "تم تحديث حالة المهمة إلى مكتملة"
+    });
+  };
+
+  const deleteTask = (id: string) => {
+    const updatedTasks = tasks.filter(task => task.id !== id);
+    setTasks(updatedTasks);
+    
     toast({
       title: "تم الحذف",
       description: "تم حذف المهمة بنجاح"
     });
   };
 
-  const handleCompleteTask = (id: string) => {
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, status: 'completed' } : task
-    ));
-    toast({
-      title: "تم الإكمال",
-      description: "تم تحديث حالة المهمة بنجاح"
-    });
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('ar-SA', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(date);
   };
 
-  const getTaskPriorityColor = (priority: string) => {
+  const getPriorityBadge = (priority: TaskPriority) => {
     switch (priority) {
       case "high":
-        return "bg-red-100 text-red-800 border-red-300";
+        return <Badge className="bg-red-500 hover:bg-red-600">عالية</Badge>;
       case "medium":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+        return <Badge className="bg-amber-500 hover:bg-amber-600">متوسطة</Badge>;
       case "low":
-        return "bg-green-100 text-green-800 border-green-300";
+        return <Badge className="bg-green-500 hover:bg-green-600">منخفضة</Badge>;
       default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
+        return null;
     }
   };
 
-  const getTaskPriorityLabel = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "عالي";
-      case "medium":
-        return "متوسط";
-      case "low":
-        return "منخفض";
+  const getStatusIcon = (status: TaskStatus) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      case "overdue":
+        return <AlertCircle className="h-5 w-5 text-red-500" />;
+      case "pending":
+        return <Clock className="h-5 w-5 text-amber-500" />;
       default:
-        return "";
+        return null;
     }
   };
 
-  const getTaskRepeatLabel = (repeat: string) => {
+  const getRepeatLabel = (repeat: TaskRepeat) => {
     switch (repeat) {
-      case "never":
-        return "مرة واحدة";
-      case "daily":
-        return "يومي";
-      case "weekly":
-        return "أسبوعي";
-      case "monthly":
-        return "شهري";
-      case "yearly":
-        return "سنوي";
-      default:
-        return "";
+      case "never": return "لا تكرار";
+      case "daily": return "يومي";
+      case "weekly": return "أسبوعي";
+      case "monthly": return "شهري";
+      case "yearly": return "سنوي";
+      default: return "";
     }
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">إضافة مهمة جديدة</h3>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">عنوان المهمة</Label>
-              <Input
-                id="title"
-                value={newTask.title || ""}
-                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                placeholder="أدخل عنوان المهمة"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">وصف المهمة</Label>
-              <Textarea
-                id="description"
-                value={newTask.description || ""}
-                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                placeholder="أدخل وصف المهمة"
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Plus className="h-5 w-5 mr-2" />
+              إضافة مهمة جديدة
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="date">التاريخ المستهدف</Label>
-                <DatePicker
-                  selected={newTask.dueDate}
-                  onSelect={(date) => setNewTask({ ...newTask, dueDate: date })}
-                  placeholder="اختر التاريخ"
+                <Label htmlFor="title">عنوان المهمة</Label>
+                <Input
+                  id="title"
+                  value={newTask.title}
+                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                  placeholder="أدخل عنوان المهمة"
                 />
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="priority">الأولوية</Label>
-                <Select
-                  value={newTask.priority}
-                  onValueChange={(value) => setNewTask({ ...newTask, priority: value as "high" | "medium" | "low" })}
+                <Label htmlFor="description">وصف المهمة</Label>
+                <Textarea
+                  id="description"
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                  placeholder="أدخل وصف المهمة"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="dueDate">تاريخ الاستحقاق</Label>
+                  <Input
+                    id="dueDate"
+                    type="date"
+                    value={newTask.dueDate.toISOString().split('T')[0]}
+                    onChange={(e) => {
+                      const date = new Date(e.target.value);
+                      if (!isNaN(date.getTime())) {
+                        setNewTask({ ...newTask, dueDate: date });
+                      }
+                    }}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="priority">الأولوية</Label>
+                  <select
+                    id="priority"
+                    value={newTask.priority}
+                    onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as TaskPriority })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="high">عالية</option>
+                    <option value="medium">متوسطة</option>
+                    <option value="low">منخفضة</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="repeat">التكرار</Label>
+                <select
+                  id="repeat"
+                  value={newTask.repeat}
+                  onChange={(e) => setNewTask({ ...newTask, repeat: e.target.value as TaskRepeat })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر الأولوية" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="high">عالي</SelectItem>
-                    <SelectItem value="medium">متوسط</SelectItem>
-                    <SelectItem value="low">منخفض</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <option value="never">لا تكرار</option>
+                  <option value="daily">يومي</option>
+                  <option value="weekly">أسبوعي</option>
+                  <option value="monthly">شهري</option>
+                  <option value="yearly">سنوي</option>
+                </select>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="repeat">التكرار</Label>
-              <Select
-                value={newTask.repeat}
-                onValueChange={(value) => setNewTask({ ...newTask, repeat: value as "never" | "daily" | "weekly" | "monthly" })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="اختر نمط التكرار" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="never">مرة واحدة</SelectItem>
-                  <SelectItem value="daily">يومي</SelectItem>
-                  <SelectItem value="weekly">أسبوعي</SelectItem>
-                  <SelectItem value="monthly">شهري</SelectItem>
-                  <SelectItem value="yearly">سنوي</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button onClick={handleAddTask} className="w-full">
-              <PlusCircle className="ml-2 h-4 w-4" />
+          </CardContent>
+          <CardFooter>
+            <Button onClick={addTask} className="w-full">
+              <Plus className="h-4 w-4 ml-2" />
               إضافة المهمة
             </Button>
-          </div>
-        </div>
-
+          </CardFooter>
+        </Card>
+        
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">المهام المجدولة</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium">المهام القادمة</h3>
+            <Badge variant="outline" className="flex items-center">
+              <CalendarClock className="h-3 w-3 mr-1" />
+              {tasks.filter(task => task.status === "pending").length} مهام معلقة
+            </Badge>
+          </div>
+          
           {tasks.length === 0 ? (
-            <div className="text-center p-8 border rounded-md bg-muted/20">
-              <Bell className="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-              <h3 className="text-lg font-medium">لا توجد مهام</h3>
-              <p className="text-muted-foreground">لم يتم إضافة أي مهام مجدولة بعد.</p>
-            </div>
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-8">
+                <CalendarClock className="h-10 w-10 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">لا توجد مهام مجدولة</p>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="border rounded-md overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>المهمة</TableHead>
-                    <TableHead>الأولوية</TableHead>
-                    <TableHead>التاريخ</TableHead>
-                    <TableHead>التكرار</TableHead>
-                    <TableHead>الإجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tasks.map((task) => (
-                    <TableRow key={task.id} className={task.status === "completed" ? "opacity-60 bg-muted/10" : ""}>
-                      <TableCell className="font-medium">
-                        <div className="flex flex-col">
-                          <span className={task.status === "completed" ? "line-through" : ""}>
-                            {task.title}
-                          </span>
-                          {task.description && (
-                            <span className="text-xs text-muted-foreground mt-1 max-w-[200px] truncate">
+            <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
+              {tasks.map((task) => (
+                <Card key={task.id} className={`${task.status === "completed" ? "opacity-70" : ""}`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 pt-1">
+                        {getStatusIcon(task.status)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className={`font-medium mb-1 ${task.status === "completed" ? "line-through" : ""}`}>
+                              {task.title}
+                            </h4>
+                            <p className="text-sm text-muted-foreground mb-2">
                               {task.description}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={getTaskPriorityColor(task.priority)}>
-                          {getTaskPriorityLabel(task.priority)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm">
-                          {format(task.dueDate, "yyyy-MM-dd")}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">{getTaskRepeatLabel(task.repeat)}</span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          {task.status !== "completed" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleCompleteTask(task.id)}
+                            </p>
+                            <div className="flex flex-wrap gap-2 text-xs">
+                              <Badge variant="outline" className="flex items-center">
+                                <CalendarClock className="h-3 w-3 mr-1" />
+                                {formatDate(task.dueDate)}
+                              </Badge>
+                              {task.repeat !== "never" && (
+                                <Badge variant="outline" className="flex items-center">
+                                  {getRepeatLabel(task.repeat)}
+                                </Badge>
+                              )}
+                              {getPriorityBadge(task.priority)}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            {task.status !== "completed" && (
+                              <Button 
+                                size="icon" 
+                                variant="ghost" 
+                                onClick={() => completeTask(task.id)}
+                                className="h-7 w-7"
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              onClick={() => deleteTask(task.id)}
+                              className="h-7 w-7 text-destructive"
                             >
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <Trash className="h-4 w-4" />
                             </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleDeleteTask(task.id)}
-                          >
-                            <Trash className="h-4 w-4 text-red-500" />
-                          </Button>
+                          </div>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </div>
