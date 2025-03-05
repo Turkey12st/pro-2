@@ -1,6 +1,6 @@
 
 import { SidebarProvider, Sidebar, SidebarContent, SidebarTrigger } from "@/components/ui/sidebar";
-import { Menu, User, Settings, LogOut, LayoutDashboard, Calculator, Users, Wallet, Calendar, Building, FolderKanban, UserSquare2 } from "lucide-react";
+import { Menu, User, Settings, LogOut, LayoutDashboard, Calculator, Users, Wallet, Calendar, Building, FolderKanban, UserSquare2, FileText } from "lucide-react";
 import { useState } from "react";
 import { AppNavigation } from "./AppNavigation";
 import { 
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getNavigationMenu } from "@/data/navigationMenu";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [user] = useState({
@@ -25,6 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const menuItems = getNavigationMenu();
 
   const handleLogout = async () => {
     try {
@@ -44,17 +46,36 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const quickLinks = [
-    { icon: LayoutDashboard, label: "لوحة المعلومات", href: "/dashboard" },
-    { icon: Wallet, label: "المحاسبة", href: "/accounting" },
-    { icon: Users, label: "الموارد البشرية", href: "/hr" },
-    { icon: Users, label: "الشركاء", href: "/partners" },
-    { icon: UserSquare2, label: "العملاء", href: "/clients" },
-    { icon: FolderKanban, label: "المشاريع", href: "/projects" },
-    { icon: Calculator, label: "الزكاة والضرائب", href: "/zakat" },
-    { icon: Building, label: "الشركة", href: "/company" },
-    { icon: Calendar, label: "التقويم", href: "/calendar" },
-  ];
+  // إنشاء قائمة الانتقال السريع مع تصنيف العناصر حسب المجموعة
+  const organizeQuickLinks = () => {
+    const categories = {
+      "نظرة عامة": [
+        { icon: LayoutDashboard, label: "لوحة المعلومات", href: "/dashboard" },
+      ],
+      "العمليات المالية": [
+        { icon: Wallet, label: "المحاسبة", href: "/accounting" },
+        { icon: Calculator, label: "الزكاة والضرائب", href: "/zakat" },
+      ],
+      "العمليات الأساسية": [
+        { icon: Users, label: "الموارد البشرية", href: "/hr" },
+        { icon: Users, label: "الشركاء", href: "/partners" },
+        { icon: UserSquare2, label: "العملاء", href: "/clients" },
+        { icon: FolderKanban, label: "المشاريع", href: "/projects" },
+      ],
+      "الوثائق والمستندات": [
+        { icon: Building, label: "معلومات الشركة", href: "/company" },
+        { icon: FileText, label: "المستندات", href: "/documents" },
+      ],
+      "الأدوات والإعدادات": [
+        { icon: Calendar, label: "التقويم", href: "/calendar" },
+        { icon: Settings, label: "إعدادات النظام", href: "/settings" },
+      ],
+    };
+    
+    return categories;
+  };
+  
+  const quickLinksCategories = organizeQuickLinks();
 
   return (
     <SidebarProvider>
@@ -79,16 +100,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <span className="hidden md:inline">الانتقال السريع</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56 bg-card">
+                <DropdownMenuContent align="start" className="w-56 bg-card bg-opacity-100 border border-border">
                   <DropdownMenuLabel>الانتقال السريع</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {quickLinks.map((link) => (
-                    <DropdownMenuItem key={link.href} asChild>
-                      <Link to={link.href} className="flex items-center gap-2 cursor-pointer">
-                        <link.icon className="h-4 w-4" />
-                        <span>{link.label}</span>
-                      </Link>
-                    </DropdownMenuItem>
+                  
+                  {Object.entries(quickLinksCategories).map(([category, links]) => (
+                    <div key={category}>
+                      <DropdownMenuLabel className="text-xs text-muted-foreground py-1">
+                        {category}
+                      </DropdownMenuLabel>
+                      {links.map((link) => (
+                        <DropdownMenuItem key={link.href} asChild>
+                          <Link to={link.href} className="flex items-center gap-2 cursor-pointer">
+                            <link.icon className="h-4 w-4" />
+                            <span>{link.label}</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                    </div>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -103,7 +133,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-card" align="end" forceMount>
+              <DropdownMenuContent className="w-56 bg-card bg-opacity-100 border border-border" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user.name}</p>

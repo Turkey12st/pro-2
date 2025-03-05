@@ -1,10 +1,14 @@
 
-// استيراد الأساسيات من مكتبة toast الأصلية
 import {
-  useToast as useToastOriginal,
-  toast as toastOriginal
+  type ToastActionElement,
+  type ToastProps
 } from "@/components/ui/toast";
 
-// إعادة تصدير الدوال لاستخدامها في التطبيق
-export const useToast = useToastOriginal;
-export const toast = toastOriginal;
+import {
+  useToast as useToastHook,
+  toast as toastFunction
+} from "@/components/ui/use-toast";
+
+export type { ToastActionElement, ToastProps };
+export const useToast = useToastHook;
+export const toast = toastFunction;

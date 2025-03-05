@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,8 @@ import DashboardPage from "./pages/dashboard/Index";
 import FinancialPage from "./pages/financial/Index";
 import ZakatPage from "./pages/zakat/Index";
 import DocumentsPage from "./pages/documents/Index";
+import AppLayout from "./components/AppLayout";
+import SettingsPage from "./pages/settings/Index";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,15 +34,86 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/accounting" element={<AccountingPage />} />
-            <Route path="/hr" element={<HRPage />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/clients" element={<ClientsPage />} />
-            <Route path="/partners" element={<PartnersPage />} />
-            <Route path="/financial" element={<FinancialPage />} />
-            <Route path="/zakat" element={<ZakatPage />} />
-            <Route path="documents" element={<DocumentsPage />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <AppLayout>
+                  <DashboardPage />
+                </AppLayout>
+              } 
+            />
+            <Route 
+              path="/accounting" 
+              element={
+                <AppLayout>
+                  <AccountingPage />
+                </AppLayout>
+              } 
+            />
+            <Route 
+              path="/hr" 
+              element={
+                <AppLayout>
+                  <HRPage />
+                </AppLayout>
+              } 
+            />
+            <Route 
+              path="/projects" 
+              element={
+                <AppLayout>
+                  <ProjectsPage />
+                </AppLayout>
+              } 
+            />
+            <Route 
+              path="/clients" 
+              element={
+                <AppLayout>
+                  <ClientsPage />
+                </AppLayout>
+              } 
+            />
+            <Route 
+              path="/partners" 
+              element={
+                <AppLayout>
+                  <PartnersPage />
+                </AppLayout>
+              } 
+            />
+            <Route 
+              path="/financial" 
+              element={
+                <AppLayout>
+                  <FinancialPage />
+                </AppLayout>
+              } 
+            />
+            <Route 
+              path="/zakat" 
+              element={
+                <AppLayout>
+                  <ZakatPage />
+                </AppLayout>
+              } 
+            />
+            <Route 
+              path="documents" 
+              element={
+                <AppLayout>
+                  <DocumentsPage />
+                </AppLayout>
+              } 
+            />
+            <Route 
+              path="settings" 
+              element={
+                <AppLayout>
+                  <SettingsPage />
+                </AppLayout>
+              } 
+            />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </BrowserRouter>

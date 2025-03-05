@@ -12,7 +12,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyInfo, FinancialSummaryType } from "@/types/database";
 import { ZakatCalculator } from "@/components/dashboard/ZakatCalculator";
-import { useToast } from "@/hooks/useToast";
+import { useToast } from "@/hooks/use-toast";
+import { CompanyInfoCard } from "@/components/dashboard/CompanyInfoCard";
 
 export default function Dashboard() {
   const [date, setDate] = useState(new Date());
@@ -192,6 +193,8 @@ export default function Dashboard() {
           reserved_capital: 0,
           notes: ""
         }} isLoading={isCapitalLoading} />
+        
+        <CompanyInfoCard />
         
         <div>
           <DocumentExpiryNotifications />
