@@ -8,12 +8,14 @@ import { Employee, DbEmployee } from "@/types/hr";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function EmployeeList() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
 
-  const { data: employees, isLoading, error } = useQuery({
+  const { data: employees, isLoading, error, refetch } = useQuery({
     queryKey: ["employees"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -46,6 +48,14 @@ export default function EmployeeList() {
     },
   });
 
+  const handleViewDetails = (id: string) => {
+    navigate(`/hr/employees/${id}`);
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/hr/employees/${id}/edit`);
+  };
+
   const handleDelete = async (id: string) => {
     try {
       const { error } = await supabase
@@ -61,7 +71,7 @@ export default function EmployeeList() {
       });
       
       // تحديث القائمة بعد الحذف
-      window.location.reload();
+      refetch();
     } catch (error) {
       console.error("Error deleting employee:", error);
       toast({
@@ -127,10 +137,18 @@ export default function EmployeeList() {
               <TableCell>{new Date(employee.joiningDate).toLocaleDateString('ar')}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="icon">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleViewDetails(employee.id)}
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => handleEdit(employee.id)}
+                  >
                     <Pencil className="h-4 w-4" />
                   </Button>
                   <Button 

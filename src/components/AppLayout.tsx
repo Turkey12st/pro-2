@@ -46,7 +46,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // إنشاء قائمة الانتقال السريع مع تصنيف العناصر حسب المجموعة
+  // إنشاء قائمة الانتقال السريع مع تصنيف العناصر حسب المجموعة - تظهر أيضًا في الجانب الأيمن
   const organizeQuickLinks = () => {
     const categories = {
       "نظرة عامة": [
@@ -80,7 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div dir="rtl" className="min-h-screen flex w-full bg-background">
-        <Sidebar className="border-l bg-card">
+        <Sidebar className="border-l bg-card" side="right">
           <SidebarContent>
             <AppNavigation />
           </SidebarContent>
@@ -100,7 +100,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <span className="hidden md:inline">الانتقال السريع</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56 bg-card bg-opacity-100 border border-border">
+                <DropdownMenuContent align="end" className="w-56 bg-card bg-opacity-100 border border-border">
                   <DropdownMenuLabel>الانتقال السريع</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   

@@ -75,10 +75,23 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  /* تحسين ظهور النصوص العربية */
+  body, input, button, select, textarea {
+    font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  }
 }
 
 @layer utilities {
   .rtl {
     direction: rtl;
+  }
+  
+  /* Optimize for arabic text reading */
+  .arabic-text {
+    font-family: -apple-system, 'Segoe UI', Tahoma, Arial, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "kern" 1;
+    font-size: 1rem;
+    line-height: 1.5;
   }
 }

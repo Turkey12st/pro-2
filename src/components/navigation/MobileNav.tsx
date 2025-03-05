@@ -101,7 +101,7 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                           )}
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="pl-8">
+                      <AccordionContent className="pr-8">
                         <div className="flex flex-col space-y-2">
                           {item.children.map((child) => (
                             <Button
