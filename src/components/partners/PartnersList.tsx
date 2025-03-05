@@ -12,7 +12,6 @@ import {
 import { Edit, Plus, Trash, Phone, Mail, User, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Json } from "@/integrations/supabase/types";
 import PartnerForm from "./PartnerForm";
 import { Partner } from "@/types/database";
 
@@ -38,7 +37,20 @@ export default function PartnersList() {
         throw error;
       }
 
-      setPartners(data || []);
+      // تأكد من أن البيانات تطابق النوع المطلوب
+      const validPartners: Partner[] = (data || []).map((item: any) => ({
+        id: item.id || "",
+        name: item.name || "",
+        partner_type: item.partner_type || "individual",
+        ownership_percentage: item.ownership_percentage || 0,
+        share_value: item.share_value || 0,
+        contact_info: item.contact_info || {},
+        documents: item.documents || [],
+        created_at: item.created_at || "",
+        updated_at: item.updated_at || ""
+      }));
+
+      setPartners(validPartners);
     } catch (error) {
       console.error("Error fetching partners:", error);
       toast({
@@ -52,8 +64,16 @@ export default function PartnersList() {
   }
 
   const handleEditPartner = (partner: Partner) => {
-    setSelectedPartnerId(partner.id);
-    setOpenDialog(true);
+    if (partner.id) {
+      setSelectedPartnerId(partner.id);
+      setOpenDialog(true);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "خطأ في التعديل",
+        description: "لا يمكن تعديل هذا الشريك، الرجاء المحاولة مرة أخرى",
+      });
+    }
   };
 
   const handleDeletePartner = async (partnerId: string) => {
