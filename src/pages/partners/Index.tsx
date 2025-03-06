@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/components/AppLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -7,6 +8,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PartnersList from "@/components/partners/PartnersList";
 import PartnerForm from "@/components/partners/PartnerForm";
+import CapitalInfo from "@/components/partners/CapitalInfo";
 
 export default function PartnersPage() {
   const { toast } = useToast();
@@ -23,6 +25,9 @@ export default function PartnersPage() {
             شريك جديد
           </Button>
         </div>
+
+        {/* معلومات رأس المال */}
+        <CapitalInfo />
 
         {/* الألسنة */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
