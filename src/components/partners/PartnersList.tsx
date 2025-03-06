@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -141,8 +140,9 @@ export default function PartnersList() {
               {selectedPartnerId ? "تعديل بيانات الشريك" : "إضافة شريك جديد"}
             </DialogTitle>
             <PartnerForm
-              partnerId={selectedPartnerId || undefined}
+              initialData={partners.find(p => p.id === selectedPartnerId)}
               onSuccess={onPartnerSaved}
+              onCancel={() => setOpenDialog(false)}
             />
           </DialogContent>
         </Dialog>

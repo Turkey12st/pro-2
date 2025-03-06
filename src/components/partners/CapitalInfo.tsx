@@ -49,18 +49,31 @@ export default function CapitalInfo() {
         .select("*");
       
       if (error) throw error;
-      return data as Partner[];
+      return data as any[]; // We'll transform this in useEffect
     }
   });
 
   useEffect(() => {
     if (partners) {
-      // حساب إجمالي رأس المال وتوزيعه
-      const total = partners.reduce((sum, partner) => sum + partner.share_value, 0);
-      const individual = partners
+      // Transform partners data to ensure it has all required fields
+      const transformedPartners: Partner[] = partners.map(p => ({
+        id: p.id || p.created_at, // Use created_at as fallback ID
+        name: p.name,
+        partner_type: p.partner_type || 'individual',
+        ownership_percentage: p.ownership_percentage,
+        share_value: p.share_value || 0,
+        contact_info: p.contact_info || {},
+        documents: p.documents || [],
+        created_at: p.created_at,
+        updated_at: p.updated_at
+      }));
+
+      // Calculate data
+      const total = transformedPartners.reduce((sum, partner) => sum + partner.share_value, 0);
+      const individual = transformedPartners
         .filter(p => p.partner_type === 'individual')
         .reduce((sum, partner) => sum + partner.share_value, 0);
-      const corporate = partners
+      const corporate = transformedPartners
         .filter(p => p.partner_type === 'company')
         .reduce((sum, partner) => sum + partner.share_value, 0);
       
@@ -68,8 +81,8 @@ export default function CapitalInfo() {
         total_capital: total,
         individual_capital: individual,
         corporate_capital: corporate,
-        partner_count: partners.length,
-        partners: partners
+        partner_count: transformedPartners.length,
+        partners: transformedPartners
       });
     }
   }, [partners]);

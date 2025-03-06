@@ -1,9 +1,10 @@
 
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, FileDown, Eye, FileSpreadsheet, FilePdf, FileText } from "lucide-react";
+import { Pencil, Trash2, FileDown, Eye, FileSpreadsheet, FileText } from "lucide-react";
 import { Employee, DbEmployee } from "@/types/hr";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";

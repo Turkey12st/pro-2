@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +47,6 @@ export default function DocumentsPage() {
     }
   });
 
-  // تحديد حالة المستندات وحساب الأيام المتبقية
   const processedDocuments: DocumentWithDaysRemaining[] = documents?.map(doc => {
     const today = new Date();
     const expiryDate = new Date(doc.expiry_date);
@@ -65,11 +63,10 @@ export default function DocumentsPage() {
       ...doc,
       status,
       days_remaining: daysRemaining,
-      id: doc.id || doc.created_at // استخدام created_at كبديل مؤقت لـ id
+      id: doc.id || doc.created_at
     };
   }) || [];
 
-  // تصفية المستندات حسب علامة التبويب النشطة
   const filteredDocuments = activeTab === "all" 
     ? processedDocuments 
     : processedDocuments.filter(doc => {
@@ -88,13 +85,11 @@ export default function DocumentsPage() {
     return <Badge variant="outline" className="mr-2 bg-green-100 text-green-800 border-green-300">ساري</Badge>;
   };
 
-  // دالة تعديل المستند
   const handleEditDocument = (docId: string) => {
     setSelectedDocument(docId);
     setOpenDialog(true);
   };
 
-  // دالة حذف المستند
   const handleDeleteDocument = async (docId: string) => {
     try {
       const { error } = await supabase
@@ -120,10 +115,8 @@ export default function DocumentsPage() {
     }
   };
 
-  // دالة تصدير المستندات
   const exportDocuments = (type: 'excel' | 'pdf' | 'csv') => {
     try {
-      // تحضير البيانات للتصدير
       const exportData = filteredDocuments.map(doc => {
         return {
           "العنوان": doc.title,
@@ -137,33 +130,28 @@ export default function DocumentsPage() {
       });
 
       if (type === 'excel') {
-        // تصدير كملف Excel
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "المستندات");
         
-        // تعديل عرض الأعمدة
         const columnWidths = [
-          { wch: 25 }, // العنوان
-          { wch: 20 }, // النوع
-          { wch: 15 }, // الرقم
-          { wch: 15 }, // تاريخ الإصدار
-          { wch: 15 }, // تاريخ الانتهاء
-          { wch: 15 }, // الحالة
-          { wch: 12 }, // الأيام المتبقية
+          { wch: 25 },
+          { wch: 20 },
+          { wch: 15 },
+          { wch: 15 },
+          { wch: 15 },
+          { wch: 15 },
+          { wch: 12 }
         ];
         ws['!cols'] = columnWidths;
         
         XLSX.writeFile(wb, "قائمة_المستندات.xlsx");
       } else if (type === 'pdf') {
-        // تصدير كملف PDF
         const doc = new jsPDF('l', 'mm', 'a4');
         
-        // إضافة دعم اللغة العربية
         doc.setFont("Helvetica", "normal");
         doc.setR2L(true);
         
-        // إنشاء الجدول
         (doc as any).autoTable({
           head: [["الأيام المتبقية", "الحالة", "تاريخ الانتهاء", "تاريخ الإصدار", "الرقم", "النوع", "العنوان"]],
           body: exportData.map(item => [
@@ -182,7 +170,6 @@ export default function DocumentsPage() {
         
         doc.save("قائمة_المستندات.pdf");
       } else if (type === 'csv') {
-        // تصدير كملف CSV
         let csvContent = "data:text/csv;charset=utf-8," + 
           Object.keys(exportData[0]).join(",") + "\n" +
           exportData.map(row => Object.values(row).join(",")).join("\n");
@@ -210,7 +197,6 @@ export default function DocumentsPage() {
     }
   };
 
-  // استيراد المستندات من ملف Excel
   const importDocuments = (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = event.target.files?.[0];
@@ -224,13 +210,11 @@ export default function DocumentsPage() {
         const sheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-        // هنا يمكن معالجة البيانات المستوردة وإضافتها إلى قاعدة البيانات
         toast({
           title: "تم استيراد البيانات",
           description: `تم استيراد ${jsonData.length} مستند بنجاح`
         });
 
-        // إعادة تحميل المستندات
         refetch();
       };
       reader.readAsBinaryString(file);
@@ -275,7 +259,7 @@ export default function DocumentsPage() {
                 تصدير كملف CSV
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => exportDocuments('pdf')} className="cursor-pointer">
-                <FilePdf className="h-4 w-4 ml-2" />
+                <FileText className="h-4 w-4 ml-2" />
                 تصدير كملف PDF
               </DropdownMenuItem>
             </DropdownMenuContent>

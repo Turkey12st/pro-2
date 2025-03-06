@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -53,14 +52,12 @@ export default function AutoSaveDocumentForm({ onSuccess, documentId }: Document
   
   const [formData, setFormData] = useState<DocumentFormData>(initialFormData);
 
-  // إذا كان هناك معرف للمستند، قم بتحميل بياناته
   useEffect(() => {
     if (documentId) {
       loadDocument(documentId);
     }
   }, [documentId]);
 
-  // حفظ تلقائي للبيانات
   const { saveData } = useAutoSave();
   
   useEffect(() => {
@@ -102,7 +99,7 @@ export default function AutoSaveDocumentForm({ onSuccess, documentId }: Document
         issue_date: data.issue_date,
         expiry_date: data.expiry_date,
         reminder_days: data.reminder_days || [30, 14, 7],
-        status: data.status,
+        status: data.status as "active" | "expired" | "soon-expire",
         document_url: data.document_url,
         notes: data.metadata?.notes || ""
       });
@@ -163,7 +160,6 @@ export default function AutoSaveDocumentForm({ onSuccess, documentId }: Document
     try {
       setUploading(true);
       
-      // إنشاء اسم فريد للملف باستخدام التاريخ والوقت واسم الملف الأصلي
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `documents/${fileName}`;
@@ -179,7 +175,6 @@ export default function AutoSaveDocumentForm({ onSuccess, documentId }: Document
         throw error;
       }
       
-      // الحصول على رابط عام للملف
       const { data: urlData } = await supabase.storage
         .from('documents')
         .getPublicUrl(filePath);
@@ -203,7 +198,6 @@ export default function AutoSaveDocumentForm({ onSuccess, documentId }: Document
     setIsSubmitting(true);
 
     try {
-      // تحقق من صحة البيانات المدخلة
       if (!formData.title || !formData.type || !formData.issue_date || !formData.expiry_date) {
         toast({
           variant: "destructive",
@@ -215,7 +209,6 @@ export default function AutoSaveDocumentForm({ onSuccess, documentId }: Document
 
       let document_url = formData.document_url;
       
-      // رفع الملف إذا كان موجوداً
       if (uploadedFile) {
         document_url = await uploadFile(uploadedFile);
         if (!document_url) {
@@ -224,7 +217,6 @@ export default function AutoSaveDocumentForm({ onSuccess, documentId }: Document
         }
       }
 
-      // تحويل البيانات إلى الصيغة المناسبة للتخزين
       const documentToSave = {
         title: formData.title,
         type: formData.type,
@@ -233,21 +225,19 @@ export default function AutoSaveDocumentForm({ onSuccess, documentId }: Document
         expiry_date: formData.expiry_date,
         reminder_days: formData.reminder_days,
         document_url: document_url,
-        status: "active", // الحالة الافتراضية للمستندات الجديدة
+        status: formData.status,
         metadata: {
-          notes: formData.notes
-        } as Json
+          notes: formData.notes || ""
+        }
       };
 
       let result;
       if (documentId) {
-        // تحديث مستند موجود
         result = await supabase
           .from("company_documents")
           .update(documentToSave)
           .eq("id", documentId);
       } else {
-        // إضافة مستند جديد
         result = await supabase
           .from("company_documents")
           .insert(documentToSave);
@@ -262,7 +252,6 @@ export default function AutoSaveDocumentForm({ onSuccess, documentId }: Document
         description: "تم حفظ المستند في قاعدة البيانات"
       });
 
-      // إعادة تعيين النموذج
       if (!documentId) {
         setFormData(initialFormData);
         setUploadedFile(null);
@@ -271,7 +260,6 @@ export default function AutoSaveDocumentForm({ onSuccess, documentId }: Document
         }
       }
 
-      // استدعاء دالة النجاح إذا تم توفيرها
       if (onSuccess) {
         onSuccess();
       }

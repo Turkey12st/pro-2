@@ -1,4 +1,3 @@
-
 export interface CompanyInfo {
   id: string;
   company_name: string;
@@ -84,7 +83,10 @@ export interface Document {
   status: 'active' | 'expired' | 'soon-expire';
   reminder_days: number[];
   document_url?: string;
-  metadata?: any;
+  metadata?: {
+    notes?: string;
+    [key: string]: any;
+  };
   created_at: string;
 }
 
