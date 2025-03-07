@@ -1,3 +1,4 @@
+
 export interface CompanyInfo {
   id: string;
   company_name: string;
@@ -16,6 +17,10 @@ export interface CompanyInfo {
     street?: string;
     city?: string;
     postal_code?: string;
+  };
+  metadata?: {
+    logo_url?: string;
+    [key: string]: any;
   };
   license_expiry_date?: string;
   created_at: string;
@@ -111,4 +116,8 @@ export interface SalarySummary {
   days_remaining: number;
   employees_count: number;
   status: 'upcoming' | 'due' | 'overdue' | 'paid';
+}
+
+export interface DocumentWithDaysRemaining extends Document {
+  days_remaining: number;
 }

@@ -1,390 +1,409 @@
 
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, FileDown, Eye, FileSpreadsheet, FileText } from "lucide-react";
-import { Employee, DbEmployee } from "@/types/hr";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-import Papa from 'papaparse';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { FileText, Download, Upload, Search, FileSpreadsheet } from "lucide-react";
+import { saveAs } from "file-saver";
+import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import Papa from "papaparse";
 
-export default function EmployeeList() {
+const EmployeeList = () => {
+  const [employees, setEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [importFile, setImportFile] = useState(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
+  const fileInputRef = React.useRef(null);
 
-  const { data: employees, isLoading, error, refetch } = useQuery({
-    queryKey: ["employees"],
-    queryFn: async () => {
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = employees.filter(emp => 
+        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.department.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredEmployees(filtered);
+    } else {
+      setFilteredEmployees(employees);
+    }
+  }, [searchTerm, employees]);
+
+  const fetchEmployees = async () => {
+    try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from("employees")
         .select("*");
       
-      if (error) {
-        console.error("Error fetching employees:", error);
-        throw error;
-      }
-      
-      return (data || []).map(emp => ({
-        id: emp.id,
-        created_at: emp.created_at,
-        name: emp.name,
-        identityNumber: emp.identity_number,
-        birthDate: emp.birth_date,
-        nationality: emp.nationality,
-        position: emp.position,
-        department: emp.department,
-        salary: emp.salary,
-        joiningDate: emp.joining_date,
-        contractType: emp.contract_type as 'full-time' | 'part-time' | 'contract',
-        email: emp.email,
-        phone: emp.phone,
-        photoUrl: emp.photo_url,
-        documents: emp.documents as { name: string; url: string; type: string }[] || [],
-        created_by: emp.created_by
-      })) as Employee[];
-    },
-  });
-
-  const handleViewDetails = (id: string) => {
-    navigate(`/hr/employees/${id}`);
-  };
-
-  const handleEdit = (id: string) => {
-    navigate(`/hr/employees/${id}/edit`);
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from("employees")
-        .delete()
-        .eq("id", id);
-
       if (error) throw error;
-
-      toast({
-        title: "تم حذف الموظف بنجاح",
-        description: "تم حذف بيانات الموظف من النظام",
-      });
       
-      // تحديث القائمة بعد الحذف
-      refetch();
+      setEmployees(data || []);
+      setFilteredEmployees(data || []);
     } catch (error) {
-      console.error("Error deleting employee:", error);
+      console.error("Error fetching employees:", error);
       toast({
-        title: "خطأ في الحذف",
-        description: "حدث خطأ أثناء محاولة حذف الموظف",
+        title: "خطأ في جلب البيانات",
+        description: "حدث خطأ أثناء محاولة جلب بيانات الموظفين.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // تحويل البيانات إلى تنسيق مناسب للتصدير
-  const prepareExportData = () => {
-    return employees?.map(emp => ({
-      "الاسم": emp.name,
-      "رقم الهوية": emp.identityNumber,
-      "البريد الإلكتروني": emp.email,
-      "رقم الهاتف": emp.phone,
-      "القسم": emp.department,
-      "المنصب": emp.position,
-      "الراتب": emp.salary,
-      "الجنسية": emp.nationality,
-      "نوع العقد": 
-        emp.contractType === 'full-time' ? 'دوام كامل' :
-        emp.contractType === 'part-time' ? 'دوام جزئي' : 'عقد مؤقت',
-      "تاريخ الالتحاق": new Date(emp.joiningDate).toLocaleDateString('ar')
-    })) || [];
+  const formatDate = (dateString) => {
+    if (!dateString) return "غير محدد";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('ar-SA').format(date);
   };
 
-  // تصدير البيانات إلى Excel
+  const formatSalary = (salary) => {
+    if (!salary && salary !== 0) return "غير محدد";
+    return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' }).format(salary);
+  };
+
   const exportToExcel = () => {
     try {
-      const exportData = prepareExportData();
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "الموظفين");
+      const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+      const fileExtension = '.xlsx';
       
-      // تعديل عرض الأعمدة
-      const columnWidths = [
+      const preparedData = employees.map(emp => ({
+        "الاسم": emp.name,
+        "البريد الإلكتروني": emp.email,
+        "رقم الهاتف": emp.phone,
+        "المنصب": emp.position,
+        "القسم": emp.department,
+        "تاريخ الالتحاق": formatDate(emp.joining_date),
+        "الراتب الأساسي": emp.base_salary,
+        "بدل السكن": emp.housing_allowance,
+        "بدل النقل": emp.transportation_allowance,
+        "إجمالي الراتب": emp.salary
+      }));
+      
+      const worksheet = XLSX.utils.json_to_sheet(preparedData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "الموظفين");
+      
+      // Set column widths
+      const colWidths = [
         { wch: 20 }, // الاسم
-        { wch: 15 }, // رقم الهوية
         { wch: 25 }, // البريد الإلكتروني
         { wch: 15 }, // رقم الهاتف
-        { wch: 15 }, // القسم
         { wch: 15 }, // المنصب
-        { wch: 10 }, // الراتب
-        { wch: 15 }, // الجنسية
-        { wch: 15 }, // نوع العقد
+        { wch: 15 }, // القسم
         { wch: 15 }, // تاريخ الالتحاق
+        { wch: 15 }, // الراتب الأساسي
+        { wch: 15 }, // بدل السكن
+        { wch: 15 }, // بدل النقل
+        { wch: 15 }  // إجمالي الراتب
       ];
-      ws['!cols'] = columnWidths;
+      worksheet['!cols'] = colWidths;
       
-      // تصدير الملف
-      XLSX.writeFile(wb, "قائمة_الموظفين.xlsx");
+      // Generate Excel file
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const data = new Blob([excelBuffer], { type: fileType });
+      saveAs(data, `قائمة_الموظفين${fileExtension}`);
       
       toast({
         title: "تم التصدير بنجاح",
-        description: "تم تصدير بيانات الموظفين إلى ملف Excel",
+        description: "تم تصدير بيانات الموظفين إلى ملف إكسل.",
       });
     } catch (error) {
       console.error("Error exporting to Excel:", error);
       toast({
-        variant: "destructive",
         title: "خطأ في التصدير",
-        description: "حدث خطأ أثناء محاولة تصدير البيانات",
+        description: "حدث خطأ أثناء محاولة تصدير البيانات.",
+        variant: "destructive",
       });
     }
   };
 
-  // تصدير البيانات إلى CSV
   const exportToCSV = () => {
     try {
-      const exportData = prepareExportData();
-      const csv = Papa.unparse(exportData);
+      const preparedData = employees.map(emp => ({
+        "الاسم": emp.name,
+        "البريد الإلكتروني": emp.email,
+        "رقم الهاتف": emp.phone,
+        "المنصب": emp.position,
+        "القسم": emp.department,
+        "تاريخ الالتحاق": emp.joining_date,
+        "الراتب الأساسي": emp.base_salary,
+        "بدل السكن": emp.housing_allowance,
+        "بدل النقل": emp.transportation_allowance,
+        "إجمالي الراتب": emp.salary
+      }));
+      
+      const csv = Papa.unparse(preparedData);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      saveAs(blob, "قائمة_الموظفين.csv");
+      saveAs(blob, 'قائمة_الموظفين.csv');
       
       toast({
         title: "تم التصدير بنجاح",
-        description: "تم تصدير بيانات الموظفين إلى ملف CSV",
+        description: "تم تصدير بيانات الموظفين إلى ملف CSV.",
       });
     } catch (error) {
       console.error("Error exporting to CSV:", error);
       toast({
-        variant: "destructive",
         title: "خطأ في التصدير",
-        description: "حدث خطأ أثناء محاولة تصدير البيانات",
+        description: "حدث خطأ أثناء محاولة تصدير البيانات.",
+        variant: "destructive",
       });
     }
   };
 
-  // تصدير البيانات إلى PDF
   const exportToPDF = () => {
     try {
-      const exportData = prepareExportData();
       const doc = new jsPDF('l', 'mm', 'a4');
       
-      // إضافة دعم اللغة العربية
-      doc.setFont("Helvetica", "normal");
-      doc.setR2L(true);
+      // Add title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("قائمة الموظفين", doc.internal.pageSize.width / 2, 20, { align: 'center' });
       
-      // إنشاء الجدول
-      (doc as any).autoTable({
-        head: [["تاريخ الالتحاق", "نوع العقد", "الجنسية", "الراتب", "المنصب", "القسم", "رقم الهاتف", "البريد الإلكتروني", "رقم الهوية", "الاسم"]],
-        body: exportData.map(item => [
-          item["تاريخ الالتحاق"],
-          item["نوع العقد"],
-          item["الجنسية"],
-          item["الراتب"],
-          item["المنصب"],
-          item["القسم"],
-          item["رقم الهاتف"],
-          item["البريد الإلكتروني"],
-          item["رقم الهوية"],
-          item["الاسم"]
-        ]),
-        theme: 'striped',
-        styles: { fontSize: 8, halign: 'right' },
-        headStyles: { fillColor: [66, 66, 66] }
+      // Create table data
+      const tableColumn = ["الراتب", "القسم", "المنصب", "البريد الإلكتروني", "الاسم"];
+      const tableRows = [];
+      
+      filteredEmployees.forEach(emp => {
+        const salaryStr = formatSalary(emp.salary).toString().replace("ر.س.‏", "");
+        const employeeData = [
+          salaryStr,
+          emp.department,
+          emp.position,
+          emp.email,
+          emp.name
+        ];
+        tableRows.push(employeeData);
       });
       
-      // حفظ الملف
+      // Configure text direction RTL
+      doc.setR2L(true);
+      
+      // Add table
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 30,
+        styles: { 
+          font: 'helvetica', 
+          halign: 'right' 
+        },
+        headStyles: { 
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        theme: 'grid'
+      });
+      
+      // Save PDF
       doc.save("قائمة_الموظفين.pdf");
       
       toast({
         title: "تم التصدير بنجاح",
-        description: "تم تصدير بيانات الموظفين إلى ملف PDF",
+        description: "تم تصدير بيانات الموظفين إلى ملف PDF.",
       });
     } catch (error) {
       console.error("Error exporting to PDF:", error);
       toast({
-        variant: "destructive",
         title: "خطأ في التصدير",
-        description: "حدث خطأ أثناء محاولة تصدير البيانات",
+        description: "حدث خطأ أثناء محاولة تصدير البيانات.",
+        variant: "destructive",
       });
     }
   };
 
-  // استيراد بيانات من ملف Excel
-  const importFromExcel = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const data = e.target?.result;
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(sheet);
+  const handleImportClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImportFile(file);
+      processImportedFile(file);
+    }
+  };
+
+  const processImportedFile = (file) => {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const binaryStr = evt.target.result;
+        const workbook = XLSX.read(binaryStr, { type: 'binary' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
         
-        // معالجة البيانات المستوردة
-        toast({
-          title: "تم استيراد البيانات بنجاح",
-          description: `تم استيراد ${jsonData.length} سجل`,
-        });
+        if (jsonData.length === 0) {
+          throw new Error("الملف لا يحتوي على بيانات");
+        }
+        
+        // Process the imported data
+        // In a real application, you would validate and transform this data
+        // and then send it to your database
         
         console.log("Imported data:", jsonData);
-        // هنا يمكن إضافة منطق حفظ البيانات في قاعدة البيانات
-      };
-      reader.readAsBinaryString(file);
-    } catch (error) {
-      console.error("Error importing from Excel:", error);
+        
+        toast({
+          title: "تم استيراد البيانات",
+          description: `تم استيراد ${jsonData.length} سجل بنجاح.`,
+        });
+        
+        // In a real app, you would update the database and then refetch:
+        // fetchEmployees();
+        
+      } catch (error) {
+        console.error("Error processing imported file:", error);
+        toast({
+          title: "خطأ في معالجة الملف",
+          description: error.message || "حدث خطأ أثناء معالجة الملف المستورد.",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    reader.onerror = (error) => {
+      console.error("File reading error:", error);
       toast({
+        title: "خطأ في قراءة الملف",
+        description: "حدث خطأ أثناء محاولة قراءة الملف.",
         variant: "destructive",
-        title: "خطأ في الاستيراد",
-        description: "حدث خطأ أثناء محاولة استيراد البيانات",
       });
-    } finally {
-      // إعادة تعيين حقل الإدخال
-      event.target.value = '';
-    }
+    };
+    
+    reader.readAsBinaryString(file);
   };
 
   if (isLoading) {
-    return <div className="text-center py-4">جاري التحميل...</div>;
-  }
-
-  if (error) {
     return (
-      <div className="text-center py-4 text-red-500">
-        حدث خطأ أثناء تحميل البيانات. الرجاء المحاولة مرة أخرى.
-      </div>
-    );
-  }
-
-  if (!employees?.length) {
-    return (
-      <div className="text-center py-4 text-gray-500">
-        لا يوجد موظفين حالياً
-      </div>
+      <Card>
+        <CardContent className="p-6">
+          <div className="mb-4 flex justify-between items-center">
+            <Skeleton className="h-10 w-[200px]" />
+            <Skeleton className="h-10 w-[100px]" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2 mb-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
-              <FileDown className="h-4 w-4" />
-              تصدير البيانات
+    <Card>
+      <CardContent className="p-6">
+        <div className="mb-6 flex flex-col sm:flex-row justify-between gap-4">
+          <div className="relative w-full sm:w-auto">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="بحث عن موظف..." 
+              className="pl-3 pr-9 w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              accept=".xlsx,.xls"
+              onChange={handleFileChange}
+            />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={handleImportClick}
+            >
+              <Upload className="h-4 w-4" />
+              استيراد من Excel
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>اختر صيغة التصدير</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={exportToExcel} className="cursor-pointer">
-              <FileSpreadsheet className="h-4 w-4 ml-2" />
-              تصدير كملف Excel
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={exportToCSV} className="cursor-pointer">
-              <FileText className="h-4 w-4 ml-2" />
-              تصدير كملف CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={exportToPDF} className="cursor-pointer">
-              <FilePdf className="h-4 w-4 ml-2" />
-              تصدير كملف PDF
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        
-        <div className="relative">
-          <Button variant="outline" className="flex items-center gap-2" onClick={() => document.getElementById('import-file')?.click()}>
-            <FileText className="h-4 w-4" />
-            استيراد من ملف
-          </Button>
-          <input
-            type="file"
-            id="import-file"
-            className="hidden absolute"
-            accept=".xlsx,.xls,.csv"
-            onChange={importFromExcel}
-          />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={exportToExcel}
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              تصدير إلى Excel
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={exportToCSV}
+            >
+              <Download className="h-4 w-4" />
+              تصدير إلى CSV
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={exportToPDF}
+            >
+              <FileText className="h-4 w-4" />
+              تصدير إلى PDF
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>الموظف</TableHead>
-              <TableHead>القسم</TableHead>
-              <TableHead>المنصب</TableHead>
-              <TableHead>نوع العقد</TableHead>
-              <TableHead>تاريخ الالتحاق</TableHead>
-              <TableHead>الإجراءات</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {employees.map((employee) => (
-              <TableRow key={employee.id}>
-                <TableCell className="flex items-center gap-2">
-                  <Avatar>
-                    <AvatarImage src={employee.photoUrl} />
-                    <AvatarFallback>{employee.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-medium">{employee.name}</div>
-                    <div className="text-sm text-muted-foreground">{employee.email}</div>
-                  </div>
-                </TableCell>
-                <TableCell>{employee.department}</TableCell>
-                <TableCell>{employee.position}</TableCell>
-                <TableCell>
-                  {employee.contractType === 'full-time' ? 'دوام كامل' :
-                   employee.contractType === 'part-time' ? 'دوام جزئي' : 'عقد مؤقت'}
-                </TableCell>
-                <TableCell>{new Date(employee.joiningDate).toLocaleDateString('ar')}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleViewDetails(employee.id)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleEdit(employee.id)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => handleDelete(employee.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+        {filteredEmployees.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">لا توجد بيانات للعرض</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">الاسم</TableHead>
+                  <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                  <TableHead className="text-right">المنصب</TableHead>
+                  <TableHead className="text-right">القسم</TableHead>
+                  <TableHead className="text-right">تاريخ الالتحاق</TableHead>
+                  <TableHead className="text-right">الراتب</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEmployees.map((employee) => (
+                  <TableRow key={employee.id}>
+                    <TableCell className="font-medium">{employee.name}</TableCell>
+                    <TableCell>{employee.email}</TableCell>
+                    <TableCell>{employee.position}</TableCell>
+                    <TableCell>{employee.department}</TableCell>
+                    <TableCell>{formatDate(employee.joining_date)}</TableCell>
+                    <TableCell>{formatSalary(employee.salary)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
-}
+};
+
+export default EmployeeList;
