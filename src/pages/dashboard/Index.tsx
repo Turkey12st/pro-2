@@ -1,219 +1,202 @@
 
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { CapitalSummary } from "@/components/dashboard/CapitalSummary";
-import { NotificationsList } from "@/components/dashboard/NotificationsList";
-import { DocumentExpiryNotifications } from "@/components/dashboard/DocumentExpiryNotifications";
-import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
-import { SalarySummary } from "@/components/dashboard/SalarySummary";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { CompanyInfo, FinancialSummaryType } from "@/types/database";
-import { ZakatCalculator } from "@/components/dashboard/ZakatCalculator";
-import { useToast } from "@/hooks/use-toast";
-import { CompanyInfoCard } from "@/components/dashboard/CompanyInfoCard";
+import React from "react";
+import { Container } from "@/components/ui/container";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import StatCard from "@/components/dashboard/StatCard";
+import CompanyInfoCard from "@/components/dashboard/CompanyInfoCard";
+import FinancialSummary from "@/components/dashboard/FinancialSummary";
+import CashFlowChart from "@/components/dashboard/CashFlowChart";
+import FinancialChart from "@/components/dashboard/FinancialChart";
+import NotificationsList from "@/components/dashboard/NotificationsList";
+import SalarySummary from "@/components/dashboard/SalarySummary";
+import DocumentExpiryNotifications from "@/components/dashboard/DocumentExpiryNotifications";
+import { 
+  BankIcon, 
+  Users, 
+  FileText, 
+  Wallet,
+  BarChart4, 
+  BellIcon,
+  CalendarClock,
+  AlertTriangle, 
+  Briefcase,
+  Building,
+  ClipboardList,
+  ArrowUpDown
+} from "lucide-react";
 
-export default function Dashboard() {
-  const [date, setDate] = useState(new Date());
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
-  const { toast } = useToast();
-
-  // Fetch capital data from capital_management table
-  const { data: capitalData, isLoading: isCapitalLoading } = useQuery({
-    queryKey: ["capital_management"],
-    queryFn: async () => {
-      const currentYear = new Date().getFullYear();
-      const { data, error } = await supabase
-        .from("capital_management")
-        .select("*")
-        .eq("fiscal_year", currentYear)
-        .single();
-
-      if (error) {
-        // If no capital data exists, try to calculate from partners
-        const { data: partnersData, error: partnersError } = await supabase
-          .from("company_partners")
-          .select("share_value");
-
-        if (partnersError) throw partnersError;
-
-        // Calculate total capital from partners' share values
-        const totalCapital = partnersData.reduce((sum, partner) => sum + (partner.share_value || 0), 0);
-
-        return {
-          fiscal_year: currentYear,
-          total_capital: totalCapital,
-          available_capital: totalCapital * 0.8, // Assume 80% is available
-          reserved_capital: totalCapital * 0.2, // Assume 20% is reserved
-          notes: "Generated from partners data"
-        };
-      }
-      
-      return data;
+export default function DashboardPage() {
+  // Sample data for quick stats
+  const stats = [
+    {
+      title: "رأس المال",
+      value: "1,000,000 ريال",
+      change: "+5.2%",
+      changeType: "increase",
+      icon: <BankIcon className="text-blue-500" />
     },
-  });
-
-  // Fetch financial data from journal entries
-  const { data: financialData, isLoading: isFinancialLoading } = useQuery({
-    queryKey: ["financial_summary"],
-    queryFn: async () => {
-      // Get current year
-      const currentYear = new Date().getFullYear();
-      const startDate = `${currentYear}-01-01`;
-      const endDate = `${currentYear}-12-31`;
-
-      // Fetch income entries (total_credit > 0)
-      const { data: incomeData, error: incomeError } = await supabase
-        .from("journal_entries")
-        .select("total_credit")
-        .gt("total_credit", 0)
-        .gte("entry_date", startDate)
-        .lte("entry_date", endDate);
-
-      if (incomeError) console.error("Error fetching income:", incomeError);
-
-      // Fetch expense entries (total_debit > 0)
-      const { data: expenseData, error: expenseError } = await supabase
-        .from("journal_entries")
-        .select("total_debit")
-        .gt("total_debit", 0)
-        .gte("entry_date", startDate)
-        .lte("entry_date", endDate);
-
-      if (expenseError) console.error("Error fetching expenses:", expenseError);
-
-      // Calculate totals
-      const totalIncome = incomeData?.reduce((sum, item) => sum + (item.total_credit || 0), 0) || 0;
-      const totalExpenses = expenseData?.reduce((sum, item) => sum + (item.total_debit || 0), 0) || 0;
-      const netProfit = totalIncome - totalExpenses;
-      const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
-
-      return {
-        total_income: totalIncome,
-        total_expenses: totalExpenses,
-        net_profit: netProfit,
-        profit_margin: profitMargin
-      } as FinancialSummaryType;
+    {
+      title: "عدد الموظفين",
+      value: "24",
+      change: "+2",
+      changeType: "increase",
+      icon: <Users className="text-green-500" />
+    },
+    {
+      title: "المستندات",
+      value: "16",
+      change: "3 قيد الانتهاء",
+      changeType: "warning",
+      icon: <FileText className="text-amber-500" />
+    },
+    {
+      title: "مستحقات الرواتب",
+      value: "87,500 ريال",
+      change: "5 أيام",
+      changeType: "neutral",
+      icon: <Wallet className="text-purple-500" />
     }
-  });
+  ];
 
-  useEffect(() => {
-    const fetchCompanyInfo = async () => {
-      const { data, error } = await supabase
-        .from('company_Info')
-        .select('*')
-        .limit(1)
-        .maybeSingle(); // Using maybeSingle instead of single to avoid errors when no data exists
+  // Sample financial data
+  const financialData = {
+    total_income: 450000,
+    total_expenses: 327500,
+    net_profit: 122500,
+    profit_margin: 27.2
+  };
 
-      if (error) {
-        console.error("Error fetching company info:", error);
-        toast({
-          title: "خطأ في جلب بيانات الشركة",
-          description: "يرجى التحقق من اتصالك بالإنترنت أو التواصل مع الإدارة",
-          variant: "destructive"
-        });
-      } else if (data) {
-        // تحويل بيانات العنوان إلى الشكل المناسب
-        let addressData;
-        
-        // التعامل مع حالة عدم وجود عنوان
-        if (!data.address) {
-          addressData = { street: "", city: "", postal_code: "" };
-        } 
-        // التعامل مع حالة إذا كان العنوان كائن
-        else if (typeof data.address === 'object' && !Array.isArray(data.address)) {
-          addressData = {
-            street: (data.address as any)?.street || "",
-            city: (data.address as any)?.city || "",
-            postal_code: (data.address as any)?.postal_code || ""
-          };
-        } 
-        // حالة إذا كان العنوان سلسلة نصية أو أي نوع آخر
-        else {
-          addressData = { street: "", city: "", postal_code: "" };
-        }
-        
-        const companyData: CompanyInfo = {
-          id: data.id,
-          company_name: data.company_name,
-          company_type: data.company_type,
-          establishment_date: data.establishment_date,
-          commercial_registration: data.commercial_registration,
-          unified_national_number: data["Unified National Number"]?.toString() || "",
-          social_insurance_number: data.social_insurance_number || "",
-          hrsd_number: data.hrsd_number || "",
-          bank_name: data.bank_name || "",
-          bank_iban: data.bank_iban || "",
-          nitaqat_activity: data.nitaqat_activity || "",
-          economic_activity: data.economic_activity || "",
-          tax_number: data.tax_number || "",
-          address: addressData,
-          license_expiry_date: data.license_expiry_date || null,
-          created_at: data.created_at
-        };
-        
-        setCompanyInfo(companyData);
-      }
-    };
+  // Sample notifications
+  const notifications = [
+    {
+      id: "1",
+      title: "تجديد السجل التجاري",
+      message: "يجب تجديد السجل التجاري قبل 15/06/2023",
+      type: "warning",
+      date: "2023-05-20T10:30:00"
+    },
+    {
+      id: "2",
+      title: "دفع مستحقات التأمينات",
+      message: "تم دفع مستحقات التأمينات الاجتماعية لشهر مايو",
+      type: "success",
+      date: "2023-05-15T14:45:00"
+    },
+    {
+      id: "3",
+      title: "إضافة موظف جديد",
+      message: "تم إضافة الموظف أحمد محمد إلى النظام",
+      type: "info",
+      date: "2023-05-10T09:15:00"
+    },
+    {
+      id: "4",
+      title: "تحديث بيانات الشركة",
+      message: "تم تحديث بيانات الشركة بنجاح",
+      type: "info",
+      date: "2023-05-05T16:30:00"
+    }
+  ];
 
-    fetchCompanyInfo();
-  }, [toast]);
+  // Sample documents
+  const expiringDocuments = [
+    {
+      id: "1",
+      title: "السجل التجاري",
+      type: "commercial_registration",
+      expiry_date: "2023-06-15",
+      days_remaining: 25,
+      status: "soon-expire"
+    },
+    {
+      id: "2",
+      title: "رخصة البلدية",
+      type: "municipal_license",
+      expiry_date: "2023-06-01",
+      days_remaining: 11,
+      status: "soon-expire"
+    },
+    {
+      id: "3",
+      title: "شهادة الزكاة",
+      type: "zakat_certificate",
+      expiry_date: "2023-07-10",
+      days_remaining: 50,
+      status: "active"
+    }
+  ];
+
+  // Sample salary data
+  const salarySummary = {
+    total_salaries: 87500,
+    payment_date: "2023-05-30",
+    days_remaining: 5,
+    employees_count: 24,
+    status: "upcoming"
+  };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-start mb-6">
-        <h1 className="text-2xl font-bold">لوحة المعلومات</h1>
-        <Button variant="outline">
-          <Calendar className="mr-2 h-4 w-4" />
-          {date.toLocaleDateString("ar-SA", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </Button>
+    <div className="space-y-6 p-4 sm:p-6 md:p-8">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat, i) => (
+          <StatCard
+            key={i}
+            title={stat.title}
+            value={stat.value}
+            change={stat.change}
+            changeType={stat.changeType}
+            icon={stat.icon}
+          />
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <FinancialSummary 
-          data={financialData || {
-            total_income: 0,
-            total_expenses: 0,
-            net_profit: 0,
-            profit_margin: 0
-          }} 
-          isLoading={isFinancialLoading} 
-        />
-        <SalarySummary />
-        <CapitalSummary data={capitalData || {
-          fiscal_year: new Date().getFullYear(),
-          total_capital: 0,
-          available_capital: 0,
-          reserved_capital: 0,
-          notes: ""
-        }} isLoading={isCapitalLoading} />
-        
-        <CompanyInfoCard />
-        
-        <div>
-          <DocumentExpiryNotifications />
+      <div className="grid gap-4 md:grid-cols-12">
+        <div className="md:col-span-3">
+          <CompanyInfoCard companyId="1" />
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <NotificationsList />
-        {companyInfo ? (
-          <ZakatCalculator companyInfo={companyInfo} />
-        ) : (
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-muted-foreground">
-                جاري تحميل معلومات الشركة لحساب الزكاة...
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        
+        <div className="md:col-span-9">
+          <Tabs defaultValue="financial" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="financial" className="flex items-center space-x-2 space-x-reverse">
+                <BarChart4 className="h-4 w-4 ml-2" />
+                <span>الملخص المالي</span>
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="flex items-center space-x-2 space-x-reverse">
+                <FileText className="h-4 w-4 ml-2" />
+                <span>المستندات</span>
+              </TabsTrigger>
+              <TabsTrigger value="salaries" className="flex items-center space-x-2 space-x-reverse">
+                <Wallet className="h-4 w-4 ml-2" />
+                <span>الرواتب</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center space-x-2 space-x-reverse">
+                <BellIcon className="h-4 w-4 ml-2" />
+                <span>الإشعارات</span>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="financial" className="space-y-4">
+              <FinancialSummary data={financialData} />
+              <div className="grid gap-4 md:grid-cols-2">
+                <FinancialChart />
+                <CashFlowChart />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="documents">
+              <DocumentExpiryNotifications documents={expiringDocuments} />
+            </TabsContent>
+            
+            <TabsContent value="salaries">
+              <SalarySummary data={salarySummary} />
+            </TabsContent>
+            
+            <TabsContent value="notifications">
+              <NotificationsList notifications={notifications} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

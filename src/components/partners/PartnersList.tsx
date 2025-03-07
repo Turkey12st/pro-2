@@ -1,266 +1,241 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+import { Edit, Trash2, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import PartnerForm from "./PartnerForm";
-import { User, Building, MoreHorizontal, Pencil, Trash, Search } from "lucide-react";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Partner } from "@/types/database";
+import CapitalInfo from "./CapitalInfo";
 
-const PartnersList = () => {
-  const [partners, setPartners] = useState<Partner[]>([]);
-  const [filteredPartners, setFilteredPartners] = useState<Partner[]>([]);
+const PartnersList: React.FC = () => {
+  const [partners, setPartners] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [partnerToDelete, setPartnerToDelete] = useState<string | null>(null);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    fetchPartners();
-  }, []);
-
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = partners.filter(partner => 
-        partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.partner_type.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredPartners(filtered);
-    } else {
-      setFilteredPartners(partners);
-    }
-  }, [searchTerm, partners]);
-
-  const fetchPartners = async () => {
+  
+  const fetchPartners = async (showToast = false) => {
     try {
-      setIsLoading(true);
+      setIsRefreshing(true);
       const { data, error } = await supabase
-        .from("company_partners")
-        .select("*");
-      
+        .from('partners')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
       if (error) throw error;
-
-      // إصلاح تحويل البيانات
-      const mappedPartners: Partner[] = data.map((partner) => {
-        // تحويل حقل contact_info إلى الشكل المتوقع
-        let contactInfo = { email: "", phone: "" };
-        if (partner.contact_info && typeof partner.contact_info === 'object') {
-          contactInfo = {
-            email: partner.contact_info.email || "",
-            phone: partner.contact_info.phone || "",
-          };
-        }
-
-        // تحويل حقل documents إلى مصفوفة
-        let documents: any[] = [];
-        if (partner.documents && Array.isArray(partner.documents)) {
-          documents = partner.documents;
-        }
-
-        return {
-          id: partner.id || crypto.randomUUID(),
-          name: partner.name,
-          partner_type: partner.partner_type,
-          ownership_percentage: partner.ownership_percentage,
-          share_value: partner.share_value,
-          contact_info: contactInfo,
-          documents: documents,
-          created_at: partner.created_at,
-          updated_at: partner.updated_at || partner.created_at,
-        };
-      });
-
-      setPartners(mappedPartners);
-      setFilteredPartners(mappedPartners);
+      
+      setPartners(data || []);
+      
+      if (showToast) {
+        toast({
+          title: "تم تحديث البيانات",
+          description: "تم تحديث قائمة الشركاء بنجاح.",
+        });
+      }
     } catch (error) {
       console.error("Error fetching partners:", error);
       toast({
+        variant: "destructive",
         title: "خطأ في جلب البيانات",
         description: "حدث خطأ أثناء محاولة جلب بيانات الشركاء.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
-
-  const handleEditPartner = (partnerId: string) => {
-    setSelectedPartnerId(partnerId);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleDeletePartner = async (partnerId: string) => {
+  
+  useEffect(() => {
+    fetchPartners();
+  }, []);
+  
+  const handleDeletePartner = async () => {
+    if (!partnerToDelete) return;
+    
     try {
       const { error } = await supabase
-        .from("company_partners")
+        .from('partners')
         .delete()
-        .eq("id", partnerId);
-
+        .eq('id', partnerToDelete);
+        
       if (error) throw error;
-
+      
+      setPartners(partners.filter(partner => partner.id !== partnerToDelete));
       toast({
         title: "تم حذف الشريك",
-        description: "تم حذف بيانات الشريك بنجاح",
+        description: "تم حذف الشريك بنجاح من قائمة الشركاء.",
       });
-
-      fetchPartners();
     } catch (error) {
       console.error("Error deleting partner:", error);
       toast({
-        title: "خطأ في حذف البيانات",
-        description: "حدث خطأ أثناء محاولة حذف بيانات الشريك.",
         variant: "destructive",
+        title: "خطأ في حذف الشريك",
+        description: "حدث خطأ أثناء محاولة حذف الشريك.",
       });
+    } finally {
+      setPartnerToDelete(null);
     }
   };
-
-  const formatPercentage = (value: number) => {
-    return `${value}%`;
+  
+  const calculateTotalCapital = () => {
+    return partners.reduce((sum, partner) => sum + (partner.share_value || 0), 0);
   };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' }).format(value);
+  
+  const renderPartnerType = (type: string) => {
+    switch(type) {
+      case 'individual': return 'فرد';
+      case 'company': return 'شركة';
+      case 'organization': return 'مؤسسة';
+      default: return type;
+    }
   };
-
-  const getPartnerTypeIcon = (type: string) => {
-    return type === 'individual' ? 
-      <User className="h-4 w-4 text-blue-500" /> : 
-      <Building className="h-4 w-4 text-purple-500" />;
+  
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR' }).format(amount);
   };
-
-  const getPartnerTypeLabel = (type: string) => {
-    return type === 'individual' ? 'فرد' : 'شركة';
-  };
-
+  
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="mb-4 flex justify-between items-center">
-            <Skeleton className="h-10 w-[200px]" />
-            <Skeleton className="h-10 w-[100px]" />
-          </div>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle>الشركاء</CardTitle>
+          <Skeleton className="h-10 w-32" />
+        </CardHeader>
+        <CardContent>
           <div className="space-y-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
           </div>
         </CardContent>
       </Card>
     );
   }
-
+  
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="mb-6 flex flex-col sm:flex-row justify-between gap-4">
-          <div className="relative w-full sm:w-auto">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="بحث عن شريك..." 
-              className="pl-3 pr-9 w-full sm:w-[300px]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {filteredPartners.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">لا توجد بيانات للعرض</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">الاسم</TableHead>
-                  <TableHead className="text-right">النوع</TableHead>
-                  <TableHead className="text-right">نسبة الملكية</TableHead>
-                  <TableHead className="text-right">قيمة الحصة</TableHead>
-                  <TableHead className="text-right">الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPartners.map((partner) => (
-                  <TableRow key={partner.id}>
-                    <TableCell className="font-medium">{partner.name}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getPartnerTypeIcon(partner.partner_type)}
-                        <span>{getPartnerTypeLabel(partner.partner_type)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="font-mono">
-                        {formatPercentage(partner.ownership_percentage)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatCurrency(partner.share_value)}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>خيارات</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleEditPartner(partner.id)}>
-                            <Pencil className="h-4 w-4 ml-2" />
-                            تعديل
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeletePartner(partner.id)}
-                            className="text-red-500 focus:text-red-500"
-                          >
-                            <Trash className="h-4 w-4 ml-2" />
-                            حذف
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>تعديل بيانات الشريك</DialogTitle>
-            </DialogHeader>
-            {selectedPartnerId && (
-              <PartnerForm 
-                initialData={partners.find(p => p.id === selectedPartnerId)}
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle>الشركاء</CardTitle>
+          <Dialog open={isFormDialogOpen} onOpenChange={setIsFormDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                إضافة شريك
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>إضافة شريك جديد</DialogTitle>
+              </DialogHeader>
+              <PartnerForm
                 onSuccess={() => {
-                  setIsEditDialogOpen(false);
+                  setIsFormDialogOpen(false);
                   fetchPartners();
-                }} 
+                }}
               />
-            )}
-          </DialogContent>
-        </Dialog>
-      </CardContent>
-    </Card>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent>
+          <CapitalInfo totalCapital={calculateTotalCapital()} partnersCount={partners.length} />
+          
+          {partners.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">لا يوجد شركاء حاليًا</p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => setIsFormDialogOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                إضافة شريك جديد
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">الاسم</TableHead>
+                    <TableHead className="text-right">نوع الشريك</TableHead>
+                    <TableHead className="text-right">نسبة الملكية</TableHead>
+                    <TableHead className="text-right">قيمة الحصة</TableHead>
+                    <TableHead className="text-right">بيانات الاتصال</TableHead>
+                    <TableHead className="text-right">الإجراءات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {partners.map((partner) => (
+                    <TableRow key={partner.id}>
+                      <TableCell className="font-medium">{partner.name}</TableCell>
+                      <TableCell>{renderPartnerType(partner.partner_type)}</TableCell>
+                      <TableCell>{partner.ownership_percentage}%</TableCell>
+                      <TableCell>{formatCurrency(partner.share_value)}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          {partner.contact_info && typeof partner.contact_info === 'object' && (
+                            <>
+                              {partner.contact_info.email && (
+                                <div className="text-sm">{partner.contact_info.email}</div>
+                              )}
+                              {partner.contact_info.phone && (
+                                <div className="text-sm">{partner.contact_info.phone}</div>
+                              )}
+                            </>
+                          )}
+                          {(!partner.contact_info || Object.keys(partner.contact_info).length === 0) && (
+                            <div className="text-sm text-muted-foreground">لا توجد بيانات</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={() => setPartnerToDelete(partner.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
+      <AlertDialog open={!!partnerToDelete} onOpenChange={() => setPartnerToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف الشريك</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من رغبتك في حذف هذا الشريك؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletePartner} className="bg-destructive text-destructive-foreground">
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

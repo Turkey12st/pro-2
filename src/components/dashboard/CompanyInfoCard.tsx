@@ -1,128 +1,164 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/integrations/supabase/client";
-import { CompanyInfo } from "@/types/database";
-import CompanyLogoUpload from "@/components/company/CompanyLogoUpload";
 
-interface CompanyInfoCardProps {
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Edit } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import type { CompanyInfo } from "@/types/database";
+
+export interface CompanyInfoCardProps {
   companyId: string;
 }
 
-export function CompanyInfoCard({ companyId }: CompanyInfoCardProps) {
+const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) => {
   const [company, setCompany] = useState<CompanyInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [logoUrl, setLogoUrl] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const fetchCompanyInfo = async () => {
-      setIsLoading(true);
+    async function fetchCompanyInfo() {
       try {
+        setLoading(true);
         const { data, error } = await supabase
-          .from("company_Info")
+          .from("company_info")
           .select("*")
           .eq("id", companyId)
           .single();
 
-        if (error) {
-          console.error("Error fetching company info:", error);
-        }
+        if (error) throw error;
 
         if (data) {
-          setCompany(data);
-          const metadata = typeof data.metadata === 'object' ? data.metadata : {};
-          setLogoUrl(metadata?.logo_url || "");
+          // Convert from DB format to our CompanyInfo format
+          const formattedData: CompanyInfo = {
+            id: data.id,
+            company_name: data.company_name,
+            company_type: data.company_type,
+            establishment_date: data.establishment_date,
+            commercial_registration: data.commercial_registration,
+            unified_national_number: data["Unified National Number"],
+            social_insurance_number: data.social_insurance_number,
+            hrsd_number: data.hrsd_number,
+            bank_name: data.bank_name,
+            bank_iban: data.bank_iban,
+            nitaqat_activity: data.nitaqat_activity,
+            economic_activity: data.economic_activity,
+            tax_number: data.tax_number,
+            address: data.address,
+            metadata: data.metadata,
+            license_expiry_date: data.license_expiry_date,
+            created_at: data.created_at
+          };
+          setCompany(formattedData);
         }
       } catch (error) {
-        console.error("Error processing company data:", error);
+        console.error("Error fetching company info:", error);
+        toast({
+          title: "خطأ في جلب بيانات الشركة",
+          description: "حدث خطأ أثناء محاولة جلب بيانات الشركة",
+          variant: "destructive",
+        });
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
-    };
+    }
 
     fetchCompanyInfo();
-  }, [companyId]);
+  }, [companyId, toast]);
 
-  const handleLogoUpdate = (newLogoUrl: string) => {
-    setLogoUrl(newLogoUrl);
-    // تحديث بيانات الشركة المحلية
-    setCompany((prevCompany) => {
-      if (prevCompany) {
-        return {
-          ...prevCompany,
-          metadata: {
-            ...prevCompany.metadata,
-            logo_url: newLogoUrl,
-          },
-        };
-      }
-      return prevCompany;
-    });
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>معلومات الشركة</CardTitle>
+        <CardHeader className="space-y-0 pb-3">
+          <Skeleton className="h-5 w-40" />
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center space-y-4 p-6">
-          <Skeleton className="h-24 w-24 rounded-full" />
-          <div className="space-y-2 text-center">
-            <Skeleton className="h-4 w-48" />
-            <Skeleton className="h-4 w-32" />
-          </div>
+        <CardContent className="space-y-2">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-3/4" />
         </CardContent>
       </Card>
     );
   }
 
+  // Handle the case when company data is not available
   if (!company) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>معلومات الشركة</CardTitle>
+        <CardHeader className="flex justify-between items-center pb-3">
+          <CardTitle className="text-lg font-medium">معلومات الشركة</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            لا توجد معلومات للشركة.
-          </p>
+          <p className="text-muted-foreground">لا توجد بيانات للشركة</p>
         </CardContent>
       </Card>
     );
   }
 
-  const metadata = typeof company.metadata === 'object' ? company.metadata : {};
+  const logoUrl = company.metadata && typeof company.metadata === 'object' && 'logo_url' in company.metadata 
+    ? company.metadata.logo_url 
+    : undefined;
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>معلومات الشركة</CardTitle>
+      <CardHeader className="flex justify-between items-center pb-3">
+        <CardTitle className="text-lg font-medium">معلومات الشركة</CardTitle>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8"
+          aria-label="تعديل معلومات الشركة"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <Avatar className="h-24 w-24">
-            {logoUrl ? (
-              <AvatarImage src={logoUrl} alt={company.company_name} />
-            ) : (
-              <AvatarFallback>{company.company_name.substring(0, 2)}</AvatarFallback>
-            )}
-          </Avatar>
-          <div className="space-y-2 text-center">
-            <h3 className="text-xl font-semibold">{company.company_name}</h3>
-            <p className="text-muted-foreground">{company.company_type}</p>
+      <CardContent className="space-y-3">
+        <div className="flex items-center space-x-3 space-x-reverse">
+          {logoUrl ? (
+            <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+              <img 
+                src={logoUrl as string} 
+                alt={company.company_name} 
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
+              <span className="text-lg font-semibold text-gray-500">
+                {company.company_name.charAt(0)}
+              </span>
+            </div>
+          )}
+          <div>
+            <h3 className="font-medium">{company.company_name}</h3>
+            <p className="text-sm text-muted-foreground">{company.company_type}</p>
           </div>
         </div>
-
-        <div className="mt-6">
-          <CompanyLogoUpload
-            companyId={companyId}
-            existingMetadata={metadata}
-            onLogoUpdate={handleLogoUpdate}
-          />
+        
+        <div className="grid gap-1">
+          <div className="flex justify-between py-1 border-b">
+            <span className="text-sm text-muted-foreground">السجل التجاري</span>
+            <span className="text-sm font-medium">{company.commercial_registration}</span>
+          </div>
+          <div className="flex justify-between py-1 border-b">
+            <span className="text-sm text-muted-foreground">الرقم الموحد</span>
+            <span className="text-sm font-medium">{company.unified_national_number}</span>
+          </div>
+          <div className="flex justify-between py-1 border-b">
+            <span className="text-sm text-muted-foreground">رقم التأمينات</span>
+            <span className="text-sm font-medium">{company.social_insurance_number}</span>
+          </div>
+          <div className="flex justify-between py-1">
+            <span className="text-sm text-muted-foreground">تاريخ التأسيس</span>
+            <span className="text-sm font-medium">
+              {new Date(company.establishment_date).toLocaleDateString('ar-SA')}
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
-}
+};
+
+export default CompanyInfoCard;
