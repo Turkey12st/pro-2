@@ -64,6 +64,7 @@ export function CompanyInfoCard() {
             economic_activity: data.economic_activity || "",
             tax_number: data.tax_number || "",
             address: addressData,
+            metadata: data.metadata || {},
             license_expiry_date: data.license_expiry_date || null,
             created_at: data.created_at
           };

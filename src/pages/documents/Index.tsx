@@ -1,382 +1,266 @@
-
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import AppLayout from "@/components/AppLayout";
-import { useToast } from "@/hooks/use-toast";
-import { FilePlus, Calendar, FileText, Download, Upload, AlertTriangle, Check, Timer, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AutoSaveDocumentForm } from "@/components/documents/AutoSaveDocumentForm";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
-import { differenceInDays } from "date-fns";
-import { Document, DocumentWithDaysRemaining } from "@/types/database";
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Calendar, FileText, Eye, Pencil, Trash, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { Document } from "@/types/database";
 
-export default function DocumentsPage() {
-  const { toast } = useToast();
-  const [documents, setDocuments] = useState<DocumentWithDaysRemaining[]>([]);
-  const [filteredDocuments, setFilteredDocuments] = useState<DocumentWithDaysRemaining[]>([]);
+const DocumentsPage = () => {
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchDocuments();
   }, []);
 
-  useEffect(() => {
-    filterDocuments();
-  }, [documents, activeTab, searchTerm]);
-
   const fetchDocuments = async () => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from("company_documents")
-        .select("*");
+        .select("*")
+        .order("expiry_date", { ascending: true });
 
       if (error) throw error;
 
-      // Add days_remaining to each document
-      const docsWithDaysRemaining = (data || []).map((doc: any): DocumentWithDaysRemaining => {
-        const today = new Date();
-        const expiryDate = new Date(doc.expiry_date);
-        const daysRemaining = differenceInDays(expiryDate, today);
-        
-        let status: "active" | "expired" | "soon-expire" = "active";
-        if (daysRemaining < 0) {
-          status = "expired";
-        } else if (daysRemaining <= 30) {
-          status = "soon-expire";
-        }
-        
-        return {
-          ...doc,
-          id: doc.id || doc.created_at, // Use created_at as fallback ID
-          status,
-          days_remaining: daysRemaining
-        } as DocumentWithDaysRemaining;
-      });
-
-      setDocuments(docsWithDaysRemaining);
-      setFilteredDocuments(docsWithDaysRemaining);
-      setIsLoading(false);
+      const processedDocs = data.map(doc => ({
+        ...doc,
+        id: doc.id || crypto.randomUUID(),
+        status: doc.status as 'active' | 'expired' | 'soon-expire'
+      })) as Document[];
+      
+      setDocuments(processedDocs);
     } catch (error) {
       console.error("Error fetching documents:", error);
       toast({
         title: "خطأ في جلب البيانات",
-        description: "حدث خطأ أثناء محاولة جلب بيانات المستندات",
+        description: "حدث خطأ أثناء محاولة جلب بيانات المستندات.",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const filterDocuments = () => {
-    let filtered = [...documents];
-    
-    // Filter by status tab
-    if (activeTab !== "all") {
-      filtered = filtered.filter(doc => doc.status === activeTab);
-    }
-    
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(doc => 
-        doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doc.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (doc.number && doc.number.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-    
-    setFilteredDocuments(filtered);
-  };
+  const handleDeleteDocument = async (id: string) => {
+    if (confirm("هل أنت متأكد من رغبتك في حذف هذا المستند؟")) {
+      try {
+        const { error } = await supabase
+          .from("company_documents")
+          .delete()
+          .eq("id", id);
 
-  const handleDeleteDocument = async (documentId: string) => {
-    try {
-      const { error } = await supabase
-        .from("company_documents")
-        .delete()
-        .eq("id", documentId);
-      
-      if (error) throw error;
-      
-      toast({
-        title: "تم حذف المستند",
-        description: "تم حذف المستند بنجاح"
-      });
-      
-      fetchDocuments();
-    } catch (error) {
-      console.error("Error deleting document:", error);
-      toast({
-        title: "خطأ في حذف المستند",
-        description: "حدث خطأ أثناء محاولة حذف المستند",
-        variant: "destructive"
-      });
+        if (error) throw error;
+
+        toast({
+          title: "تم حذف المستند",
+          description: "تم حذف المستند بنجاح",
+        });
+
+        // تحديث قائمة المستندات
+        fetchDocuments();
+      } catch (error) {
+        console.error("Error deleting document:", error);
+        toast({
+          title: "خطأ في حذف المستند",
+          description: "حدث خطأ أثناء محاولة حذف المستند",
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  const exportToExcel = () => {
-    try {
-      const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-      const fileExtension = '.xlsx';
-      
-      const preparedData = filteredDocuments.map(doc => ({
-        "عنوان المستند": doc.title,
-        "نوع المستند": doc.type,
-        "رقم المستند": doc.number || "",
-        "تاريخ الإصدار": doc.issue_date,
-        "تاريخ الانتهاء": doc.expiry_date,
-        "الحالة": doc.status === "active" ? "ساري" : 
-                doc.status === "soon-expire" ? "قريب من الانتهاء" : "منتهي",
-        "الأيام المتبقية": doc.days_remaining
-      }));
-      
-      const worksheet = XLSX.utils.json_to_sheet(preparedData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "المستندات");
-      
-      // Set column widths
-      const colWidths = [
-        { wch: 25 }, // عنوان المستند
-        { wch: 20 }, // نوع المستند
-        { wch: 15 }, // رقم المستند
-        { wch: 15 }, // تاريخ الإصدار
-        { wch: 15 }, // تاريخ الانتهاء
-        { wch: 15 }, // الحالة
-        { wch: 15 }  // الأيام المتبقية
-      ];
-      worksheet['!cols'] = colWidths;
-      
-      // Generate Excel file
-      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-      const data = new Blob([excelBuffer], { type: fileType });
-      saveAs(data, `قائمة_المستندات${fileExtension}`);
-      
-      toast({
-        title: "تم التصدير بنجاح",
-        description: "تم تصدير بيانات المستندات إلى ملف إكسل.",
-      });
-    } catch (error) {
-      console.error("Error exporting to Excel:", error);
-      toast({
-        title: "خطأ في التصدير",
-        description: "حدث خطأ أثناء محاولة تصدير البيانات.",
-        variant: "destructive",
-      });
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "expired":
+        return "bg-red-100 text-red-800";
+      case "soon-expire":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "active":
+        return "ساري";
+      case "expired":
+        return "منتهي";
+      case "soon-expire":
+        return "قرب الانتهاء";
+      default:
+        return "غير معروف";
+    }
+  };
+
+  const calculateDaysRemaining = (expiryDate: string) => {
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const diffTime = expiry.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const getDocumentTypeText = (type: string) => {
+    const typeMap: Record<string, string> = {
+      commercial_registration: "السجل التجاري",
+      tax_certificate: "شهادة الزكاة والضريبة",
+      gosi_certificate: "شهادة التأمينات الاجتماعية",
+      hrsd_certificate: "شهادة وزارة الموارد البشرية",
+      municipality_license: "رخصة البلدية",
+      civil_defense_license: "رخصة الدفاع المدني",
+    };
+
+    return typeMap[type] || type;
+  };
+
+  const filterDocumentsByStatus = (status: string) => {
+    if (status === "all") return documents;
+    return documents.filter(doc => doc.status === status);
   };
 
   return (
-    <AppLayout>
-      <div className="max-w-6xl mx-auto space-y-6 p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold">إدارة المستندات</h1>
-            <p className="text-muted-foreground">
-              إدارة مستندات الشركة، تواريخ الانتهاء، والتنبيهات
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2 flex-1 sm:flex-none">
-                  <FilePlus className="h-4 w-4" />
-                  إضافة مستند
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>إضافة مستند جديد</DialogTitle>
-                  <DialogDescription>
-                    قم بإدخال معلومات المستند الجديد
-                  </DialogDescription>
-                </DialogHeader>
-                <AutoSaveDocumentForm onSuccess={fetchDocuments} />
-              </DialogContent>
-            </Dialog>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center gap-2 flex-1 sm:flex-none"
-              onClick={exportToExcel}
-            >
-              <FileText className="h-4 w-4" />
-              تصدير إلى Excel
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 items-center">
-          <div className="relative w-full sm:w-auto flex-1">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="بحث في المستندات..." 
-              className="pr-9"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Select
-            defaultValue="all"
-            onValueChange={(value) => setActiveTab(value)}
-          >
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="جميع المستندات" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع المستندات</SelectItem>
-              <SelectItem value="active">سارية</SelectItem>
-              <SelectItem value="soon-expire">قريبة من الانتهاء</SelectItem>
-              <SelectItem value="expired">منتهية</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="all">جميع المستندات</TabsTrigger>
-            <TabsTrigger value="active">سارية</TabsTrigger>
-            <TabsTrigger value="soon-expire">قريبة من الانتهاء</TabsTrigger>
-            <TabsTrigger value="expired">منتهية</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="all" className="space-y-4">
-            {renderDocumentList(filteredDocuments)}
-          </TabsContent>
-          
-          <TabsContent value="active" className="space-y-4">
-            {renderDocumentList(filteredDocuments)}
-          </TabsContent>
-          
-          <TabsContent value="soon-expire" className="space-y-4">
-            {renderDocumentList(filteredDocuments)}
-          </TabsContent>
-          
-          <TabsContent value="expired" className="space-y-4">
-            {renderDocumentList(filteredDocuments)}
-          </TabsContent>
-        </Tabs>
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">إدارة المستندات</h1>
+        <Button onClick={() => navigate("/documents/new")}>
+          <Plus className="mr-2 h-4 w-4" /> إضافة مستند جديد
+        </Button>
       </div>
-    </AppLayout>
-  );
 
-  function renderDocumentList(documents: DocumentWithDaysRemaining[]) {
-    if (isLoading) {
-      return (
-        <div className="flex justify-center items-center py-12">
-          <div className="text-center">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-r-transparent rounded-full inline-block mb-2"></div>
-            <p className="text-muted-foreground">جاري تحميل المستندات...</p>
-          </div>
-        </div>
-      );
-    }
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="all">جميع المستندات</TabsTrigger>
+          <TabsTrigger value="active">سارية</TabsTrigger>
+          <TabsTrigger value="soon-expire">قرب الانتهاء</TabsTrigger>
+          <TabsTrigger value="expired">منتهية</TabsTrigger>
+        </TabsList>
 
-    if (documents.length === 0) {
-      return (
-        <div className="flex justify-center items-center py-12">
-          <div className="text-center">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-            <p className="text-muted-foreground">لا توجد مستندات متاحة</p>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {documents.map((doc) => (
-          <Card key={doc.id} className={`
-            ${doc.status === "expired" ? "border-red-200 bg-red-50" : ""} 
-            ${doc.status === "soon-expire" ? "border-amber-200 bg-amber-50" : ""}
-          `}>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between">
-                <CardTitle className="text-lg font-medium">{doc.title}</CardTitle>
-                <StatusBadge status={doc.status} />
-              </div>
-              <p className="text-sm text-muted-foreground">{doc.type}</p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">تاريخ الإصدار</p>
-                  <p className="text-sm font-medium">{formatDate(doc.issue_date)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">تاريخ الانتهاء</p>
-                  <p className="text-sm font-medium">{formatDate(doc.expiry_date)}</p>
-                </div>
-                {doc.number && (
-                  <div className="col-span-2">
-                    <p className="text-xs text-muted-foreground">رقم المستند</p>
-                    <p className="text-sm font-medium">{doc.number}</p>
+        {["all", "active", "soon-expire", "expired"].map(status => (
+          <TabsContent key={status} value={status}>
+            {isLoading ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">جاري تحميل البيانات...</p>
                   </div>
-                )}
-                <div className="col-span-2">
-                  <p className="text-xs text-muted-foreground">الأيام المتبقية</p>
-                  <p className={`text-sm font-medium ${
-                    doc.days_remaining < 0 ? "text-red-600" : 
-                    doc.days_remaining <= 30 ? "text-amber-600" : ""
-                  }`}>
-                    {doc.days_remaining < 0 
-                      ? `منتهي منذ ${Math.abs(doc.days_remaining)} يوم` 
-                      : `${doc.days_remaining} يوم`}
-                  </p>
-                </div>
+                </CardContent>
+              </Card>
+            ) : filterDocumentsByStatus(status).length === 0 ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">لا توجد مستندات للعرض</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filterDocumentsByStatus(status).map(document => {
+                  const daysRemaining = calculateDaysRemaining(document.expiry_date);
+                  return (
+                    <Card key={document.id} className="overflow-hidden">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg font-semibold flex items-center justify-between">
+                          <div className="flex items-center">
+                            <FileText className="h-5 w-5 mr-2" />
+                            <span>{document.title}</span>
+                          </div>
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(
+                              document.status
+                            )}`}
+                          >
+                            {getStatusText(document.status)}
+                          </span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pb-4">
+                        <div className="space-y-3">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">النوع:</span>
+                            <span>{getDocumentTypeText(document.type)}</span>
+                          </div>
+                          {document.number && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">الرقم:</span>
+                              <span>{document.number}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">تاريخ الإصدار:</span>
+                            <span>{format(new Date(document.issue_date), "yyyy/MM/dd")}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">تاريخ الانتهاء:</span>
+                            <span>{format(new Date(document.expiry_date), "yyyy/MM/dd")}</span>
+                          </div>
+                          {daysRemaining > 0 && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">المتبقي:</span>
+                              <span
+                                className={
+                                  daysRemaining <= 7
+                                    ? "text-red-600 font-semibold"
+                                    : daysRemaining <= 30
+                                    ? "text-yellow-600 font-semibold"
+                                    : ""
+                                }
+                              >
+                                {daysRemaining} يوم
+                                {daysRemaining <= 7 && <AlertCircle className="inline ml-1 h-4 w-4" />}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex justify-between pt-2">
+                            <div className="space-x-1 rtl:space-x-reverse">
+                              {document.document_url && (
+                                <Button variant="outline" size="sm" asChild>
+                                  <a href={document.document_url} target="_blank" rel="noopener noreferrer">
+                                    <Eye className="h-4 w-4 mr-1" /> عرض
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
+                            <div className="space-x-1 rtl:space-x-reverse">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/documents/edit/${document.id}`)}
+                              >
+                                <Pencil className="h-4 w-4 mr-1" /> تعديل
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600"
+                                onClick={() => handleDeleteDocument(document.id)}
+                              >
+                                <Trash className="h-4 w-4 mr-1" /> حذف
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
-              <div className="flex justify-between items-center">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      تعديل
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>تعديل المستند</DialogTitle>
-                    </DialogHeader>
-                    <AutoSaveDocumentForm initialData={doc} onSuccess={fetchDocuments} />
-                  </DialogContent>
-                </Dialog>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => handleDeleteDocument(doc.id)}
-                >
-                  حذف
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            )}
+          </TabsContent>
         ))}
-      </div>
-    );
-  }
+      </Tabs>
+    </div>
+  );
+};
 
-  function StatusBadge({ status }: { status: string }) {
-    switch (status) {
-      case "active":
-        return <Badge variant="success" className="flex gap-1 items-center"><Check className="h-3 w-3" /> ساري</Badge>;
-      case "soon-expire":
-        return <Badge variant="warning" className="flex gap-1 items-center"><Timer className="h-3 w-3" /> قريب من الانتهاء</Badge>;
-      case "expired":
-        return <Badge variant="destructive" className="flex gap-1 items-center"><AlertTriangle className="h-3 w-3" /> منتهي</Badge>;
-      default:
-        return null;
-    }
-  }
-
-  function formatDate(dateString: string) {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ar-SA').format(date);
-  }
-}
+export default DocumentsPage;

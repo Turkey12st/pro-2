@@ -247,6 +247,7 @@ export type Database = {
           created_at: string
           document_url: string | null
           expiry_date: string
+          id: string
           issue_date: string
           metadata: Json | null
           number: string | null
@@ -259,6 +260,7 @@ export type Database = {
           created_at?: string
           document_url?: string | null
           expiry_date: string
+          id?: string
           issue_date: string
           metadata?: Json | null
           number?: string | null
@@ -271,6 +273,7 @@ export type Database = {
           created_at?: string
           document_url?: string | null
           expiry_date?: string
+          id?: string
           issue_date?: string
           metadata?: Json | null
           number?: string | null
@@ -295,6 +298,7 @@ export type Database = {
           hrsd_number: string | null
           id: string
           license_expiry_date: string | null
+          metadata: Json | null
           nitaqat_activity: string | null
           social_insurance_number: string | null
           tax_number: string | null
@@ -313,6 +317,7 @@ export type Database = {
           hrsd_number?: string | null
           id?: string
           license_expiry_date?: string | null
+          metadata?: Json | null
           nitaqat_activity?: string | null
           social_insurance_number?: string | null
           tax_number?: string | null
@@ -331,6 +336,7 @@ export type Database = {
           hrsd_number?: string | null
           id?: string
           license_expiry_date?: string | null
+          metadata?: Json | null
           nitaqat_activity?: string | null
           social_insurance_number?: string | null
           tax_number?: string | null

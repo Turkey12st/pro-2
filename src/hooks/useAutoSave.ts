@@ -1,38 +1,114 @@
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-export const useAutoSave = () => {
+export function useAutoSave<T>({
+  formType,
+  initialData = {},
+  debounceMs = 3000,
+}: {
+  formType: string;
+  initialData?: T;
+  debounceMs?: number;
+}) {
+  const [formData, setFormData] = useState<T>(initialData as T);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const saveData = async (formType: string, formData: any) => {
+  const saveData = useCallback(async (data: T) => {
     setIsLoading(true);
     try {
-      // Get user ID - in a real app, get this from auth
-      const userId = "system"; // placeholder
+      // التحقق من البيانات الموجودة قبل الحفظ
+      const { data: existingData, error: fetchError } = await supabase
+        .from("auto_saves")
+        .select("*")
+        .eq("form_type", formType)
+        .maybeSingle();
 
-      const { data, error } = await supabase
-        .from('auto_saves')
+      if (fetchError && fetchError.code !== "PGRST116") {
+        throw fetchError;
+      }
+
+      // إنشاء أو تحديث السجل
+      const { error: upsertError } = await supabase
+        .from("auto_saves")
         .upsert(
           {
-            user_id: userId,
             form_type: formType,
-            form_data: formData
+            form_data: data as any,
+            updated_at: new Date().toISOString(),
+            user_id: "system", // استبدل بمعرف المستخدم الفعلي إذا كان لديك نظام مصادقة
           },
-          {
-            onConflict: 'user_id,form_type'
-          }
+          { onConflict: "form_type,user_id" }
         );
 
-      if (error) throw error;
-      return data;
+      if (upsertError) throw upsertError;
+
+      return true;
     } catch (error) {
-      console.error('Auto-save error:', error);
-      throw error;
+      console.error("Error saving form data:", error);
+      toast({
+        title: "خطأ في حفظ البيانات",
+        description: "لم نتمكن من حفظ البيانات تلقائيًا، يرجى المحاولة مرة أخرى",
+        variant: "destructive",
+      });
+      return false;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [formType, toast]);
 
-  return { saveData, isLoading };
-};
+  useEffect(() => {
+    const loadSavedData = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("auto_saves")
+          .select("form_data")
+          .eq("form_type", formType)
+          .maybeSingle();
+
+        if (error && error.code !== "PGRST116") {
+          throw error;
+        }
+
+        if (data?.form_data) {
+          setFormData(data.form_data as T);
+        } else {
+          setFormData(initialData as T);
+        }
+      } catch (error) {
+        console.error("Error loading saved form data:", error);
+        setFormData(initialData as T);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSavedData();
+  }, [formType, initialData]);
+
+  useEffect(() => {
+    let debounceTimeout: ReturnType<typeof setTimeout>;
+
+    if (Object.keys(formData).length > 0) {
+      debounceTimeout = setTimeout(() => {
+        saveData(formData);
+      }, debounceMs);
+    }
+
+    return () => {
+      if (debounceTimeout) {
+        clearTimeout(debounceTimeout);
+      }
+    };
+  }, [formData, debounceMs, saveData]);
+
+  return {
+    formData,
+    setFormData,
+    isLoading,
+    saveData
+  };
+}

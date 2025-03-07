@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PartnerForm from "./PartnerForm";
 import { User, Building, MoreHorizontal, Pencil, Trash, Search } from "lucide-react";
 import { 
@@ -55,9 +54,8 @@ const PartnersList = () => {
       
       if (error) throw error;
 
-      // Transform data to ensure it matches the Partner interface
       const transformedPartners: Partner[] = (data || []).map(p => ({
-        id: p.id || p.created_at, // Use created_at as fallback ID if id doesn't exist
+        id: p.id || p.created_at,
         name: p.name,
         partner_type: p.partner_type || 'individual',
         ownership_percentage: p.ownership_percentage,
@@ -101,7 +99,6 @@ const PartnersList = () => {
         description: "تم حذف بيانات الشريك بنجاح",
       });
 
-      // Refresh the partners list
       fetchPartners();
     } catch (error) {
       console.error("Error deleting partner:", error);
@@ -228,7 +225,6 @@ const PartnersList = () => {
           </div>
         )}
 
-        {/* Edit Partner Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
