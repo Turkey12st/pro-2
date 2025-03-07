@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export function useAutoSave<T>({
   formType,
-  initialData = {},
+  initialData = {} as T,
   debounceMs = 3000,
 }: {
   formType: string;

@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Document, DocumentWithDaysRemaining } from "@/types/database";
+import { DocumentWithDaysRemaining } from "@/types/database";
 
 export function DocumentExpiryNotifications() {
   const [expiringDocuments, setExpiringDocuments] = useState<DocumentWithDaysRemaining[]>([]);
@@ -34,11 +35,14 @@ export function DocumentExpiryNotifications() {
           const expiryDate = new Date(document.expiry_date);
           const timeDifference = expiryDate.getTime() - today.getTime();
           const daysRemaining = Math.ceil(timeDifference / (1000 * 3600 * 24));
+          
+          // التأكد من وجود معرف للمستند
+          const docId = document.id || crypto.randomUUID();
 
           return {
             ...document,
             days_remaining: daysRemaining,
-            id: document.id || crypto.randomUUID(),
+            id: docId,
             status: document.status as 'active' | 'expired' | 'soon-expire'
           } as DocumentWithDaysRemaining;
         });

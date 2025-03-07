@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Document } from "@/types/database";
 import { format, parseISO } from "date-fns";
+import { DatePicker } from "@/components/ui/date-picker-fixed";
 
 const DOCUMENT_TYPES = [
   { value: "commercial_registration", label: "السجل التجاري" },
@@ -97,7 +98,7 @@ const AutoSaveDocumentForm = ({ initialValues = {}, onSave }: AutoSaveDocumentFo
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="type">نوع المستند <span className="text-red-500">*</span></Label>
+          <Label htmlFor="type">ن��ع المستند <span className="text-red-500">*</span></Label>
           <Select
             value={formData.type || ""}
             onValueChange={(value) => handleChange("type", value)}

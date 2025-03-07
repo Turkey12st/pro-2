@@ -54,20 +54,38 @@ const PartnersList = () => {
       
       if (error) throw error;
 
-      const transformedPartners: Partner[] = (data || []).map(p => ({
-        id: p.id || p.created_at,
-        name: p.name,
-        partner_type: p.partner_type || 'individual',
-        ownership_percentage: p.ownership_percentage,
-        share_value: p.share_value || 0,
-        contact_info: p.contact_info || {},
-        documents: p.documents || [],
-        created_at: p.created_at,
-        updated_at: p.updated_at
-      }));
-      
-      setPartners(transformedPartners);
-      setFilteredPartners(transformedPartners);
+      // إصلاح تحويل البيانات
+      const mappedPartners: Partner[] = data.map((partner) => {
+        // تحويل حقل contact_info إلى الشكل المتوقع
+        let contactInfo = { email: "", phone: "" };
+        if (partner.contact_info && typeof partner.contact_info === 'object') {
+          contactInfo = {
+            email: partner.contact_info.email || "",
+            phone: partner.contact_info.phone || "",
+          };
+        }
+
+        // تحويل حقل documents إلى مصفوفة
+        let documents: any[] = [];
+        if (partner.documents && Array.isArray(partner.documents)) {
+          documents = partner.documents;
+        }
+
+        return {
+          id: partner.id || crypto.randomUUID(),
+          name: partner.name,
+          partner_type: partner.partner_type,
+          ownership_percentage: partner.ownership_percentage,
+          share_value: partner.share_value,
+          contact_info: contactInfo,
+          documents: documents,
+          created_at: partner.created_at,
+          updated_at: partner.updated_at || partner.created_at,
+        };
+      });
+
+      setPartners(mappedPartners);
+      setFilteredPartners(mappedPartners);
     } catch (error) {
       console.error("Error fetching partners:", error);
       toast({
