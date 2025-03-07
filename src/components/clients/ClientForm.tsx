@@ -1,17 +1,28 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useAutoSave } from "@/hooks/useAutoSave";
-import { Client } from "@/types/database";
+
+// Define the Client type here since it's not defined in @/types/database
+interface Client {
+  id?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 type ClientFormProps = {
   initialData?: Client;
   onSubmit?: (data: Client) => void;
+  onSuccess?: () => void;
 };
 
-const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit }) => {
+const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onSuccess }) => {
 
 const { formData, setFormData, isLoading } = useAutoSave<Partial<Client>>({
   formType: "client_form",
@@ -30,6 +41,9 @@ const { formData, setFormData, isLoading } = useAutoSave<Partial<Client>>({
     e.preventDefault();
     if (onSubmit && formData) {
       onSubmit(formData as Client);
+      if (onSuccess) {
+        onSuccess();
+      }
     }
   };
 
