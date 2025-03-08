@@ -2,13 +2,17 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, FileText, Calendar } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { DocumentWithDaysRemaining } from "@/types/database";
+import { formatDate } from "@/utils/formatters";
+import { useNavigate } from "react-router-dom";
 
 export function DocumentExpiryNotifications() {
   const [expiringDocuments, setExpiringDocuments] = useState<DocumentWithDaysRemaining[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchExpiringDocuments = async () => {
@@ -94,22 +98,43 @@ export function DocumentExpiryNotifications() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <AlertCircle className="h-5 w-5" />
           المستندات التي توشك على الانتهاء
         </CardTitle>
+        <Button size="sm" variant="outline" onClick={() => navigate("/documents")}>
+          <FileText className="h-4 w-4 mr-2" /> إدارة المستندات
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         {expiringDocuments.map((document) => (
           <Alert key={document.id} variant={document.days_remaining <= 7 ? "destructive" : "default"}>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{document.title}</AlertTitle>
+            <AlertTitle className="flex items-center justify-between">
+              <span>{document.title}</span>
+              {document.days_remaining <= 7 && (
+                <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">عاجل</span>
+              )}
+            </AlertTitle>
             <AlertDescription className="mt-2">
-              <p>تاريخ الانتهاء: {new Date(document.expiry_date).toLocaleDateString('ar-SA')}</p>
-              <p className="font-semibold mt-1">
-                متبقي: {document.days_remaining} {document.days_remaining === 1 ? "يوم" : "أيام"}
-              </p>
+              <div className="grid gap-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">تاريخ الانتهاء:</span>
+                  <span className="font-medium">{formatDate(document.expiry_date)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">المتبقي:</span>
+                  <span className={`font-semibold ${document.days_remaining <= 7 ? 'text-red-600' : 'text-amber-600'}`}>
+                    {document.days_remaining} {document.days_remaining === 1 ? "يوم" : "أيام"}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-2 flex justify-end">
+                <Button size="sm" variant="outline" onClick={() => navigate(`/documents/edit/${document.id}`)}>
+                  <Calendar className="h-4 w-4 mr-2" /> تجديد
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         ))}
