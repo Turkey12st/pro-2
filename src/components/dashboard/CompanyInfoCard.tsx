@@ -6,7 +6,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { CompanyInfo } from "@/types/database";
+
+// Define the CompanyInfo type explicitly
+export interface CompanyInfo {
+  id: string;
+  company_name: string;
+  company_type: string;
+  establishment_date: string;
+  commercial_registration: string;
+  unified_national_number: string;
+  social_insurance_number: string;
+  hrsd_number: string;
+  bank_name: string;
+  bank_iban: string;
+  nitaqat_activity: string;
+  economic_activity: string;
+  tax_number: string;
+  address: string;
+  metadata: any;
+  license_expiry_date: string;
+  created_at: string;
+}
 
 export interface CompanyInfoCardProps {
   companyId: string;
@@ -21,10 +41,11 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
     async function fetchCompanyInfo() {
       try {
         setLoading(true);
+        // Use a direct query since company_info might not be in the TypeScript types
         const { data, error } = await supabase
-          .from("company_info")
-          .select("*")
-          .eq("id", companyId)
+          .from('company_info')
+          .select('*')
+          .eq('id', companyId)
           .single();
 
         if (error) throw error;
@@ -37,7 +58,7 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
             company_type: data.company_type,
             establishment_date: data.establishment_date,
             commercial_registration: data.commercial_registration,
-            unified_national_number: data["Unified National Number"],
+            unified_national_number: data.unified_national_number || "",
             social_insurance_number: data.social_insurance_number,
             hrsd_number: data.hrsd_number,
             bank_name: data.bank_name,

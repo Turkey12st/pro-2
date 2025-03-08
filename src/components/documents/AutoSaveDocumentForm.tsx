@@ -1,191 +1,120 @@
-import { useState, useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Document } from "@/types/database";
-import { format, parseISO } from "date-fns";
-import { DatePicker } from "@/components/ui/date-picker-fixed";
-
-const DOCUMENT_TYPES = [
-  { value: "commercial_registration", label: "السجل التجاري" },
-  { value: "tax_certificate", label: "شهادة الزكاة والضريبة" },
-  { value: "gosi_certificate", label: "شهادة التأمينات الاجتماعية" },
-  { value: "hrsd_certificate", label: "شهادة وزارة الموارد البشرية" },
-  { value: "municipality_license", label: "رخصة البلدية" },
-  { value: "civil_defense_license", label: "رخصة الدفاع المدني" },
-  { value: "other", label: "أخرى" },
-];
+import { CheckCircle2, Clock, Save } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatDistanceToNow } from "date-fns";
+import { arSA } from "date-fns/locale";
 
 interface AutoSaveDocumentFormProps {
-  initialValues?: Partial<Document>;
-  onSave: (data: Partial<Document>) => Promise<void>;
+  formType: string;
+  formData: any;
+  onSave: (data: any) => Promise<void>;
+  isValid?: boolean;
+  children: React.ReactNode;
 }
 
-const AutoSaveDocumentForm = ({ initialValues = {}, onSave }: AutoSaveDocumentFormProps) => {
-  const { formData, setFormData, isLoading, saveData } = useAutoSave<Partial<Document>>({
-    formType: "document_form",
-    initialData: initialValues,
+export const AutoSaveDocumentForm: React.FC<AutoSaveDocumentFormProps> = ({
+  formType,
+  formData,
+  onSave,
+  isValid = true,
+  children,
+}) => {
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  const [showSavedMessage, setShowSavedMessage] = useState(false);
+
+  // AutoSave hook
+  const { saveData, lastSavedAt, loading } = useAutoSave({
+    formType,
+    data: formData,
+    enabled: isValid,
   });
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
 
+  // Update the last saved time whenever lastSavedAt changes
   useEffect(() => {
-    if (Object.keys(initialValues).length > 0) {
-      setFormData({ 
-        ...initialValues,
-        issue_date: initialValues.issue_date ? format(parseISO(initialValues.issue_date), 'yyyy-MM-dd') : '',
-        expiry_date: initialValues.expiry_date ? format(parseISO(initialValues.expiry_date), 'yyyy-MM-dd') : '',
-      });
+    if (lastSavedAt) {
+      setLastSavedTime(new Date(lastSavedAt));
     }
-  }, [initialValues, setFormData]);
+  }, [lastSavedAt]);
 
-  const handleChange = (key: string, value: any) => {
-    setFormData({ ...formData, [key]: value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
+  // Handle manual save
+  const handleManualSave = async () => {
+    if (!isValid) return;
+    
+    setIsSaving(true);
     try {
-      const dataToSave: Partial<Document> = {
-        ...formData,
-        status: formData.status as 'active' | 'expired' | 'soon-expire' || 'active',
-        reminder_days: formData.reminder_days || [30, 14, 7],
-        metadata: {
-          ...(formData.metadata || {}),
-          notes: formData.metadata?.notes || ""
-        }
-      };
-
-      await saveData(dataToSave);
+      // Call the provided onSave function
+      await onSave(formData);
       
-      await onSave(dataToSave);
-
-      toast({
-        title: "تم حفظ المستند",
-        description: "تم حفظ بيانات المستند بنجاح",
-      });
+      // Update the save timestamp and show saved message
+      setLastSavedTime(new Date());
+      setShowSavedMessage(true);
+      
+      // Hide the saved message after 3 seconds
+      setTimeout(() => {
+        setShowSavedMessage(false);
+      }, 3000);
     } catch (error) {
       console.error("Error saving document:", error);
-      toast({
-        title: "خطأ في حفظ المستند",
-        description: "حدث خطأ أثناء محاولة حفظ بيانات المستند",
-        variant: "destructive",
-      });
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
+  };
+
+  // Format the relative time for display
+  const getRelativeTimeString = () => {
+    if (!lastSavedTime) return "لم يتم الحفظ بعد";
+    
+    return formatDistanceToNow(lastSavedTime, {
+      addSuffix: true,
+      locale: arSA
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="title">عنوان المستند <span className="text-red-500">*</span></Label>
-          <Input
-            id="title"
-            value={formData.title || ""}
-            onChange={(e) => handleChange("title", e.target.value)}
-            placeholder="أدخل عنوان المستند"
-            required
-          />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2 space-x-reverse">
+          <Clock className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">
+            {loading ? "جاري الحفظ التلقائي..." : `آخر حفظ: ${getRelativeTimeString()}`}
+          </span>
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="type">ن��ع المستند <span className="text-red-500">*</span></Label>
-          <Select
-            value={formData.type || ""}
-            onValueChange={(value) => handleChange("type", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="اختر نوع المستند" />
-            </SelectTrigger>
-            <SelectContent>
-              {DOCUMENT_TYPES.map((type) => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="number">رقم المستند</Label>
-          <Input
-            id="number"
-            value={formData.number || ""}
-            onChange={(e) => handleChange("number", e.target.value)}
-            placeholder="أدخل رقم المستند (اختياري)"
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="status">حالة المستند</Label>
-          <Select
-            value={formData.status || "active"}
-            onValueChange={(value) => handleChange("status", value as "active" | "expired" | "soon-expire")}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="اختر حالة المستند" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">ساري</SelectItem>
-              <SelectItem value="soon-expire">قريب من الانتهاء</SelectItem>
-              <SelectItem value="expired">منتهي</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="issue_date">تاريخ الإصدار <span className="text-red-500">*</span></Label>
-          <DatePicker
-            date={formData.issue_date ? parseISO(formData.issue_date) : undefined}
-            setDate={(date) => handleChange("issue_date", format(date, "yyyy-MM-dd"))}
-            className="w-full"
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="expiry_date">تاريخ الانتهاء <span className="text-red-500">*</span></Label>
-          <DatePicker
-            date={formData.expiry_date ? parseISO(formData.expiry_date) : undefined}
-            setDate={(date) => handleChange("expiry_date", format(date, "yyyy-MM-dd"))}
-            className="w-full"
-          />
-        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManualSave}
+                disabled={isSaving || !isValid || loading}
+                className="flex items-center space-x-1 space-x-reverse"
+              >
+                {showSavedMessage ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 ml-1 text-green-500" />
+                    <span>تم الحفظ</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 ml-1" />
+                    <span>حفظ</span>
+                  </>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{isValid ? "حفظ التغييرات" : "أكمل البيانات المطلوبة"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="notes">ملاحظات</Label>
-        <Textarea
-          id="notes"
-          value={formData.metadata?.notes || ""}
-          onChange={(e) => handleChange("metadata.notes", e.target.value)}
-          placeholder="أدخل أي ملاحظات إضافية حول المستند"
-          rows={4}
-        />
-      </div>
-      
-      <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-        <Button type="submit" disabled={isSubmitting || isLoading}>
-          {isSubmitting ? "جاري الحفظ..." : "إضافة المستند"}
-        </Button>
-      </div>
-      
-      {isLoading && (
-        <div className="text-sm text-muted-foreground text-center">
-          جاري الحفظ التلقائي...
-        </div>
-      )}
-    </form>
+
+      {children}
+    </div>
   );
 };
-
-export default AutoSaveDocumentForm;

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Partner } from "@/types/database";
 
 interface PartnerFormProps {
   onSuccess?: () => void;
@@ -220,3 +220,18 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
 };
 
 export default PartnerForm;
+
+const fetchPartner = async (id: string) => {
+  try {
+    const { data, error } = await supabase.from('partners' as any)
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) throw error;
+    return data as Partner;
+  } catch (error) {
+    console.error("Error fetching partner:", error);
+    return null;
+  }
+};

@@ -1,28 +1,14 @@
 
 import React from "react";
 import { Container } from "@/components/ui/container";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import StatCard from "@/components/dashboard/StatCard";
 import CompanyInfoCard from "@/components/dashboard/CompanyInfoCard";
-import FinancialSummary from "@/components/dashboard/FinancialSummary";
-import CashFlowChart from "@/components/dashboard/CashFlowChart";
-import FinancialChart from "@/components/dashboard/FinancialChart";
-import NotificationsList from "@/components/dashboard/NotificationsList";
-import SalarySummary from "@/components/dashboard/SalarySummary";
-import DocumentExpiryNotifications from "@/components/dashboard/DocumentExpiryNotifications";
+import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { 
-  BankIcon, 
+  Bank, 
   Users, 
   FileText, 
-  Wallet,
-  BarChart4, 
-  BellIcon,
-  CalendarClock,
-  AlertTriangle, 
-  Briefcase,
-  Building,
-  ClipboardList,
-  ArrowUpDown
+  Wallet
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -33,7 +19,7 @@ export default function DashboardPage() {
       value: "1,000,000 ريال",
       change: "+5.2%",
       changeType: "increase",
-      icon: <BankIcon className="text-blue-500" />
+      icon: <Bank className="text-blue-500" />
     },
     {
       title: "عدد الموظفين",
@@ -137,18 +123,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 p-4 sm:p-6 md:p-8">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, i) => (
-          <StatCard
-            key={i}
-            title={stat.title}
-            value={stat.value}
-            change={stat.change}
-            changeType={stat.changeType}
-            icon={stat.icon}
-          />
-        ))}
-      </div>
+      <DashboardStats stats={stats} />
 
       <div className="grid gap-4 md:grid-cols-12">
         <div className="md:col-span-3">
@@ -156,46 +131,12 @@ export default function DashboardPage() {
         </div>
         
         <div className="md:col-span-9">
-          <Tabs defaultValue="financial" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="financial" className="flex items-center space-x-2 space-x-reverse">
-                <BarChart4 className="h-4 w-4 ml-2" />
-                <span>الملخص المالي</span>
-              </TabsTrigger>
-              <TabsTrigger value="documents" className="flex items-center space-x-2 space-x-reverse">
-                <FileText className="h-4 w-4 ml-2" />
-                <span>المستندات</span>
-              </TabsTrigger>
-              <TabsTrigger value="salaries" className="flex items-center space-x-2 space-x-reverse">
-                <Wallet className="h-4 w-4 ml-2" />
-                <span>الرواتب</span>
-              </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center space-x-2 space-x-reverse">
-                <BellIcon className="h-4 w-4 ml-2" />
-                <span>الإشعارات</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="financial" className="space-y-4">
-              <FinancialSummary data={financialData} />
-              <div className="grid gap-4 md:grid-cols-2">
-                <FinancialChart />
-                <CashFlowChart />
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="documents">
-              <DocumentExpiryNotifications documents={expiringDocuments} />
-            </TabsContent>
-            
-            <TabsContent value="salaries">
-              <SalarySummary data={salarySummary} />
-            </TabsContent>
-            
-            <TabsContent value="notifications">
-              <NotificationsList notifications={notifications} />
-            </TabsContent>
-          </Tabs>
+          <DashboardTabs 
+            financialData={financialData}
+            salarySummary={salarySummary}
+            notifications={notifications}
+            expiringDocuments={expiringDocuments}
+          />
         </div>
       </div>
     </div>
