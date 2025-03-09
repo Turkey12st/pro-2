@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Partner } from "@/types/database";
+import { Partner, CompanyPartnerData } from "@/types/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -10,24 +10,6 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { formatNumber, formatPercentage } from "@/utils/formatters";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-
-interface CompanyPartnerData {
-  id?: string;
-  name: string;
-  partner_type: string;
-  ownership_percentage: number;
-  share_value: number;
-  nationality?: string;
-  identity_number?: string;
-  position?: string;
-  contact_info: {
-    phone?: string;
-    email?: string;
-  };
-  created_at: string;
-  updated_at: string;
-  documents: any[];
-}
 
 export function PartnersList() {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -54,18 +36,25 @@ export function PartnersList() {
       
       if (data) {
         // Transform the data to match our Partner interface
-        const partnersData: Partner[] = data.map((item: CompanyPartnerData) => ({
-          id: item.id || item.created_at,
-          name: item.name,
-          nationality: item.nationality || 'غير محدد',
-          identity_number: item.identity_number || 'غير محدد',
-          capital_amount: item.share_value || 0,
-          capital_percentage: item.ownership_percentage || 0,
-          contact_phone: item.contact_info?.phone || '',
-          contact_email: item.contact_info?.email || '',
-          position: item.position || 'شريك',
-          created_at: item.created_at
-        }));
+        const partnersData: Partner[] = data.map((item: any) => {
+          // Extract contact info safely
+          const contactInfo = item.contact_info || {};
+          const phone = typeof contactInfo === 'object' ? contactInfo.phone || '' : '';
+          const email = typeof contactInfo === 'object' ? contactInfo.email || '' : '';
+          
+          return {
+            id: item.id || item.created_at,
+            name: item.name || '',
+            nationality: item.nationality || 'غير محدد',
+            identity_number: item.identity_number || 'غير محدد',
+            capital_amount: item.share_value || 0,
+            capital_percentage: item.ownership_percentage || 0,
+            contact_phone: phone,
+            contact_email: email,
+            position: item.position || 'شريك',
+            created_at: item.created_at || new Date().toISOString()
+          };
+        });
         
         setPartners(partnersData);
         

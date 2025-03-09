@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { CompanyInfoRecord } from "@/types/database";
+import { CompanyInfoRecord, Address } from "@/types/database";
 
 export interface CompanyInfoCardProps {
   companyId: string;
@@ -100,7 +100,7 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
     );
   }
 
-  const logoUrl = company.metadata && 'logo_url' in company.metadata 
+  const logoUrl = company.metadata && typeof company.metadata === 'object' && 'logo_url' in company.metadata 
     ? company.metadata.logo_url 
     : undefined;
 

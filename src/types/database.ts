@@ -38,6 +38,13 @@ export interface Partner {
   created_at: string;
 }
 
+export interface Address {
+  street?: string;
+  city?: string;
+  postal_code?: string;
+  [key: string]: any;
+}
+
 export interface CompanyInfoRecord {
   id: string;
   company_name: string;
@@ -52,7 +59,7 @@ export interface CompanyInfoRecord {
   nitaqat_activity: string;
   economic_activity: string;
   tax_number: string;
-  address: string;
+  address: string | Address;
   metadata: Record<string, any>;
   license_expiry_date: string;
   created_at: string;
@@ -97,4 +104,22 @@ export interface CapitalManagement {
   last_updated: string;
   created_at: string;
   notes?: string;
+}
+
+export interface CompanyPartnerData {
+  id?: string;
+  name: string;
+  partner_type: string;
+  ownership_percentage: number;
+  share_value: number;
+  nationality?: string;
+  identity_number?: string;
+  position?: string;
+  contact_info: {
+    phone?: string;
+    email?: string;
+  };
+  created_at: string;
+  updated_at: string;
+  documents: any[];
 }

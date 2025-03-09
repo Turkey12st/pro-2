@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { CompanyInfo } from "@/types/database";
+import type { CompanyInfo, Address } from "@/types/database";
 
 interface CompanyInfoFormProps {
   initialData?: CompanyInfo | null;
@@ -17,8 +16,35 @@ interface CompanyInfoFormProps {
 export function CompanyInfoForm({ initialData, onSuccess }: CompanyInfoFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<Partial<CompanyInfo>>(
-    initialData || {
+  
+  const defaultAddress: Address = {
+    street: "",
+    city: "",
+    postal_code: "",
+  };
+  
+  const [formData, setFormData] = useState<Partial<CompanyInfo>>(() => {
+    if (initialData) {
+      let addressObj: Address = defaultAddress;
+      if (initialData.address) {
+        if (typeof initialData.address === 'string') {
+          try {
+            addressObj = JSON.parse(initialData.address);
+          } catch (e) {
+            console.error("Could not parse address string:", e);
+          }
+        } else {
+          addressObj = initialData.address as Address;
+        }
+      }
+      
+      return {
+        ...initialData,
+        address: addressObj
+      };
+    }
+    
+    return {
       company_name: "",
       company_type: "",
       establishment_date: "",
@@ -32,13 +58,9 @@ export function CompanyInfoForm({ initialData, onSuccess }: CompanyInfoFormProps
       economic_activity: "",
       tax_number: "",
       license_expiry_date: "",
-      address: {
-        street: "",
-        city: "",
-        postal_code: "",
-      },
-    }
-  );
+      address: defaultAddress,
+    };
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -65,19 +87,20 @@ export function CompanyInfoForm({ initialData, onSuccess }: CompanyInfoFormProps
     setIsSubmitting(true);
 
     try {
-      // التحقق من البيانات المطلوبة
       if (!formData.company_name || !formData.company_type || 
           !formData.establishment_date || !formData.commercial_registration || 
           !formData.unified_national_number) {
         throw new Error("يرجى ملء جميع الحقول المطلوبة");
       }
 
-      // تحويل الرقم الوطني الموحد إلى رقم
       const unifiedNationalNumber = typeof formData.unified_national_number === 'string' 
         ? parseFloat(formData.unified_national_number) 
         : formData.unified_national_number;
 
-      // بيانات للإدخال أو التحديث
+      const addressForDB = typeof formData.address === 'string' 
+        ? formData.address 
+        : JSON.stringify(formData.address);
+
       const companyData = {
         company_name: formData.company_name,
         company_type: formData.company_type,
@@ -92,19 +115,17 @@ export function CompanyInfoForm({ initialData, onSuccess }: CompanyInfoFormProps
         economic_activity: formData.economic_activity,
         tax_number: formData.tax_number,
         license_expiry_date: formData.license_expiry_date,
-        address: formData.address || {},
+        address: addressForDB,
       };
 
       let result;
       
       if (initialData?.id) {
-        // تحديث
         result = await supabase
           .from("company_Info")
           .update(companyData)
           .eq("id", initialData.id);
       } else {
-        // إنشاء جديد
         result = await supabase
           .from("company_Info")
           .insert([companyData]);
@@ -128,6 +149,13 @@ export function CompanyInfoForm({ initialData, onSuccess }: CompanyInfoFormProps
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const getAddressValue = (field: keyof Address): string => {
+    if (!formData.address) return '';
+    
+    const address = formData.address as Address;
+    return address[field]?.toString() || '';
   };
 
   return (
@@ -312,7 +340,7 @@ export function CompanyInfoForm({ initialData, onSuccess }: CompanyInfoFormProps
                 <Input
                   id="address.street"
                   name="address.street"
-                  value={formData.address?.street || ""}
+                  value={getAddressValue('street')}
                   onChange={handleChange}
                 />
               </div>
@@ -322,7 +350,7 @@ export function CompanyInfoForm({ initialData, onSuccess }: CompanyInfoFormProps
                 <Input
                   id="address.city"
                   name="address.city"
-                  value={formData.address?.city || ""}
+                  value={getAddressValue('city')}
                   onChange={handleChange}
                 />
               </div>
@@ -332,7 +360,7 @@ export function CompanyInfoForm({ initialData, onSuccess }: CompanyInfoFormProps
                 <Input
                   id="address.postal_code"
                   name="address.postal_code"
-                  value={formData.address?.postal_code || ""}
+                  value={getAddressValue('postal_code')}
                   onChange={handleChange}
                   dir="ltr"
                 />
