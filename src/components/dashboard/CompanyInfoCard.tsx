@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,13 +21,11 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
       try {
         setLoading(true);
         
-        const idToUse = companyId || "1";
-        
         const { data, error } = await supabase
           .from('company_Info')
           .select('*')
-          .eq('id', idToUse)
-          .single();
+          .eq('id', companyId)
+          .maybeSingle();
 
         if (error) {
           console.error("Error fetching company info:", error);
@@ -36,6 +33,15 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
         }
 
         if (data) {
+          let formattedAddress: string | Address = "";
+          if (data.address) {
+            if (typeof data.address === 'object') {
+              formattedAddress = data.address as Address;
+            } else {
+              formattedAddress = String(data.address);
+            }
+          }
+
           const formattedData: CompanyInfoRecord = {
             id: data.id,
             company_name: data.company_name,
@@ -50,7 +56,7 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
             nitaqat_activity: data.nitaqat_activity,
             economic_activity: data.economic_activity,
             tax_number: data.tax_number,
-            address: typeof data.address === 'object' ? JSON.stringify(data.address) : (data.address || ""),
+            address: formattedAddress,
             metadata: typeof data.metadata === 'object' ? data.metadata : {},
             license_expiry_date: data.license_expiry_date || "",
             created_at: data.created_at
@@ -100,7 +106,7 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
     );
   }
 
-  const logoUrl = company.metadata && typeof company.metadata === 'object' && 'logo_url' in company.metadata 
+  const logoUrl = company?.metadata && typeof company.metadata === 'object' && 'logo_url' in company.metadata 
     ? company.metadata.logo_url 
     : undefined;
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Partner, CompanyPartnerData } from "@/types/database";
@@ -23,10 +22,30 @@ export function PartnersList() {
     fetchPartners();
   }, []);
 
+  const transformPartnerData = (item: any): Partner => {
+    const contactInfo = item.contact_info || {};
+    const phone = typeof contactInfo === 'object' && contactInfo.phone ? String(contactInfo.phone) : '';
+    const email = typeof contactInfo === 'object' && contactInfo.email ? String(contactInfo.email) : '';
+    
+    const partner: Partner = {
+      id: item.id || String(Date.now()),
+      name: item.name || '',
+      nationality: item.nationality || 'غير محدد',
+      identity_number: item.identity_number || 'غير محدد',
+      capital_amount: item.share_value || 0,
+      capital_percentage: item.ownership_percentage || 0,
+      contact_phone: phone,
+      contact_email: email,
+      position: item.position || 'شريك',
+      created_at: item.created_at || new Date().toISOString()
+    };
+    
+    return partner;
+  };
+
   const fetchPartners = async () => {
     try {
       setLoading(true);
-      // Query the company_partners table
       const { data, error } = await supabase
         .from('company_partners')
         .select('*')
@@ -35,30 +54,10 @@ export function PartnersList() {
       if (error) throw error;
       
       if (data) {
-        // Transform the data to match our Partner interface
-        const partnersData: Partner[] = data.map((item: any) => {
-          // Extract contact info safely
-          const contactInfo = item.contact_info || {};
-          const phone = typeof contactInfo === 'object' ? contactInfo.phone || '' : '';
-          const email = typeof contactInfo === 'object' ? contactInfo.email || '' : '';
-          
-          return {
-            id: item.id || item.created_at,
-            name: item.name || '',
-            nationality: item.nationality || 'غير محدد',
-            identity_number: item.identity_number || 'غير محدد',
-            capital_amount: item.share_value || 0,
-            capital_percentage: item.ownership_percentage || 0,
-            contact_phone: phone,
-            contact_email: email,
-            position: item.position || 'شريك',
-            created_at: item.created_at || new Date().toISOString()
-          };
-        });
+        const partnersData: Partner[] = data.map((item) => transformPartnerData(item));
         
         setPartners(partnersData);
         
-        // Calculate total capital
         const total = partnersData.reduce((sum, partner) => sum + (partner.capital_amount || 0), 0);
         setTotalCapital(total);
       }
@@ -78,7 +77,6 @@ export function PartnersList() {
     if (!partnerToDelete) return;
     
     try {
-      // Use the company_partners table
       const { error } = await supabase
         .from('company_partners')
         .delete()
@@ -92,7 +90,6 @@ export function PartnersList() {
         variant: "default",
       });
       
-      // Refresh the partners list
       fetchPartners();
     } catch (error) {
       console.error("Error deleting partner:", error);

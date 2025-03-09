@@ -1,4 +1,3 @@
-
 // Add additional types to the existing file
 
 export interface FinancialSummaryType {
