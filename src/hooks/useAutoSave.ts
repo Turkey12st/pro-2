@@ -1,152 +1,76 @@
 
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-export function useAutoSave<T>({
-  formType,
-  initialData = {} as T,
-  debounceMs = 3000,
-}: {
+interface UseAutoSaveProps {
   formType: string;
-  initialData?: T;
+  initialData?: unknown;
   debounceMs?: number;
-}) {
-  const [formData, setFormData] = useState<T>(initialData as T);
+}
+
+const useAutoSave = ({ formType, initialData, debounceMs = 2000 }: UseAutoSaveProps) => {
+  const [formData, setFormData] = useState<unknown>(initialData || {});
   const [isLoading, setIsLoading] = useState(false);
-  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [lastSaved, setLastSaved] = useState<string>('');
   const { toast } = useToast();
 
-  const saveData = useCallback(async (data: T) => {
-    setIsLoading(true);
+  const saveData = useCallback(async (): Promise<boolean> => {
     try {
-      // التحقق من البيانات الموجودة قبل الحفظ
-      const { data: existingData, error: fetchError } = await supabase
-        .from("auto_saves")
-        .select("*")
-        .eq("form_type", formType)
-        .maybeSingle();
-
-      if (fetchError && fetchError.code !== "PGRST116") {
-        throw fetchError;
-      }
-
-      const now = new Date().toISOString();
+      setIsLoading(true);
       
-      // إنشاء أو تحديث السجل
-      const { error: upsertError } = await supabase
-        .from("auto_saves")
+      // In a real app, we'd use the authenticated user's ID
+      const userId = 'demo-user-id'; 
+      
+      const { data, error } = await supabase
+        .from('auto_saves')
         .upsert(
           {
+            user_id: userId,
             form_type: formType,
-            form_data: data as any,
-            updated_at: now,
-            user_id: "system", // استبدل بمعرف المستخدم الفعلي إذا كان لديك نظام مصادقة
+            form_data: formData,
+            updated_at: new Date().toISOString(),
           },
-          { onConflict: "form_type,user_id" }
+          { onConflict: 'user_id, form_type' }
         );
-
-      if (upsertError) throw upsertError;
       
-      setLastSaved(now);
+      if (error) throw error;
+      
+      // Update last saved timestamp
+      const now = new Date();
+      setLastSaved(now.toLocaleTimeString());
+      
       return true;
     } catch (error) {
-      console.error("Error saving form data:", error);
+      console.error('Error saving form data:', error);
       toast({
-        title: "خطأ في حفظ البيانات",
-        description: "لم نتمكن من حفظ البيانات تلقائيًا، يرجى المحاولة مرة أخرى",
-        variant: "destructive",
+        title: 'خطأ في حفظ البيانات',
+        description: 'حدث خطأ أثناء محاولة حفظ البيانات تلقائيًا.',
+        variant: 'destructive',
       });
       return false;
     } finally {
       setIsLoading(false);
     }
-  }, [formType, toast]);
-
-  const manualSave = async () => {
-    const result = await saveData(formData);
-    if (result) {
-      toast({
-        title: "تم الحفظ",
-        description: "تم حفظ البيانات بنجاح",
-      });
-    }
-    return result;
-  };
+  }, [formData, formType, toast]);
 
   useEffect(() => {
-    const loadSavedData = async () => {
-      setIsLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("auto_saves")
-          .select("form_data, updated_at")
-          .eq("form_type", formType)
-          .maybeSingle();
-
-        if (error && error.code !== "PGRST116") {
-          throw error;
-        }
-
-        if (data?.form_data) {
-          setFormData(data.form_data as T);
-          if (data.updated_at) {
-            setLastSaved(data.updated_at);
-          }
-        } else {
-          setFormData(initialData as T);
-        }
-      } catch (error) {
-        console.error("Error loading saved form data:", error);
-        setFormData(initialData as T);
-      } finally {
-        setIsLoading(false);
+    const timer = setTimeout(() => {
+      if (Object.keys(formData as object).length > 0) {
+        saveData();
       }
-    };
+    }, debounceMs);
 
-    loadSavedData();
-  }, [formType, initialData]);
-
-  useEffect(() => {
-    let debounceTimeout: ReturnType<typeof setTimeout>;
-
-    if (Object.keys(formData).length > 0 && JSON.stringify(formData) !== JSON.stringify(initialData)) {
-      debounceTimeout = setTimeout(() => {
-        saveData(formData);
-      }, debounceMs);
-    }
-
-    return () => {
-      if (debounceTimeout) {
-        clearTimeout(debounceTimeout);
-      }
-    };
-  }, [formData, debounceMs, saveData, initialData]);
-
-  const formatLastSaved = () => {
-    if (!lastSaved) return null;
-    
-    try {
-      const date = new Date(lastSaved);
-      return new Intl.DateTimeFormat('ar-SA', {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        second: 'numeric',
-      }).format(date);
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return lastSaved;
-    }
-  };
+    return () => clearTimeout(timer);
+  }, [formData, debounceMs, saveData]);
 
   return {
     formData,
     setFormData,
     isLoading,
-    saveData: manualSave,
-    lastSaved: formatLastSaved()
+    saveData,
+    lastSaved,
   };
-}
+};
+
+export default useAutoSave;

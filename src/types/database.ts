@@ -57,3 +57,43 @@ export interface CompanyInfoRecord {
   license_expiry_date: string;
   created_at: string;
 }
+
+export interface CompanyInfo extends CompanyInfoRecord {}
+
+export interface Document {
+  id: string;
+  title: string;
+  type: string;
+  number?: string;
+  issue_date: string;
+  expiry_date: string;
+  status: 'active' | 'expired' | 'soon-expire';
+  document_url?: string;
+  reminder_days: number[];
+  created_at: string;
+}
+
+export interface JournalEntry {
+  id: string;
+  entry_date: string;
+  description: string;
+  amount: number;
+  entry_name?: string;
+  entry_type?: string;
+  status?: string;
+  total_debit: number;
+  total_credit: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CapitalManagement {
+  total_capital: number;
+  available_capital: number;
+  reserved_capital: number;
+  fiscal_year: number;
+  turnover_rate?: number;
+  last_updated: string;
+  created_at: string;
+  notes?: string;
+}

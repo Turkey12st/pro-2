@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,34 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-// Define the CompanyInfo type explicitly
-export interface CompanyInfo {
-  id: string;
-  company_name: string;
-  company_type: string;
-  establishment_date: string;
-  commercial_registration: string;
-  unified_national_number: string;
-  social_insurance_number: string;
-  hrsd_number: string;
-  bank_name: string;
-  bank_iban: string;
-  nitaqat_activity: string;
-  economic_activity: string;
-  tax_number: string;
-  address: string;
-  metadata: any;
-  license_expiry_date: string;
-  created_at: string;
-}
+import { CompanyInfoRecord } from "@/types/database";
 
 export interface CompanyInfoCardProps {
   companyId: string;
 }
 
 const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) => {
-  const [company, setCompany] = useState<CompanyInfo | null>(null);
+  const [company, setCompany] = useState<CompanyInfoRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -41,24 +20,28 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
     async function fetchCompanyInfo() {
       try {
         setLoading(true);
-        // Use a direct query since company_info might not be in the TypeScript types
+        
+        const idToUse = companyId || "1";
+        
         const { data, error } = await supabase
-          .from('company_info')
+          .from('company_Info')
           .select('*')
-          .eq('id', companyId)
+          .eq('id', idToUse)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching company info:", error);
+          throw error;
+        }
 
         if (data) {
-          // Convert from DB format to our CompanyInfo format
-          const formattedData: CompanyInfo = {
+          const formattedData: CompanyInfoRecord = {
             id: data.id,
             company_name: data.company_name,
             company_type: data.company_type,
             establishment_date: data.establishment_date,
             commercial_registration: data.commercial_registration,
-            unified_national_number: data.unified_national_number || "",
+            unified_national_number: data["Unified National Number"]?.toString() || "",
             social_insurance_number: data.social_insurance_number,
             hrsd_number: data.hrsd_number,
             bank_name: data.bank_name,
@@ -66,9 +49,9 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
             nitaqat_activity: data.nitaqat_activity,
             economic_activity: data.economic_activity,
             tax_number: data.tax_number,
-            address: data.address,
-            metadata: data.metadata,
-            license_expiry_date: data.license_expiry_date,
+            address: typeof data.address === 'object' ? JSON.stringify(data.address) : data.address || "",
+            metadata: data.metadata || {},
+            license_expiry_date: data.license_expiry_date || "",
             created_at: data.created_at
           };
           setCompany(formattedData);
@@ -103,7 +86,6 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
     );
   }
 
-  // Handle the case when company data is not available
   if (!company) {
     return (
       <Card>
@@ -173,7 +155,7 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
           <div className="flex justify-between py-1">
             <span className="text-sm text-muted-foreground">تاريخ التأسيس</span>
             <span className="text-sm font-medium">
-              {new Date(company.establishment_date).toLocaleDateString('ar-SA')}
+              {company.establishment_date}
             </span>
           </div>
         </div>

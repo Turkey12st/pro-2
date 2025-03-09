@@ -6,7 +6,7 @@ import { Users2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import PartnersList from "@/components/partners/PartnersList";
+import { PartnersList } from "@/components/partners/PartnersList";
 import PartnerForm from "@/components/partners/PartnerForm";
 import CapitalInfo from "@/components/partners/CapitalInfo";
 

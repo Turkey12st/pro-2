@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Partner } from "@/types/database";
@@ -25,19 +26,35 @@ export function PartnersList() {
   const fetchPartners = async () => {
     try {
       setLoading(true);
-      // Use a direct query with any type to bypass TypeScript issues
-      const { data, error } = await supabase.from('partners' as any)
+      // Query the company_partners table
+      const { data, error } = await supabase
+        .from('company_partners')
         .select('*')
         .order('name', { ascending: true });
       
       if (error) throw error;
       
-      const partnersData = data as Partner[];
-      setPartners(partnersData);
-      
-      // Calculate total capital
-      const total = partnersData.reduce((sum, partner) => sum + (partner.capital_amount || 0), 0);
-      setTotalCapital(total);
+      if (data) {
+        // Transform the data to match our Partner interface
+        const partnersData: Partner[] = data.map(item => ({
+          id: item.id || item.created_at,
+          name: item.name,
+          nationality: item.nationality || 'غير محدد',
+          identity_number: item.identity_number || 'غير محدد',
+          capital_amount: item.share_value || 0,
+          capital_percentage: item.ownership_percentage || 0,
+          contact_phone: item.contact_info?.phone || '',
+          contact_email: item.contact_info?.email || '',
+          position: item.position || 'شريك',
+          created_at: item.created_at
+        }));
+        
+        setPartners(partnersData);
+        
+        // Calculate total capital
+        const total = partnersData.reduce((sum, partner) => sum + (partner.capital_amount || 0), 0);
+        setTotalCapital(total);
+      }
     } catch (error) {
       console.error("Error fetching partners:", error);
       toast({
@@ -54,18 +71,22 @@ export function PartnersList() {
     if (!partnerToDelete) return;
     
     try {
-      const success = await deletePartner(partnerToDelete);
-      if (success) {
-        toast({
-          title: "تم حذف الشريك بنجاح",
-          description: "تم حذف بيانات الشريك من النظام",
-          variant: "default",
-        });
-        // Refresh the partners list
-        fetchPartners();
-      } else {
-        throw new Error("Failed to delete partner");
-      }
+      // Use the company_partners table
+      const { error } = await supabase
+        .from('company_partners')
+        .delete()
+        .eq('id', partnerToDelete);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "تم حذف الشريك بنجاح",
+        description: "تم حذف بيانات الشريك من النظام",
+        variant: "default",
+      });
+      
+      // Refresh the partners list
+      fetchPartners();
     } catch (error) {
       console.error("Error deleting partner:", error);
       toast({

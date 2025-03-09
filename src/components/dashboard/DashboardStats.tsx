@@ -1,7 +1,7 @@
 
 import React from "react";
 import { StatCard } from "@/components/dashboard/StatCard";
-import { Bank, Users, FileText, Wallet } from "lucide-react";
+import { BankIcon, Users, FileText, Wallet, TrendingUp, TrendingDown, AlertCircle, Clock } from "lucide-react";
 
 interface DashboardStatsProps {
   stats: Array<{
@@ -14,6 +14,20 @@ interface DashboardStatsProps {
 }
 
 export function DashboardStats({ stats }: DashboardStatsProps) {
+  // Helper function to get the appropriate trend icon based on change type
+  const getTrendIcon = (changeType: string) => {
+    switch (changeType) {
+      case "increase":
+        return TrendingUp;
+      case "decrease":
+        return TrendingDown;
+      case "warning":
+        return AlertCircle;
+      default:
+        return Clock;
+    }
+  };
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat, i) => (
@@ -23,15 +37,18 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
           value={stat.value}
           description={stat.change}
           icon={stat.icon}
-          trend={
-            stat.changeType === "increase" 
-              ? { value: stat.change, icon: stat.icon, className: "text-green-600" }
-              : stat.changeType === "decrease" 
-                ? { value: stat.change, icon: stat.icon, className: "text-red-600" }
-                : stat.changeType === "warning" 
-                  ? { value: stat.change, icon: stat.icon, className: "text-amber-600" }
-                  : { value: stat.change, icon: stat.icon, className: "text-muted-foreground" }
-          }
+          trend={{
+            value: stat.change,
+            icon: getTrendIcon(stat.changeType),
+            className: 
+              stat.changeType === "increase" 
+                ? "text-green-600" 
+                : stat.changeType === "decrease" 
+                  ? "text-red-600" 
+                  : stat.changeType === "warning" 
+                    ? "text-amber-600" 
+                    : "text-muted-foreground"
+          }}
         />
       ))}
     </div>

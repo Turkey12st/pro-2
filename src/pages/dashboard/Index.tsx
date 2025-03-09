@@ -1,11 +1,10 @@
-
 import React from "react";
 import { Container } from "@/components/ui/container";
 import CompanyInfoCard from "@/components/dashboard/CompanyInfoCard";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { 
-  Bank, 
+  BankIcon, 
   Users, 
   FileText, 
   Wallet
@@ -19,7 +18,7 @@ export default function DashboardPage() {
       value: "1,000,000 ريال",
       change: "+5.2%",
       changeType: "increase",
-      icon: <Bank className="text-blue-500" />
+      icon: <BankIcon className="text-blue-500" />
     },
     {
       title: "عدد الموظفين",
@@ -118,7 +117,7 @@ export default function DashboardPage() {
     payment_date: "2023-05-30",
     days_remaining: 5,
     employees_count: 24,
-    status: "upcoming"
+    status: "upcoming" as const
   };
 
   return (

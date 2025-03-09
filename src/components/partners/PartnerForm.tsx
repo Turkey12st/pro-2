@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,9 +15,12 @@ interface PartnerFormProps {
 
 interface PartnerData {
   name: string;
+  nationality?: string;
+  identity_number?: string;
   partner_type: string;
   ownership_percentage: number;
   share_value: number;
+  position?: string;
   contact_info: {
     email?: string;
     phone?: string;
@@ -29,9 +33,12 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
   
   const [partnerData, setPartnerData] = useState<PartnerData>({
     name: '',
+    nationality: '',
+    identity_number: '',
     partner_type: 'individual',
     ownership_percentage: 0,
     share_value: 0,
+    position: '',
     contact_info: {
       email: '',
       phone: '',
@@ -41,12 +48,20 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
-    if (name === 'email' || name === 'phone') {
+    if (name === 'email') {
       setPartnerData(prev => ({
         ...prev,
         contact_info: {
           ...prev.contact_info,
-          [name]: value
+          email: value
+        }
+      }));
+    } else if (name === 'phone') {
+      setPartnerData(prev => ({
+        ...prev,
+        contact_info: {
+          ...prev.contact_info,
+          phone: value
         }
       }));
     } else if (name === 'ownership_percentage' || name === 'share_value') {
@@ -75,13 +90,17 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
     try {
       setIsLoading(true);
       
+      // Insert into company_partners table
       const { error } = await supabase
-        .from('partners')
+        .from('company_partners')
         .insert([{
           name: partnerData.name,
+          nationality: partnerData.nationality,
+          identity_number: partnerData.identity_number,
           partner_type: partnerData.partner_type,
           ownership_percentage: partnerData.ownership_percentage,
           share_value: partnerData.share_value,
+          position: partnerData.position,
           contact_info: partnerData.contact_info,
           documents: []
         }]);
@@ -96,9 +115,12 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
       // Reset form
       setPartnerData({
         name: '',
+        nationality: '',
+        identity_number: '',
         partner_type: 'individual',
         ownership_percentage: 0,
         share_value: 0,
+        position: '',
         contact_info: {
           email: '',
           phone: '',
@@ -137,6 +159,30 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
             />
           </div>
           
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="nationality">الجنسية</Label>
+              <Input
+                id="nationality"
+                name="nationality"
+                value={partnerData.nationality}
+                onChange={handleChange}
+                placeholder="أدخل الجنسية"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="identity_number">رقم الهوية</Label>
+              <Input
+                id="identity_number"
+                name="identity_number"
+                value={partnerData.identity_number}
+                onChange={handleChange}
+                placeholder="أدخل رقم الهوية"
+              />
+            </div>
+          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="partner_type">نوع الشريك</Label>
             <Select
@@ -152,6 +198,17 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
                 <SelectItem value="organization">مؤسسة</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="position">المنصب</Label>
+            <Input
+              id="position"
+              name="position"
+              value={partnerData.position}
+              onChange={handleChange}
+              placeholder="أدخل المنصب (مثال: شريك، مدير)"
+            />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,27 +244,29 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="email">البريد الإلكتروني</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={partnerData.contact_info.email}
-              onChange={handleChange}
-              placeholder="أدخل البريد الإلكتروني"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="phone">رقم الهاتف</Label>
-            <Input
-              id="phone"
-              name="phone"
-              value={partnerData.contact_info.phone}
-              onChange={handleChange}
-              placeholder="أدخل رقم الهاتف"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">البريد الإلكتروني</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={partnerData.contact_info.email}
+                onChange={handleChange}
+                placeholder="أدخل البريد الإلكتروني"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone">رقم الهاتف</Label>
+              <Input
+                id="phone"
+                name="phone"
+                value={partnerData.contact_info.phone}
+                onChange={handleChange}
+                placeholder="أدخل رقم الهاتف"
+              />
+            </div>
           </div>
           
           <Button type="submit" className="w-full" disabled={isLoading}>
@@ -220,18 +279,3 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
 };
 
 export default PartnerForm;
-
-const fetchPartner = async (id: string) => {
-  try {
-    const { data, error } = await supabase.from('partners' as any)
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error) throw error;
-    return data as Partner;
-  } catch (error) {
-    console.error("Error fetching partner:", error);
-    return null;
-  }
-};
