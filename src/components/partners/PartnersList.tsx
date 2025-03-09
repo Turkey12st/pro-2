@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Partner, CompanyPartnerData } from "@/types/database";
+import { Partner } from "@/types/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,24 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { formatNumber, formatPercentage } from "@/utils/formatters";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+
+interface PartnerFromDB {
+  id?: string;
+  name: string;
+  partner_type: string;
+  ownership_percentage: number;
+  share_value: number;
+  nationality?: string;
+  identity_number?: string;
+  position?: string;
+  contact_info: {
+    phone?: string;
+    email?: string;
+  } | Record<string, any>;
+  created_at: string;
+  updated_at?: string;
+  documents?: any[];
+}
 
 export function PartnersList() {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -22,12 +41,17 @@ export function PartnersList() {
     fetchPartners();
   }, []);
 
-  const transformPartnerData = (item: any): Partner => {
+  const transformPartnerData = (item: PartnerFromDB): Partner => {
     const contactInfo = item.contact_info || {};
-    const phone = typeof contactInfo === 'object' && contactInfo.phone ? String(contactInfo.phone) : '';
-    const email = typeof contactInfo === 'object' && contactInfo.email ? String(contactInfo.email) : '';
+    let phone = '';
+    let email = '';
     
-    const partner: Partner = {
+    if (typeof contactInfo === 'object') {
+      phone = contactInfo.phone?.toString() || '';
+      email = contactInfo.email?.toString() || '';
+    }
+    
+    return {
       id: item.id || String(Date.now()),
       name: item.name || '',
       nationality: item.nationality || 'غير محدد',
@@ -39,8 +63,6 @@ export function PartnersList() {
       position: item.position || 'شريك',
       created_at: item.created_at || new Date().toISOString()
     };
-    
-    return partner;
   };
 
   const fetchPartners = async () => {
@@ -54,7 +76,7 @@ export function PartnersList() {
       if (error) throw error;
       
       if (data) {
-        const partnersData: Partner[] = data.map((item) => transformPartnerData(item));
+        const partnersData: Partner[] = data.map((item: PartnerFromDB) => transformPartnerData(item));
         
         setPartners(partnersData);
         

@@ -18,7 +18,6 @@ import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
@@ -64,9 +63,6 @@ export default function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
     setIsSubmitting(true);
 
     try {
-      // الحصول على معرف المستخدم الحالي
-      const { data: { user } } = await supabase.auth.getUser();
-      
       // إنشاء كائن البيانات بما في ذلك معرف المنشئ
       const projectToSave = {
         title: projectData.title,
@@ -76,8 +72,7 @@ export default function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
         budget: parseFloat(projectData.budget.toString()),
         status: projectData.status,
         priority: projectData.priority,
-        progress: parseInt(projectData.progress.toString()),
-        created_by: user ? user.id : "anonymous"
+        progress: parseInt(projectData.progress.toString())
       };
       
       const { error } = await supabase

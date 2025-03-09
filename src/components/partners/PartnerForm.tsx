@@ -91,7 +91,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
       setIsLoading(true);
       
       // Insert into company_partners table
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('company_partners')
         .insert([{
           name: partnerData.name,
@@ -103,7 +103,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
           position: partnerData.position,
           contact_info: partnerData.contact_info,
           documents: []
-        }]);
+        }]).select();
       
       if (error) throw error;
       
@@ -225,6 +225,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
                 onChange={handleChange}
                 placeholder="أدخل نسبة الملكية"
                 required
+                dir="ltr"
               />
             </div>
             
@@ -240,6 +241,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
                 onChange={handleChange}
                 placeholder="أدخل قيمة الحصة"
                 required
+                dir="ltr"
               />
             </div>
           </div>
@@ -254,6 +256,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
                 value={partnerData.contact_info.email}
                 onChange={handleChange}
                 placeholder="أدخل البريد الإلكتروني"
+                dir="ltr"
               />
             </div>
             
@@ -265,6 +268,7 @@ const PartnerForm: React.FC<PartnerFormProps> = ({ onSuccess }) => {
                 value={partnerData.contact_info.phone}
                 onChange={handleChange}
                 placeholder="أدخل رقم الهاتف"
+                dir="ltr"
               />
             </div>
           </div>

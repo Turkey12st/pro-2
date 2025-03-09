@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, Paperclip } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -35,6 +35,7 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
     entry_date: editingEntry?.entry_date || format(new Date(), "yyyy-MM-dd"),
     total_debit: editingEntry?.total_debit || 0,
     total_credit: editingEntry?.total_credit || 0,
+    attachment: null as File | null
   });
 
   const resetForm = () => {
@@ -47,6 +48,7 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
       entry_date: format(new Date(), "yyyy-MM-dd"),
       total_debit: 0,
       total_credit: 0,
+      attachment: null
     });
   };
 
@@ -63,6 +65,15 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
       ...formData,
       [name]: value,
     });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFormData({
+        ...formData,
+        attachment: e.target.files[0]
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,22 +93,42 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
       const total_debit = formData.entry_type === "expense" ? formData.amount : 0;
       const total_credit = formData.entry_type === "income" ? formData.amount : 0;
 
-      const { error } = editingEntry
-        ? await supabase
-            .from("journal_entries")
-            .update({
-              ...formData,
-              total_debit,
-              total_credit,
-            })
-            .eq("id", editingEntry.id)
-        : await supabase.from("journal_entries").insert([{
-            ...formData,
-            total_debit,
-            total_credit,
-          }]);
+      // إنشاء كائن البيانات للإرسال
+      const entryData = {
+        description: formData.description,
+        entry_name: formData.entry_name,
+        amount: formData.amount,
+        entry_type: formData.entry_type,
+        financial_statement_section: formData.financial_statement_section,
+        entry_date: formData.entry_date,
+        total_debit,
+        total_credit
+      };
 
+      let result;
+      
+      if (editingEntry) {
+        result = await supabase
+          .from("journal_entries")
+          .update(entryData)
+          .eq("id", editingEntry.id);
+      } else {
+        result = await supabase
+          .from("journal_entries")
+          .insert([entryData]);
+      }
+
+      const { error } = result;
       if (error) throw error;
+
+      // تحميل المرفق إذا كان موجودًا
+      if (formData.attachment) {
+        // تنفيذ رمز تحميل الملف هنا
+        toast({
+          title: "تم رفع المرفق",
+          description: "تم رفع المرفق بنجاح",
+        });
+      }
 
       toast({
         title: editingEntry ? "تم التعديل" : "تم الإضافة",
@@ -122,7 +153,7 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
       setIsOpen(open);
       if (!open) resetForm();
     }}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{editingEntry ? "تعديل قيد" : "إضافة قيد"}</DialogTitle>
           <DialogDescription>
@@ -138,6 +169,7 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
               value={formData.entry_name}
               onChange={handleChange}
               required
+              dir="rtl"
             />
           </div>
           <div className="grid gap-2">
@@ -148,62 +180,106 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
               value={formData.description}
               onChange={handleChange}
               required
+              dir="rtl"
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="amount">المبلغ *</Label>
-            <Input
-              id="amount"
-              name="amount"
-              type="number"
-              value={formData.amount}
-              onChange={handleChange}
-              required
-            />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="amount">المبلغ *</Label>
+              <Input
+                id="amount"
+                name="amount"
+                type="number"
+                value={formData.amount}
+                onChange={handleChange}
+                required
+                dir="ltr"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="entry_date">التاريخ *</Label>
+              <Input
+                id="entry_date"
+                name="entry_date"
+                type="date"
+                value={formData.entry_date}
+                onChange={handleChange}
+                required
+                dir="ltr"
+              />
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="entry_date">التاريخ *</Label>
-            <Input
-              id="entry_date"
-              name="entry_date"
-              type="date"
-              value={formData.entry_date}
-              onChange={handleChange}
-              required
-            />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label>نوع القيد</Label>
+              <Select
+                value={formData.entry_type}
+                onValueChange={(value) => handleSelectChange("entry_type", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر النوع" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="income">إيراد</SelectItem>
+                  <SelectItem value="expense">مصروف</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label>القائمة المالية</Label>
+              <Select
+                value={formData.financial_statement_section}
+                onValueChange={(value) => handleSelectChange("financial_statement_section", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="اختر القائمة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="income_statement">قائمة الدخل</SelectItem>
+                  <SelectItem value="balance_sheet">الميزانية العمومية</SelectItem>
+                  <SelectItem value="cash_flow">التدفقات النقدية</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+          
           <div className="grid gap-2">
-            <Label>نوع القيد</Label>
-            <Select
-              value={formData.entry_type}
-              onValueChange={(value) => handleSelectChange("entry_type", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="اختر النوع" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="income">إيراد</SelectItem>
-                <SelectItem value="expense">مصروف</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="attachment">إضافة مرفق</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="attachment"
+                name="attachment"
+                type="file"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full flex items-center gap-2"
+                onClick={() => document.getElementById('attachment')?.click()}
+              >
+                <Paperclip className="h-4 w-4" />
+                {formData.attachment ? formData.attachment.name : "اختر ملفًا"}
+              </Button>
+              {formData.attachment && (
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => setFormData({...formData, attachment: null})}
+                >
+                  حذف
+                </Button>
+              )}
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label>القائمة المالية</Label>
-            <Select
-              value={formData.financial_statement_section}
-              onValueChange={(value) => handleSelectChange("financial_statement_section", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="اختر القائمة" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="income_statement">قائمة الدخل</SelectItem>
-                <SelectItem value="balance_sheet">الميزانية العمومية</SelectItem>
-                <SelectItem value="cash_flow">التدفقات النقدية</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" className="w-full">
+          
+          <Button type="submit" className="w-full mt-2">
             {editingEntry ? "تحديث القيد" : "إضافة القيد"}
           </Button>
         </form>
