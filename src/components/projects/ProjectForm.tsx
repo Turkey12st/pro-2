@@ -72,12 +72,13 @@ export default function ProjectForm({ onSuccess }: { onSuccess: () => void }) {
         budget: parseFloat(projectData.budget.toString()),
         status: projectData.status,
         priority: projectData.priority,
-        progress: parseInt(projectData.progress.toString())
+        progress: parseInt(projectData.progress.toString()),
+        created_by: "system" // Adding a default value for required field
       };
       
       const { error } = await supabase
         .from("projects")
-        .insert([projectToSave]);
+        .insert(projectToSave);
 
       if (error) {
         throw error;

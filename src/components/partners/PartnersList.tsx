@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Partner } from "@/types/database";
@@ -10,24 +9,9 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { formatNumber, formatPercentage } from "@/utils/formatters";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Tables } from "@/integrations/supabase/types";
 
-interface PartnerFromDB {
-  id?: string;
-  name: string;
-  partner_type: string;
-  ownership_percentage: number;
-  share_value: number;
-  nationality?: string;
-  identity_number?: string;
-  position?: string;
-  contact_info: {
-    phone?: string;
-    email?: string;
-  } | Record<string, any>;
-  created_at: string;
-  updated_at?: string;
-  documents?: any[];
-}
+type CompanyPartnerRecord = Tables<"company_partners">;
 
 export function PartnersList() {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -41,12 +25,13 @@ export function PartnersList() {
     fetchPartners();
   }, []);
 
-  const transformPartnerData = (item: PartnerFromDB): Partner => {
-    const contactInfo = item.contact_info || {};
+  const transformPartnerData = (item: CompanyPartnerRecord): Partner => {
+    const contactInfo = typeof item.contact_info === 'object' ? item.contact_info : {};
+    
     let phone = '';
     let email = '';
     
-    if (typeof contactInfo === 'object') {
+    if (contactInfo && typeof contactInfo === 'object') {
       phone = contactInfo.phone?.toString() || '';
       email = contactInfo.email?.toString() || '';
     }
@@ -54,14 +39,14 @@ export function PartnersList() {
     return {
       id: item.id || String(Date.now()),
       name: item.name || '',
-      nationality: item.nationality || 'غير محدد',
-      identity_number: item.identity_number || 'غير محدد',
+      nationality: 'غير محدد',
+      identity_number: 'غير محدد',
       capital_amount: item.share_value || 0,
       capital_percentage: item.ownership_percentage || 0,
       contact_phone: phone,
       contact_email: email,
-      position: item.position || 'شريك',
-      created_at: item.created_at || new Date().toISOString()
+      position: 'شريك',
+      created_at: item.created_at
     };
   };
 
@@ -76,7 +61,7 @@ export function PartnersList() {
       if (error) throw error;
       
       if (data) {
-        const partnersData: Partner[] = data.map((item: PartnerFromDB) => transformPartnerData(item));
+        const partnersData: Partner[] = data.map(item => transformPartnerData(item));
         
         setPartners(partnersData);
         
