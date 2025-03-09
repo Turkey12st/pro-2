@@ -9,8 +9,8 @@ interface UseAutoSaveProps {
   debounceMs?: number;
 }
 
-const useAutoSave = ({ formType, initialData, debounceMs = 2000 }: UseAutoSaveProps) => {
-  const [formData, setFormData] = useState<unknown>(initialData || {});
+const useAutoSave = <T extends object>({ formType, initialData, debounceMs = 2000 }: UseAutoSaveProps) => {
+  const [formData, setFormData] = useState<T>(initialData as T || {} as T);
   const [isLoading, setIsLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState<string>('');
   const { toast } = useToast();
@@ -28,7 +28,7 @@ const useAutoSave = ({ formType, initialData, debounceMs = 2000 }: UseAutoSavePr
           {
             user_id: userId,
             form_type: formType,
-            form_data: formData,
+            form_data: formData as any,
             updated_at: new Date().toISOString(),
           },
           { onConflict: 'user_id, form_type' }

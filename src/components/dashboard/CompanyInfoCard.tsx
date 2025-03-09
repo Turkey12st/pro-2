@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
             company_type: data.company_type,
             establishment_date: data.establishment_date,
             commercial_registration: data.commercial_registration,
-            unified_national_number: data["Unified National Number"]?.toString() || "",
+            unified_national_number: String(data["Unified National Number"] || ""),
             social_insurance_number: data.social_insurance_number,
             hrsd_number: data.hrsd_number,
             bank_name: data.bank_name,
@@ -49,8 +50,8 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
             nitaqat_activity: data.nitaqat_activity,
             economic_activity: data.economic_activity,
             tax_number: data.tax_number,
-            address: typeof data.address === 'object' ? JSON.stringify(data.address) : data.address || "",
-            metadata: data.metadata || {},
+            address: typeof data.address === 'object' ? JSON.stringify(data.address) : (data.address || ""),
+            metadata: typeof data.metadata === 'object' ? data.metadata : {},
             license_expiry_date: data.license_expiry_date || "",
             created_at: data.created_at
           };
@@ -99,7 +100,7 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
     );
   }
 
-  const logoUrl = company.metadata && typeof company.metadata === 'object' && 'logo_url' in company.metadata 
+  const logoUrl = company.metadata && 'logo_url' in company.metadata 
     ? company.metadata.logo_url 
     : undefined;
 

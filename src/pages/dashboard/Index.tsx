@@ -4,10 +4,14 @@ import CompanyInfoCard from "@/components/dashboard/CompanyInfoCard";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { 
-  BankIcon, 
   Users, 
   FileText, 
-  Wallet
+  Building, 
+  DollarSign, 
+  TrendingUp, 
+  Calendar, 
+  AlertTriangle, 
+  Clock 
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -18,7 +22,7 @@ export default function DashboardPage() {
       value: "1,000,000 ريال",
       change: "+5.2%",
       changeType: "increase",
-      icon: <BankIcon className="text-blue-500" />
+      icon: <Building className="text-blue-500" />
     },
     {
       title: "عدد الموظفين",
@@ -39,7 +43,7 @@ export default function DashboardPage() {
       value: "87,500 ريال",
       change: "5 أيام",
       changeType: "neutral",
-      icon: <Wallet className="text-purple-500" />
+      icon: <DollarSign className="text-purple-500" />
     }
   ];
 

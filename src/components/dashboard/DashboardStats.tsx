@@ -1,7 +1,7 @@
 
 import React from "react";
 import { StatCard } from "@/components/dashboard/StatCard";
-import { BankIcon, Users, FileText, Wallet, TrendingUp, TrendingDown, AlertCircle, Clock } from "lucide-react";
+import { Building, Users, FileText, Wallet, TrendingUp, TrendingDown, AlertCircle, Clock } from "lucide-react";
 
 interface DashboardStatsProps {
   stats: Array<{

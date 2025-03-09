@@ -83,6 +83,7 @@ export interface JournalEntry {
   status?: string;
   total_debit: number;
   total_credit: number;
+  financial_statement_section?: string;
   created_at: string;
   updated_at: string;
 }

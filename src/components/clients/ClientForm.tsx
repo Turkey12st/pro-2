@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useAutoSave } from "@/hooks/useAutoSave";
+import useAutoSave from "@/hooks/useAutoSave";
 
 // Define the Client type here since it's not defined in @/types/database
 interface Client {

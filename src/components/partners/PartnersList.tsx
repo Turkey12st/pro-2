@@ -11,6 +11,24 @@ import { useToast } from "@/hooks/use-toast";
 import { formatNumber, formatPercentage } from "@/utils/formatters";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
+interface CompanyPartnerData {
+  id?: string;
+  name: string;
+  partner_type: string;
+  ownership_percentage: number;
+  share_value: number;
+  nationality?: string;
+  identity_number?: string;
+  position?: string;
+  contact_info: {
+    phone?: string;
+    email?: string;
+  };
+  created_at: string;
+  updated_at: string;
+  documents: any[];
+}
+
 export function PartnersList() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +54,7 @@ export function PartnersList() {
       
       if (data) {
         // Transform the data to match our Partner interface
-        const partnersData: Partner[] = data.map(item => ({
+        const partnersData: Partner[] = data.map((item: CompanyPartnerData) => ({
           id: item.id || item.created_at,
           name: item.name,
           nationality: item.nationality || 'غير محدد',
@@ -96,21 +114,6 @@ export function PartnersList() {
       });
     } finally {
       setPartnerToDelete(null);
-    }
-  };
-
-  const deletePartner = async (id: string) => {
-    try {
-      // Use a direct query with any type to bypass TypeScript issues
-      const { error } = await supabase.from('partners' as any)
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      return true;
-    } catch (error) {
-      console.error("Error deleting partner:", error);
-      return false;
     }
   };
 
