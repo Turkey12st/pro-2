@@ -26,18 +26,27 @@ export function PartnersList() {
   }, []);
 
   const transformPartnerData = (item: CompanyPartnerRecord): Partner => {
-    const contactInfo = typeof item.contact_info === 'object' ? item.contact_info : {};
+    let contactInfo: Record<string, any> = {};
     
-    let phone = '';
-    let email = '';
-    
-    if (contactInfo && typeof contactInfo === 'object') {
-      phone = contactInfo.phone?.toString() || '';
-      email = contactInfo.email?.toString() || '';
+    if (item.contact_info) {
+      if (typeof item.contact_info === 'object') {
+        contactInfo = item.contact_info as Record<string, any>;
+      } else if (typeof item.contact_info === 'string') {
+        try {
+          contactInfo = JSON.parse(item.contact_info);
+        } catch (e) {
+          console.error("Failed to parse contact_info string:", e);
+        }
+      }
     }
     
+    const phone = contactInfo?.phone?.toString() || '';
+    const email = contactInfo?.email?.toString() || '';
+    
+    const id = item.id ? item.id.toString() : String(Date.now());
+    
     return {
-      id: item.id || String(Date.now()),
+      id,
       name: item.name || '',
       nationality: 'غير محدد',
       identity_number: 'غير محدد',
@@ -61,7 +70,7 @@ export function PartnersList() {
       if (error) throw error;
       
       if (data) {
-        const partnersData: Partner[] = data.map(item => transformPartnerData(item));
+        const partnersData: Partner[] = data.map(transformPartnerData);
         
         setPartners(partnersData);
         
