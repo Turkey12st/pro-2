@@ -1,23 +1,36 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Partner } from "@/types/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash, Plus, Users, DollarSign } from "lucide-react";
+import { Pencil, Trash, Plus, Users, DollarSign, Upload, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { formatNumber, formatPercentage } from "@/utils/formatters";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tables } from "@/integrations/supabase/types";
 
-type CompanyPartnerRecord = Tables<"company_partners">;
+interface CompanyPartnerRecord {
+  id?: string;
+  name: string;
+  partner_type?: string;
+  ownership_percentage?: number;
+  share_value?: number;
+  contact_info?: any;
+  documents?: any;
+  created_at: string;
+  updated_at?: string;
+}
 
 export function PartnersList() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCapital, setTotalCapital] = useState(0);
   const [partnerToDelete, setPartnerToDelete] = useState<string | null>(null);
+  const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -43,7 +56,8 @@ export function PartnersList() {
     const phone = contactInfo?.phone?.toString() || '';
     const email = contactInfo?.email?.toString() || '';
     
-    const id = item.id ? item.id.toString() : String(Date.now());
+    // Ensure we have a valid ID
+    const id = (item.id !== undefined) ? item.id.toString() : String(Date.now());
     
     return {
       id,
@@ -70,7 +84,8 @@ export function PartnersList() {
       if (error) throw error;
       
       if (data) {
-        const partnersData: Partner[] = data.map(transformPartnerData);
+        // Transform the data properly
+        const partnersData: Partner[] = data.map((item) => transformPartnerData(item as CompanyPartnerRecord));
         
         setPartners(partnersData);
         
@@ -110,6 +125,7 @@ export function PartnersList() {
     } catch (error) {
       console.error("Error deleting partner:", error);
       toast({
+        variant: "destructive",
         title: "خطأ في حذف الشريك",
         description: "حدث خطأ أثناء محاولة حذف بيانات الشريك",
         variant: "destructive",
@@ -117,6 +133,11 @@ export function PartnersList() {
     } finally {
       setPartnerToDelete(null);
     }
+  };
+
+  const handleUploadDocument = (partnerId: string) => {
+    setSelectedPartnerId(partnerId);
+    setShowDocumentUpload(true);
   };
 
   return (
@@ -181,6 +202,15 @@ export function PartnersList() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => handleUploadDocument(partner.id)}
+                          className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <Upload className="h-4 w-4" />
+                          <span className="sr-only">رفع مستند</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setPartnerToDelete(partner.id)}
                           className="text-red-500 hover:text-red-700 hover:bg-red-50"
                         >
@@ -213,6 +243,17 @@ export function PartnersList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* يمكن إضافة Dialog لرفع المستندات هنا */}
+      <DocumentUploadDialog 
+        isOpen={showDocumentUpload} 
+        partnerId={selectedPartnerId} 
+        onClose={() => setShowDocumentUpload(false)}
+        onSuccess={() => {
+          setShowDocumentUpload(false);
+          fetchPartners();
+        }}
+      />
     </div>
   );
 }
@@ -251,5 +292,112 @@ function CapitalInfo({ totalCapital, partnersCount }: CapitalInfoProps) {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// إضافة مكون لرفع وثائق الشركاء
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+
+interface DocumentUploadDialogProps {
+  isOpen: boolean;
+  partnerId: string | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function DocumentUploadDialog({ isOpen, partnerId, onClose, onSuccess }: DocumentUploadDialogProps) {
+  const [files, setFiles] = useState<FileList | null>(null);
+  const [docTitle, setDocTitle] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!partnerId || !files || files.length === 0) return;
+
+    try {
+      setUploading(true);
+      
+      // هنا يمكن إضافة كود رفع الملفات، حاليًا سنقوم بتحديث معلومات الشريك فقط
+      
+      const { error } = await supabase
+        .from('company_partners')
+        .update({
+          documents: supabase.sql`array_append(documents, ${JSON.stringify({
+            title: docTitle,
+            uploaded_at: new Date().toISOString(),
+            file_name: files[0].name,
+          })})`
+        })
+        .eq('id', partnerId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "تم رفع المستند بنجاح",
+        description: "تم إضافة المستند إلى ملفات الشريك",
+      });
+      
+      onSuccess();
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      toast({
+        variant: "destructive",
+        title: "خطأ في رفع المستند",
+        description: "حدث خطأ أثناء محاولة رفع المستند",
+      });
+    } finally {
+      setUploading(false);
+      setFiles(null);
+      setDocTitle("");
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>رفع مستند للشريك</DialogTitle>
+          <DialogDescription>
+            يمكنك رفع مستندات متعلقة بالشريك مثل صورة الهوية أو عقود الشراكة
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="docTitle">عنوان المستند</Label>
+            <Input
+              id="docTitle"
+              value={docTitle}
+              onChange={(e) => setDocTitle(e.target.value)}
+              placeholder="مثل: عقد شراكة، صورة هوية، ..."
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="docFile">ملف المستند</Label>
+            <Input
+              id="docFile"
+              type="file"
+              onChange={(e) => setFiles(e.target.files)}
+              className="cursor-pointer"
+              required
+            />
+          </div>
+          
+          <div className="flex justify-end space-x-2 space-x-reverse">
+            <Button type="button" variant="outline" onClick={onClose}>
+              إلغاء
+            </Button>
+            <Button type="submit" disabled={uploading}>
+              {uploading ? "جاري الرفع..." : "رفع المستند"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
