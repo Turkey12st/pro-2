@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Partner } from "@/types/database";
@@ -244,7 +243,6 @@ export function PartnersList() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* يمكن إضافة Dialog لرفع المستندات هنا */}
       <DocumentUploadDialog 
         isOpen={showDocumentUpload} 
         partnerId={selectedPartnerId} 
@@ -295,7 +293,6 @@ function CapitalInfo({ totalCapital, partnersCount }: CapitalInfoProps) {
   );
 }
 
-// إضافة مكون لرفع وثائق الشركاء
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -320,17 +317,27 @@ function DocumentUploadDialog({ isOpen, partnerId, onClose, onSuccess }: Documen
     try {
       setUploading(true);
       
-      // هنا يمكن إضافة كود رفع الملفات، حاليًا سنقوم بتحديث معلومات الشريك فقط
+      const newDocument = {
+        title: docTitle,
+        uploaded_at: new Date().toISOString(),
+        file_name: files[0].name,
+      };
+      
+      const { data: currentPartner, error: fetchError } = await supabase
+        .from('company_partners')
+        .select('documents')
+        .eq('id', partnerId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      const updatedDocuments = Array.isArray(currentPartner?.documents) 
+        ? [...currentPartner.documents, newDocument]
+        : [newDocument];
       
       const { error } = await supabase
         .from('company_partners')
-        .update({
-          documents: supabase.sql`array_append(documents, ${JSON.stringify({
-            title: docTitle,
-            uploaded_at: new Date().toISOString(),
-            file_name: files[0].name,
-          })})`
-        })
+        .update({ documents: updatedDocuments })
         .eq('id', partnerId);
       
       if (error) throw error;
