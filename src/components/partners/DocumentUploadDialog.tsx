@@ -14,12 +14,14 @@ interface DocumentUploadDialogProps {
   onSuccess: () => void;
 }
 
+// Define the document type as Record to meet Json requirements
 interface DocumentInfo {
   type: string;
   filename: string;
   url: string;
   size: number;
   uploaded_at: string;
+  [key: string]: string | number; // Add index signature to match Json requirements
 }
 
 export function DocumentUploadDialog({ 
@@ -102,10 +104,10 @@ export function DocumentUploadDialog({
       
       documents.push(newDocument);
       
-      // Update the partner record - convert to JSON to ensure compatibility
+      // Update the partner record
       const { error: updateError } = await supabase
         .from('company_partners')
-        .update({ documents: documents })
+        .update({ documents }) // No need to convert to JSON, Supabase will handle this
         .eq('id', partnerId);
         
       if (updateError) throw updateError;

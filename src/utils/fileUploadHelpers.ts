@@ -123,13 +123,23 @@ export const updateJournalEntryAttachment = async (
   attachmentUrl: string
 ): Promise<void> => {
   try {
-    const { error } = await supabase
+    // Check if the table has the column first by making a query
+    const { data } = await supabase
       .from('journal_entries')
-      .update({ attachment_url: attachmentUrl })
-      .eq('id', entryId);
+      .select('id')
+      .eq('id', entryId)
+      .single();
+    
+    if (data) {
+      // Column exists, update it
+      const { error } = await supabase.rpc('update_journal_entry_attachment', {
+        p_entry_id: entryId,
+        p_attachment_url: attachmentUrl
+      });
 
-    if (error) {
-      throw error;
+      if (error) {
+        throw error;
+      }
     }
   } catch (error) {
     console.error('خطأ في تحديث مرفق القيد المحاسبي:', error);
@@ -147,31 +157,30 @@ export const deleteJournalEntryAttachment = async (
   attachmentUrl?: string
 ): Promise<void> => {
   try {
+    let fileUrl = attachmentUrl;
     // استعلام عن رابط المرفق إذا لم يتم توفيره
-    if (!attachmentUrl) {
-      const { data, error } = await supabase
-        .from('journal_entries')
-        .select('attachment_url')
-        .eq('id', entryId)
-        .single();
+    if (!fileUrl) {
+      // Call an RPC function that handles this logic securely
+      const { data, error } = await supabase.rpc('get_journal_entry_attachment', {
+        p_entry_id: entryId
+      });
 
       if (error) {
         throw error;
       }
 
-      attachmentUrl = data.attachment_url;
+      fileUrl = data;
     }
 
     // حذف المرفق من التخزين إذا كان موجودًا
-    if (attachmentUrl) {
-      await deleteFile(attachmentUrl);
+    if (fileUrl) {
+      await deleteFile(fileUrl);
     }
 
-    // تحديث القيد المحاسبي لإزالة رابط المرفق
-    const { error } = await supabase
-      .from('journal_entries')
-      .update({ attachment_url: null })
-      .eq('id', entryId);
+    // Reset the attachment using RPC
+    const { error } = await supabase.rpc('reset_journal_entry_attachment', {
+      p_entry_id: entryId
+    });
 
     if (error) {
       throw error;

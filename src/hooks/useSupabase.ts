@@ -45,3 +45,15 @@ export const validateData = (data: any, requiredFields: string[]) => {
   
   return errors;
 };
+
+// إنشاء دالة لإضافة خصائص للملف المرفق
+export const addAttachmentMetadata = (journalEntry: any, attachmentUrl?: string) => {
+  if (attachmentUrl) {
+    // استخدام spread operator للحفاظ على البيانات الموجودة وإضافة خاصية جديدة
+    return {
+      ...journalEntry,
+      attachment_url: attachmentUrl
+    };
+  }
+  return journalEntry;
+};

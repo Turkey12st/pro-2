@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import JournalEntryForm from "@/components/accounting/JournalEntryForm";
 import JournalEntryAttachment from "@/components/accounting/JournalEntryAttachment";
 import { updateJournalEntryAttachment, deleteJournalEntryAttachment } from "@/utils/fileUploadHelpers";
+import { addAttachmentMetadata } from "@/hooks/useSupabase";
 import type { JournalEntry } from "@/types/database";
 
 interface JournalEntryDialogProps {
@@ -115,7 +116,7 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
         </DialogHeader>
         
         <JournalEntryForm
-          initialData={editingEntry || undefined}
+          initialData={editingEntry ? addAttachmentMetadata(editingEntry) : undefined}
           onSuccess={handleFormSuccess}
           onClose={handleDialogClose}
         />
