@@ -79,18 +79,30 @@ export default function JournalEntryForm({
     try {
       let result;
       
+      // تأكد من أن الحقول المطلوبة متوفرة في الكائن
+      const entryData = {
+        description: formData.description || "",
+        entry_date: formData.entry_date || "",
+        entry_name: formData.entry_name,
+        amount: formData.amount,
+        entry_type: formData.entry_type,
+        financial_statement_section: formData.financial_statement_section,
+        total_debit: formData.total_debit,
+        total_credit: formData.total_credit
+      };
+      
       if (initialData?.id) {
         // تحديث قيد موجود
         result = await supabase
           .from("journal_entries")
-          .update(formData)
+          .update(entryData)
           .eq("id", initialData.id)
           .select();
       } else {
         // إضافة قيد جديد
         result = await supabase
           .from("journal_entries")
-          .insert(formData)
+          .insert(entryData)
           .select();
       }
 

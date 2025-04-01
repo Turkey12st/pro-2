@@ -14,6 +14,14 @@ interface DocumentUploadDialogProps {
   onSuccess: () => void;
 }
 
+interface DocumentInfo {
+  type: string;
+  filename: string;
+  url: string;
+  size: number;
+  uploaded_at: string;
+}
+
 export function DocumentUploadDialog({ 
   isOpen, 
   partnerId, 
@@ -46,7 +54,7 @@ export function DocumentUploadDialog({
       if (fileError) throw fileError;
       
       // Get the public URL
-      const { data: publicUrl } = supabase.storage
+      const { data: publicUrlData } = supabase.storage
         .from('partner-documents')
         .getPublicUrl(fileName);
             
@@ -60,7 +68,7 @@ export function DocumentUploadDialog({
       if (partnerError) throw partnerError;
       
       // Prepare the documents array
-      let documents = [];
+      let documents: DocumentInfo[] = [];
       
       if (partnerData.documents) {
         if (typeof partnerData.documents === 'string') {
@@ -70,7 +78,7 @@ export function DocumentUploadDialog({
             documents = [];
           }
         } else if (Array.isArray(partnerData.documents)) {
-          documents = partnerData.documents;
+          documents = partnerData.documents as DocumentInfo[];
         }
       }
       
@@ -78,7 +86,7 @@ export function DocumentUploadDialog({
       documents.push({
         type: docType,
         filename: file.name,
-        url: publicUrl.publicUrl,
+        url: publicUrlData.publicUrl,
         size: file.size,
         uploaded_at: new Date().toISOString()
       });

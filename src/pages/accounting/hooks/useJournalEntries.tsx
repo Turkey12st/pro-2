@@ -58,10 +58,25 @@ export const useJournalEntries = () => {
 
   const addJournalEntry = async (entry: Partial<JournalEntry>) => {
     try {
-      // تأكد من أن entry ليس مصفوفة
+      // تأكد من وجود الحقول المطلوبة
+      if (!entry.description || !entry.entry_date) {
+        throw new Error("الوصف والتاريخ مطلوبان");
+      }
+      
+      const entryToAdd = {
+        description: entry.description,
+        entry_date: entry.entry_date,
+        entry_name: entry.entry_name,
+        amount: entry.amount,
+        entry_type: entry.entry_type || 'income',
+        financial_statement_section: entry.financial_statement_section,
+        total_debit: entry.total_debit || 0,
+        total_credit: entry.total_credit || 0,
+      };
+      
       const { data, error } = await supabase
         .from("journal_entries")
-        .insert(entry)
+        .insert(entryToAdd)
         .select();
 
       if (error) throw error;
@@ -85,10 +100,30 @@ export const useJournalEntries = () => {
 
   const updateJournalEntry = async (id: string, updates: Partial<JournalEntry>) => {
     try {
-      // تأكد من أن updates ليس مصفوفة
+      // تأكد من أن التحديثات تحتوي على الحقول المطلوبة إذا كانت متضمنة
+      if (updates.description === "") {
+        throw new Error("لا يمكن أن يكون الوصف فارغًا");
+      }
+      
+      if (updates.entry_date === "") {
+        throw new Error("التاريخ مطلوب");
+      }
+      
+      // إنشاء كائن التحديث مع فقط الحقول المتوفرة
+      const updateData: Record<string, any> = {};
+      
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.entry_date !== undefined) updateData.entry_date = updates.entry_date;
+      if (updates.entry_name !== undefined) updateData.entry_name = updates.entry_name;
+      if (updates.amount !== undefined) updateData.amount = updates.amount;
+      if (updates.entry_type !== undefined) updateData.entry_type = updates.entry_type;
+      if (updates.financial_statement_section !== undefined) updateData.financial_statement_section = updates.financial_statement_section;
+      if (updates.total_debit !== undefined) updateData.total_debit = updates.total_debit;
+      if (updates.total_credit !== undefined) updateData.total_credit = updates.total_credit;
+      
       const { data, error } = await supabase
         .from("journal_entries")
-        .update(updates)
+        .update(updateData)
         .eq("id", id)
         .select();
 

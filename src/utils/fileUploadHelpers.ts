@@ -55,3 +55,34 @@ export const deleteFile = async (filePath: string): Promise<void> => {
     throw error;
   }
 };
+
+/**
+ * استخراج اسم الملف من مسار كامل
+ * @param fullPath المسار الكامل للملف
+ * @returns اسم الملف
+ */
+export const getFileNameFromPath = (fullPath: string): string => {
+  const parts = fullPath.split('/');
+  return parts[parts.length - 1];
+};
+
+/**
+ * الحصول على نوع الملف بناءً على الامتداد
+ * @param fileName اسم الملف أو مساره
+ * @returns نوع الملف (مثل 'pdf', 'image', 'document', 'unknown')
+ */
+export const getFileType = (fileName: string): string => {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  
+  if (!extension) return 'unknown';
+  
+  if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(extension)) {
+    return 'image';
+  } else if (['pdf'].includes(extension)) {
+    return 'pdf';
+  } else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'].includes(extension)) {
+    return 'document';
+  } else {
+    return 'unknown';
+  }
+};
