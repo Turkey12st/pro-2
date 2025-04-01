@@ -11,9 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, FileText } from "lucide-react";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
 import type { JournalEntry } from "@/types/database";
+import { formatEntryDate, getFinancialSectionName, formatAmount } from "@/utils/journalEntryHelpers";
 
 interface JournalEntryTableProps {
   entries: JournalEntry[];
@@ -36,15 +35,6 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
     return <div className="text-center py-4">لا توجد قيود محاسبية</div>;
   }
 
-  const getFinancialSectionName = (section?: string) => {
-    switch(section) {
-      case "income_statement": return "قائمة الدخل";
-      case "balance_sheet": return "الميزانية العمومية";
-      case "cash_flow": return "التدفقات النقدية";
-      default: return "-";
-    }
-  };
-
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -65,7 +55,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
               <TableCell>{entry.entry_name || "-"}</TableCell>
               <TableCell>{entry.description}</TableCell>
               <TableCell>
-                {entry.entry_date ? format(new Date(entry.entry_date), "dd MMM yyyy", { locale: ar }) : "-"}
+                {formatEntryDate(entry.entry_date)}
               </TableCell>
               <TableCell>
                 <Badge variant={entry.entry_type === "income" ? "success" : "destructive"}>
@@ -73,10 +63,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                 </Badge>
               </TableCell>
               <TableCell className="font-medium text-left" dir="ltr">
-                {entry.amount?.toLocaleString("en-US", {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })} ريال
+                {formatAmount(entry.amount)} ريال
               </TableCell>
               <TableCell>
                 {getFinancialSectionName(entry.financial_statement_section)}

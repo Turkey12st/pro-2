@@ -1,16 +1,12 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyInfo } from "@/types/database";
-import { format } from "date-fns";
-import { ar } from "date-fns/locale";
 import { Save, Loader2 } from "lucide-react";
 import CompanyLogoUpload from "./CompanyLogoUpload";
 import useAutoSave from "@/hooks/useAutoSave";
@@ -36,6 +32,7 @@ export function CompanyInfoForm() {
         const { data, error } = await supabase
           .from('company_Info')
           .select('*')
+          .limit(1)
           .single();
         
         if (error && error.code !== 'PGRST116') {
@@ -58,8 +55,8 @@ export function CompanyInfoForm() {
             nitaqat_activity: data.nitaqat_activity || '',
             economic_activity: data.economic_activity || '',
             tax_number: data.tax_number || '',
-            address: typeof data.address === 'object' ? data.address : { street: '', city: '', postal_code: '' },
-            metadata: data.metadata || {},
+            address: typeof data.address === 'object' ? data.address as Record<string, any> : { street: '', city: '', postal_code: '' },
+            metadata: data.metadata as Record<string, any> || {},
             license_expiry_date: data.license_expiry_date || '',
             created_at: data.created_at
           };

@@ -5,11 +5,15 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface UseAutoSaveProps {
   formType: string;
-  initialData?: unknown;
+  initialData?: Record<string, any> | null;
   debounceMs?: number;
 }
 
-const useAutoSave = <T extends object>({ formType, initialData, debounceMs = 2000 }: UseAutoSaveProps) => {
+const useAutoSave = <T extends Record<string, any>>({ 
+  formType, 
+  initialData, 
+  debounceMs = 2000 
+}: UseAutoSaveProps) => {
   const [formData, setFormData] = useState<T>(initialData as T || {} as T);
   const [isLoading, setIsLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState<string>('');
@@ -19,16 +23,16 @@ const useAutoSave = <T extends object>({ formType, initialData, debounceMs = 200
     try {
       setIsLoading(true);
       
-      // In a real app, we'd use the authenticated user's ID
+      // في تطبيق حقيقي، سنستخدم معرف المستخدم المصادق عليه
       const userId = 'demo-user-id'; 
       
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('auto_saves')
         .upsert(
           {
             user_id: userId,
             form_type: formType,
-            form_data: formData as any,
+            form_data: formData,
             updated_at: new Date().toISOString(),
           },
           { onConflict: 'user_id, form_type' }
@@ -36,13 +40,13 @@ const useAutoSave = <T extends object>({ formType, initialData, debounceMs = 200
       
       if (error) throw error;
       
-      // Update last saved timestamp
+      // تحديث طابع الوقت للحفظ الأخير
       const now = new Date();
       setLastSaved(now.toLocaleTimeString());
       
       return true;
     } catch (error) {
-      console.error('Error saving form data:', error);
+      console.error('خطأ في حفظ بيانات النموذج:', error);
       toast({
         title: 'خطأ في حفظ البيانات',
         description: 'حدث خطأ أثناء محاولة حفظ البيانات تلقائيًا.',
@@ -55,10 +59,11 @@ const useAutoSave = <T extends object>({ formType, initialData, debounceMs = 200
   }, [formData, formType, toast]);
 
   useEffect(() => {
+    // تأكد من وجود بيانات قبل محاولة الحفظ
+    if (Object.keys(formData).length === 0) return;
+    
     const timer = setTimeout(() => {
-      if (Object.keys(formData as object).length > 0) {
-        saveData();
-      }
+      saveData();
     }, debounceMs);
 
     return () => clearTimeout(timer);
