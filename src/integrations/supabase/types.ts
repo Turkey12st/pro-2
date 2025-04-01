@@ -584,6 +584,7 @@ export type Database = {
       journal_entries: {
         Row: {
           amount: number | null
+          attachment_url: string | null
           created_at: string
           created_by: string | null
           description: string
@@ -602,6 +603,7 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          attachment_url?: string | null
           created_at?: string
           created_by?: string | null
           description: string
@@ -620,6 +622,7 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          attachment_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string
@@ -1111,16 +1114,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_journal_entry_attachment: {
+        Args: {
+          p_entry_id: string
+        }
+        Returns: string
+      }
       get_unified_national_number: {
         Args: {
           company_id: string
         }
         Returns: string
       }
+      reset_journal_entry_attachment: {
+        Args: {
+          p_entry_id: string
+        }
+        Returns: undefined
+      }
       update_company_information: {
         Args: {
           p_company_id: string
           p_unified_national_number: string
+        }
+        Returns: undefined
+      }
+      update_journal_entry_attachment: {
+        Args: {
+          p_entry_id: string
+          p_attachment_url: string
         }
         Returns: undefined
       }

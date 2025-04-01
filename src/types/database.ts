@@ -122,5 +122,5 @@ export interface CompanyPartnerData {
   };
   created_at: string;
   updated_at: string;
-  documents: any[];
+  documents: Record<string, any>[];
 }

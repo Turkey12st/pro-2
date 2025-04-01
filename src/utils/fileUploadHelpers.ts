@@ -123,23 +123,14 @@ export const updateJournalEntryAttachment = async (
   attachmentUrl: string
 ): Promise<void> => {
   try {
-    // Check if the table has the column first by making a query
-    const { data } = await supabase
-      .from('journal_entries')
-      .select('id')
-      .eq('id', entryId)
-      .single();
-    
-    if (data) {
-      // Column exists, update it
-      const { error } = await supabase.rpc('update_journal_entry_attachment', {
-        p_entry_id: entryId,
-        p_attachment_url: attachmentUrl
-      });
+    // Call the stored procedure for updating the attachment
+    const { error } = await supabase.rpc('update_journal_entry_attachment', {
+      p_entry_id: entryId,
+      p_attachment_url: attachmentUrl
+    });
 
-      if (error) {
-        throw error;
-      }
+    if (error) {
+      throw error;
     }
   } catch (error) {
     console.error('خطأ في تحديث مرفق القيد المحاسبي:', error);
@@ -158,9 +149,9 @@ export const deleteJournalEntryAttachment = async (
 ): Promise<void> => {
   try {
     let fileUrl = attachmentUrl;
-    // استعلام عن رابط المرفق إذا لم يتم توفيره
+    
+    // Get the attachment URL if not provided
     if (!fileUrl) {
-      // Call an RPC function that handles this logic securely
       const { data, error } = await supabase.rpc('get_journal_entry_attachment', {
         p_entry_id: entryId
       });
@@ -172,12 +163,12 @@ export const deleteJournalEntryAttachment = async (
       fileUrl = data;
     }
 
-    // حذف المرفق من التخزين إذا كان موجودًا
+    // Delete the file from storage if it exists
     if (fileUrl) {
       await deleteFile(fileUrl);
     }
 
-    // Reset the attachment using RPC
+    // Reset the attachment using the stored procedure
     const { error } = await supabase.rpc('reset_journal_entry_attachment', {
       p_entry_id: entryId
     });

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -107,7 +106,7 @@ export function DocumentUploadDialog({
       // Update the partner record
       const { error: updateError } = await supabase
         .from('company_partners')
-        .update({ documents }) // No need to convert to JSON, Supabase will handle this
+        .update({ documents }) // Supabase will handle the JSON conversion
         .eq('id', partnerId);
         
       if (updateError) throw updateError;
