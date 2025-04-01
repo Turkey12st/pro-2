@@ -70,31 +70,42 @@ export function DocumentUploadDialog({
       // Prepare the documents array
       let documents: DocumentInfo[] = [];
       
-      if (partnerData.documents) {
+      if (partnerData?.documents) {
+        // Type assertion to handle dynamic data from database
         if (typeof partnerData.documents === 'string') {
           try {
-            documents = JSON.parse(partnerData.documents);
+            documents = JSON.parse(partnerData.documents) as DocumentInfo[];
           } catch (e) {
             documents = [];
           }
         } else if (Array.isArray(partnerData.documents)) {
-          documents = partnerData.documents as DocumentInfo[];
+          // Cast to DocumentInfo[] with type assertion after validation
+          const docsArray = partnerData.documents as any[];
+          documents = docsArray.map(doc => ({
+            type: doc.type || '',
+            filename: doc.filename || '',
+            url: doc.url || '',
+            size: doc.size || 0,
+            uploaded_at: doc.uploaded_at || new Date().toISOString()
+          }));
         }
       }
       
       // Add new document
-      documents.push({
+      const newDocument: DocumentInfo = {
         type: docType,
         filename: file.name,
         url: publicUrlData.publicUrl,
         size: file.size,
         uploaded_at: new Date().toISOString()
-      });
+      };
       
-      // Update the partner record
+      documents.push(newDocument);
+      
+      // Update the partner record - convert to JSON to ensure compatibility
       const { error: updateError } = await supabase
         .from('company_partners')
-        .update({ documents })
+        .update({ documents: documents })
         .eq('id', partnerId);
         
       if (updateError) throw updateError;

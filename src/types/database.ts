@@ -1,4 +1,3 @@
-
 // Add additional types to the existing file
 
 export interface FinancialSummaryType {
@@ -93,6 +92,7 @@ export interface JournalEntry {
   financial_statement_section?: string;
   created_at: string;
   updated_at: string;
+  attachment_url?: string;
 }
 
 export interface CapitalManagement {

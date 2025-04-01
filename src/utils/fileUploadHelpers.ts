@@ -43,9 +43,20 @@ export const uploadFile = async (
  */
 export const deleteFile = async (filePath: string): Promise<void> => {
   try {
+    // استخراج اسم الملف من المسار
+    const fileName = getFileNameFromPath(filePath);
+    
+    // استخراج bucket واسم الملف من عنوان URL
+    const url = new URL(filePath);
+    const pathParts = url.pathname.split('/');
+    const bucketName = pathParts[1]; // افتراض أن المسار هو /storage/v1/[bucket_name]/...
+    
+    // إنشاء مسار الملف بدون الـ URL الكامل
+    const storageFilePath = pathParts.slice(3).join('/');
+
     const { error } = await supabase.storage
-      .from('documents')
-      .remove([filePath]);
+      .from(bucketName)
+      .remove([storageFilePath]);
 
     if (error) {
       throw error;
@@ -85,4 +96,116 @@ export const getFileType = (fileName: string): string => {
   } else {
     return 'unknown';
   }
+};
+
+/**
+ * رفع مرفق للقيد المحاسبي
+ * @param file الملف المراد رفعه
+ * @param entryId معرف القيد المحاسبي
+ * @returns وعد بعنوان URL للملف المرفوع
+ */
+export const uploadJournalEntryAttachment = async (
+  file: File,
+  entryId: string
+): Promise<string> => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `entry_${entryId}_${Date.now()}.${fileExt}`;
+  return uploadFile(file, 'journal-entries', fileName);
+};
+
+/**
+ * تحديث مرفقات القيد المحاسبي في قاعدة البيانات
+ * @param entryId معرف القيد المحاسبي
+ * @param attachmentUrl رابط المرفق
+ */
+export const updateJournalEntryAttachment = async (
+  entryId: string,
+  attachmentUrl: string
+): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('journal_entries')
+      .update({ attachment_url: attachmentUrl })
+      .eq('id', entryId);
+
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error('خطأ في تحديث مرفق القيد المحاسبي:', error);
+    throw error;
+  }
+};
+
+/**
+ * حذف مرفق القيد المحاسبي
+ * @param entryId معرف القيد المحاسبي
+ * @param attachmentUrl رابط المرفق (اختياري)
+ */
+export const deleteJournalEntryAttachment = async (
+  entryId: string,
+  attachmentUrl?: string
+): Promise<void> => {
+  try {
+    // استعلام عن رابط المرفق إذا لم يتم توفيره
+    if (!attachmentUrl) {
+      const { data, error } = await supabase
+        .from('journal_entries')
+        .select('attachment_url')
+        .eq('id', entryId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      attachmentUrl = data.attachment_url;
+    }
+
+    // حذف المرفق من التخزين إذا كان موجودًا
+    if (attachmentUrl) {
+      await deleteFile(attachmentUrl);
+    }
+
+    // تحديث القيد المحاسبي لإزالة رابط المرفق
+    const { error } = await supabase
+      .from('journal_entries')
+      .update({ attachment_url: null })
+      .eq('id', entryId);
+
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error('خطأ في حذف مرفق القيد المحاسبي:', error);
+    throw error;
+  }
+};
+
+/**
+ * التحقق من صحة الملف قبل الرفع
+ * @param file الملف المراد التحقق منه
+ * @param maxSizeInMB الحجم الأقصى بالميجابايت
+ * @param allowedTypes أنواع الملفات المسموح بها (مثال: ['pdf', 'jpg'])
+ * @returns رسالة الخطأ أو null إذا كان الملف صالحًا
+ */
+export const validateFile = (
+  file: File,
+  maxSizeInMB: number = 5,
+  allowedTypes?: string[]
+): string | null => {
+  // التحقق من حجم الملف
+  if (file.size > maxSizeInMB * 1024 * 1024) {
+    return `حجم الملف يجب أن يكون أقل من ${maxSizeInMB} ميجابايت`;
+  }
+  
+  // التحقق من نوع الملف إذا تم تحديد أنواع مسموحة
+  if (allowedTypes && allowedTypes.length > 0) {
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+    if (!allowedTypes.includes(fileExt)) {
+      return `نوع الملف غير مسموح به. الأنواع المسموحة: ${allowedTypes.join(', ')}`;
+    }
+  }
+  
+  return null;
 };
