@@ -80,15 +80,17 @@ export default function JournalEntryForm({
       let result;
       
       if (initialData?.id) {
+        // تحديث قيد موجود
         result = await supabase
           .from("journal_entries")
           .update(formData)
           .eq("id", initialData.id)
           .select();
       } else {
+        // إضافة قيد جديد
         result = await supabase
           .from("journal_entries")
-          .insert([formData])
+          .insert(formData)
           .select();
       }
 

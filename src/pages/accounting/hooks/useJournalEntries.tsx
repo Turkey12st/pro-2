@@ -58,9 +58,10 @@ export const useJournalEntries = () => {
 
   const addJournalEntry = async (entry: Partial<JournalEntry>) => {
     try {
+      // تأكد من أن entry ليس مصفوفة
       const { data, error } = await supabase
         .from("journal_entries")
-        .insert([entry])
+        .insert(entry)
         .select();
 
       if (error) throw error;
@@ -84,6 +85,7 @@ export const useJournalEntries = () => {
 
   const updateJournalEntry = async (id: string, updates: Partial<JournalEntry>) => {
     try {
+      // تأكد من أن updates ليس مصفوفة
       const { data, error } = await supabase
         .from("journal_entries")
         .update(updates)

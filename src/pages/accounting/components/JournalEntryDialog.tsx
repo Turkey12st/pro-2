@@ -1,12 +1,10 @@
 
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Paperclip } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import JournalEntryForm from "@/components/accounting/JournalEntryForm";
+import FileAttachment from "@/components/accounting/FileAttachment";
+import { uploadFile } from "@/utils/fileUploadHelpers";
 import type { JournalEntry } from "@/types/database";
 
 interface JournalEntryDialogProps {
@@ -24,31 +22,49 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
 }) => {
   const { toast } = useToast();
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // إعادة تعيين المرفق عند فتح/إغلاق النافذة
   useEffect(() => {
     if (!isOpen) {
       setAttachment(null);
+      setIsUploading(false);
     }
   }, [isOpen]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setAttachment(e.target.files[0]);
-    }
-  };
 
   const handleDialogClose = () => {
     setIsOpen(false);
   };
 
-  const handleSuccess = (entry: JournalEntry) => {
+  const handleSuccess = async (entry: JournalEntry) => {
     if (attachment) {
-      // هنا يمكن إضافة رمز لتحميل المرفق إلى Supabase Storage
-      toast({
-        title: "تم رفع المرفق",
-        description: "تم رفع المرفق بنجاح",
-      });
+      try {
+        setIsUploading(true);
+        
+        // رفع الملف إلى Supabase Storage
+        const fileUrl = await uploadFile(
+          attachment,
+          'journal-entries',
+          `entry_${entry.id}_${attachment.name}`
+        );
+        
+        // يمكن هنا تحديث القيد المحاسبي برابط المرفق إذا لزم الأمر
+        // مثال: await updateJournalEntryAttachment(entry.id, fileUrl);
+        
+        toast({
+          title: "تم رفع المرفق",
+          description: "تم رفع المرفق بنجاح",
+        });
+      } catch (error) {
+        console.error("خطأ في رفع المرفق:", error);
+        toast({
+          variant: "destructive",
+          title: "خطأ في رفع المرفق",
+          description: "حدث خطأ أثناء محاولة رفع المرفق",
+        });
+      } finally {
+        setIsUploading(false);
+      }
     }
     
     setIsOpen(false);
@@ -71,36 +87,11 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
           onClose={handleDialogClose}
         />
         
-        <div className="grid gap-2 mt-4">
-          <Label htmlFor="attachment">إضافة مرفق</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="attachment"
-              name="attachment"
-              type="file"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full flex items-center gap-2"
-              onClick={() => document.getElementById('attachment')?.click()}
-            >
-              <Paperclip className="h-4 w-4" />
-              {attachment ? attachment.name : "اختر ملفًا"}
-            </Button>
-            {attachment && (
-              <Button 
-                type="button" 
-                variant="destructive" 
-                size="sm"
-                onClick={() => setAttachment(null)}
-              >
-                حذف
-              </Button>
-            )}
-          </div>
+        <div className="mt-4">
+          <FileAttachment 
+            attachment={attachment} 
+            onChange={setAttachment} 
+          />
         </div>
       </DialogContent>
     </Dialog>
