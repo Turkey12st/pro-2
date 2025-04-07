@@ -20,6 +20,7 @@ import { format, parseISO, isValid } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { DayProps } from "react-day-picker";
 
 interface Event {
   id: string;
@@ -227,18 +228,18 @@ export default function CalendarPage() {
                   locale={ar}
                   className="border rounded-md p-4"
                   components={{
-                    Day: ({ day, ...props }) => (
+                    Day: ({ date: dayDate, ...props }: any) => (
                       <button
                         {...props}
                         className={`h-16 w-full border border-border hover:bg-muted ${
-                          day.getMonth() !== date?.getMonth() ? "text-muted-foreground" : ""
+                          dayDate.getMonth() !== date?.getMonth() ? "text-muted-foreground" : ""
                         } ${
-                          date && day.toDateString() === date.toDateString()
+                          date && dayDate.toDateString() === date.toDateString()
                             ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
                             : ""
                         }`}
                       >
-                        {renderDateCell(day)}
+                        {renderDateCell(dayDate)}
                       </button>
                     ),
                   }}

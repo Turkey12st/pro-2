@@ -21,6 +21,13 @@ interface DocumentUploadDialogProps {
   onSuccess: () => void;
 }
 
+interface DocumentItem {
+  id: string;
+  name: string;
+  url: string;
+  uploaded_at: string;
+}
+
 export function DocumentUploadDialog({
   partnerId,
   isOpen,
@@ -89,8 +96,12 @@ export function DocumentUploadDialog({
 
       if (partnerError) throw partnerError;
 
-      const existingDocs = partnerData.documents || [];
-      const newDoc = {
+      // Safely handle documents as an array
+      const existingDocs: DocumentItem[] = Array.isArray(partnerData.documents) 
+        ? partnerData.documents 
+        : [];
+      
+      const newDoc: DocumentItem = {
         id: fileName,
         name: documentName,
         url: publicUrl,
