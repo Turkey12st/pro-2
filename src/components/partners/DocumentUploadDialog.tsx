@@ -64,7 +64,6 @@ export function DocumentUploadDialog({
       let documents: DocumentItem[] = [];
       
       if (partnerData?.documents) {
-        // Handle different data formats from the database
         if (typeof partnerData.documents === 'string') {
           try {
             documents = JSON.parse(partnerData.documents) as DocumentItem[];
@@ -72,8 +71,7 @@ export function DocumentUploadDialog({
             documents = [];
           }
         } else if (Array.isArray(partnerData.documents)) {
-          // Safe conversion with type checking
-          documents = (partnerData.documents as any[]).map(doc => ({
+          documents = partnerData.documents.map((doc: any) => ({
             type: doc.type || '',
             filename: doc.filename || '',
             url: doc.url || '',
@@ -94,11 +92,11 @@ export function DocumentUploadDialog({
       
       documents.push(newDocument);
       
-      // Update the partner record with proper serialization
+      // Update the partner record
       const { error: updateError } = await supabase
         .from('company_partners')
         .update({ 
-          documents: documents as any
+          documents: documents
         })
         .eq('id', partnerId);
         

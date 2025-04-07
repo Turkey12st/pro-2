@@ -1,124 +1,38 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import MainPage from "./pages/MainPage";
+import DashboardPage from "./pages/dashboard/Index";
 import AccountingPage from "./pages/accounting/Index";
 import HRPage from "./pages/hr/Index";
+import DocumentsPage from "./pages/documents/Index";
 import ProjectsPage from "./pages/projects/Index";
 import ClientsPage from "./pages/clients/Index";
+import CompanyPage from "./pages/company/Index";
 import PartnersPage from "./pages/partners/Index";
-import DashboardPage from "./pages/dashboard/Index";
-import FinancialPage from "./pages/financial/Index";
-import ZakatPage from "./pages/zakat/Index";
-import DocumentsPage from "./pages/documents/Index";
-import AppLayout from "./components/AppLayout";
 import SettingsPage from "./pages/settings/Index";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
+import NotFound from "./pages/NotFound";
+import ZakatPage from "./pages/zakat/Index";
+import CapitalManagementPage from "./pages/capital/Index";
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route 
-              path="/dashboard" 
-              element={
-                <AppLayout>
-                  <DashboardPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/accounting" 
-              element={
-                <AppLayout>
-                  <AccountingPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/hr" 
-              element={
-                <AppLayout>
-                  <HRPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/projects" 
-              element={
-                <AppLayout>
-                  <ProjectsPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/clients" 
-              element={
-                <AppLayout>
-                  <ClientsPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/partners" 
-              element={
-                <AppLayout>
-                  <PartnersPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/financial" 
-              element={
-                <AppLayout>
-                  <FinancialPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/zakat" 
-              element={
-                <AppLayout>
-                  <ZakatPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="documents" 
-              element={
-                <AppLayout>
-                  <DocumentsPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="settings" 
-              element={
-                <AppLayout>
-                  <SettingsPage />
-                </AppLayout>
-              } 
-            />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    
+      <Routes>
+        <Route path="/" element={<MainPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/accounting" element={<AccountingPage />} />
+        <Route path="/capital" element={<CapitalManagementPage />} />
+        <Route path="/hr" element={<HRPage />} />
+        <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/clients" element={<ClientsPage />} />
+        <Route path="/company" element={<CompanyPage />} />
+        <Route path="/partners" element={<PartnersPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/zakat" element={<ZakatPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    
   );
 }
 

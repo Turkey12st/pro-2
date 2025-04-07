@@ -35,10 +35,10 @@ export const useCompanyForm = () => {
         
         if (data) {
           // تحويل البيانات إلى الشكل المطلوب
-          let addressData: Address = { street: '', city: '', postal_code: '' };
+          let addressData: Record<string, any> = { street: '', city: '', postal_code: '' };
           if (data.address) {
             if (typeof data.address === 'object') {
-              addressData = data.address as Address;
+              addressData = data.address as Record<string, any>;
             } else {
               addressData = { street: String(data.address) };
             }
@@ -110,13 +110,16 @@ export const useCompanyForm = () => {
   };
 
   const handleLogoChange = (logoUrl: string | null) => {
-    setFormData(prev => ({
-      ...prev,
-      metadata: {
-        ...(prev.metadata || {}),
-        logo_url: logoUrl
-      }
-    }));
+    setFormData(prev => {
+      const metadata = prev.metadata as Record<string, any>;
+      return {
+        ...prev,
+        metadata: {
+          ...metadata,
+          logo_url: logoUrl
+        }
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

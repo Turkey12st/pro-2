@@ -1,155 +1,91 @@
-
 import {
   LayoutDashboard,
-  Wallet,
-  Users,
-  Calculator,
-  FileText,
-  Building,
-  Calendar,
-  Settings,
-  UserSquare2,
-  FolderKanban,
-  Briefcase,
-  BookOpen,
-  Mail,
-  BarChart3,
-  Landmark,
-  FileBarChart,
-  CircleDollarSign,
   Receipt,
-  FileCog,
-  ShieldCheck,
-  BadgeCheck,
+  FileText,
+  Users,
+  Settings,
+  Calendar as CalendarIcon,
+  ListChecks,
+  Store,
+  Link,
+  Scale,
+  Building2, // Add Building2 for Capital Management
 } from "lucide-react";
 import { MenuItem } from "@/types/navigation";
 
 export function getNavigationMenu(): MenuItem[] {
   return [
     {
-      title: "لوحة المعلومات",
-      icon: LayoutDashboard,
+      name: "لوحة المعلومات",
       href: "/dashboard",
-      group: "الرئيسية",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+      group: "إدارة النظام"
     },
     {
-      title: "المحاسبة",
-      icon: Wallet,
+      name: "المحاسبة",
       href: "/accounting",
-      group: "المالية",
-      children: [
-        {
-          title: "القيود اليومية",
-          icon: FileText,
-          href: "/accounting",
-        },
-        {
-          title: "التقارير المالية",
-          icon: BarChart3,
-          href: "/financial",
-        },
-        {
-          title: "إدارة رأس المال",
-          icon: Landmark,
-          href: "/capital",
-        },
-      ],
+      icon: <Receipt className="h-4 w-4" />,
+      group: "المالية"
     },
     {
-      title: "إدارة الشركاء",
-      icon: Briefcase,
-      href: "/partners",
-      group: "المالية",
+      name: "إدارة رأس المال", // Add Capital Management
+      href: "/capital",
+      icon: <Building2 className="h-4 w-4" />,
+      group: "المالية"
     },
     {
-      title: "الزكاة والضرائب",
-      icon: Calculator,
-      href: "/zakat",
-      group: "المالية",
-      children: [
-        {
-          title: "حاسبة الزكاة",
-          icon: CircleDollarSign,
-          href: "/zakat",
-        },
-        {
-          title: "تقارير ضريبية",
-          icon: FileBarChart,
-          href: "/tax-reports",
-        },
-        {
-          title: "السجلات الضريبية",
-          icon: Receipt,
-          href: "/tax-records",
-        },
-      ],
-    },
-    {
-      title: "الموارد البشرية",
-      icon: Users,
-      href: "/hr",
-      group: "التشغيل",
-      children: [
-        {
-          title: "الموظفين",
-          icon: Users,
-          href: "/hr",
-        },
-        {
-          title: "كشف الرواتب",
-          icon: Receipt,
-          href: "/payroll",
-        },
-      ],
-    },
-    {
-      title: "إدارة المشاريع",
-      icon: FolderKanban,
+      name: "المشاريع",
       href: "/projects",
-      group: "التشغيل",
+      icon: <ListChecks className="h-4 w-4" />,
+      group: "إدارة المشاريع"
     },
     {
-      title: "إدارة العملاء",
-      icon: UserSquare2,
-      href: "/clients",
-      group: "التشغيل",
-    },
-    {
-      title: "المستندات",
-      icon: FileText,
+      name: "المستندات",
       href: "/documents",
-      group: "الشركة",
+      icon: <FileText className="h-4 w-4" />,
+      group: "إدارة النظام"
     },
     {
-      title: "معلومات الشركة",
-      icon: Building,
+      name: "الموظفين",
+      href: "/hr",
+      icon: <Users className="h-4 w-4" />,
+      group: "إدارة الموارد البشرية"
+    },
+    {
+      name: "العملاء",
+      href: "/clients",
+      icon: <Store className="h-4 w-4" />,
+      group: "إدارة العملاء"
+    },
+    {
+      name: "الشركاء",
+      href: "/partners",
+      icon: <Link className="h-4 w-4" />,
+      group: "إدارة النظام"
+    },
+    {
+      name: "الزكاة والضرائب",
+      href: "/zakat",
+      icon: <Scale className="h-4 w-4" />,
+      group: "المالية"
+    },
+    {
+      name: "معلومات الشركة",
       href: "/company",
-      group: "الشركة",
-      children: [
-        {
-          title: "المعلومات الأساسية",
-          icon: BadgeCheck,
-          href: "/company",
-        },
-        {
-          title: "شهادات وتراخيص",
-          icon: ShieldCheck,
-          href: "/documents",
-        },
-      ],
+      icon: <Building2 className="h-4 w-4" />,
+      group: "إدارة النظام"
     },
     {
-      title: "التقويم",
-      icon: Calendar,
+      name: "التقويم",
       href: "/calendar",
-      group: "أدوات",
+      icon: <CalendarIcon className="h-4 w-4" />,
+      group: "إدارة النظام"
     },
     {
-      title: "إدارة النظام",
-      icon: Settings,
+      name: "الإعدادات",
       href: "/settings",
-      group: "النظام",
-      disabled: false,
-    },
+      icon: <Settings className="h-4 w-4" />,
+      group: "إدارة النظام"
+    }
   ];
 }

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Calendar, BarChart4 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -56,7 +55,6 @@ export function CashFlowChart() {
       
       if (error) throw error;
       
-      // Process data to group by date and separate income/expenses
       const processedData = data.reduce((acc: any[], entry: any) => {
         const date = entry.transaction_date;
         const existingEntry = acc.find(item => item.date === date);
@@ -86,7 +84,10 @@ export function CashFlowChart() {
     }
   });
 
-  // Calculate summary statistics
+  const formatNumber = (value: number) => {
+    return new Intl.NumberFormat('en-US').format(value);
+  };
+
   const summaryStats = cashFlow ? cashFlow.reduce((stats, entry) => {
     return {
       totalIncome: stats.totalIncome + entry.income,
@@ -124,21 +125,21 @@ export function CashFlowChart() {
                   <TrendingUp className="h-5 w-5" />
                 </div>
                 <p className="text-xs text-muted-foreground">الإيرادات</p>
-                <p className="font-bold text-green-600">{formatSalary(summaryStats.totalIncome)}</p>
+                <p className="font-bold text-green-600 dir-ltr">{formatSalary(summaryStats.totalIncome)}</p>
               </div>
               <div className="bg-red-50 rounded-lg p-3 text-center">
                 <div className="text-red-500 flex justify-center mb-1">
                   <TrendingDown className="h-5 w-5" />
                 </div>
                 <p className="text-xs text-muted-foreground">المصروفات</p>
-                <p className="font-bold text-red-600">{formatSalary(summaryStats.totalExpense)}</p>
+                <p className="font-bold text-red-600 dir-ltr">{formatSalary(summaryStats.totalExpense)}</p>
               </div>
               <div className={`${summaryStats.netCashFlow >= 0 ? 'bg-blue-50' : 'bg-amber-50'} rounded-lg p-3 text-center`}>
                 <div className={`${summaryStats.netCashFlow >= 0 ? 'text-blue-500' : 'text-amber-500'} flex justify-center mb-1`}>
                   <BarChart4 className="h-5 w-5" />
                 </div>
                 <p className="text-xs text-muted-foreground">صافي التدفق</p>
-                <p className={`font-bold ${summaryStats.netCashFlow >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
+                <p className={`font-bold dir-ltr ${summaryStats.netCashFlow >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
                   {formatSalary(summaryStats.netCashFlow)}
                 </p>
               </div>
@@ -163,10 +164,10 @@ export function CashFlowChart() {
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="date" />
-                    <YAxis />
+                    <YAxis tickFormatter={(value) => `${formatNumber(value / 1000)}K`} />
                     <CartesianGrid strokeDasharray="3 3" />
                     <Tooltip 
-                      formatter={(value: number) => formatSalary(value)}
+                      formatter={(value: number) => [`${formatNumber(value)} ريال`, ""]}
                       labelFormatter={(label) => `التاريخ: ${label}`}
                     />
                     <Legend />

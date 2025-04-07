@@ -1,6 +1,6 @@
 
 import { Progress } from "@/components/ui/progress";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber } from "@/utils/formatters";
 import { CapitalManagement } from "@/types/database";
 
 interface CapitalDetailsProps {
@@ -18,15 +18,15 @@ export function CapitalDetails({ data }: CapitalDetailsProps) {
       <div className="space-y-2">
         <div className="flex justify-between">
           <span className="text-sm font-medium">رأس المال الكلي</span>
-          <span className="text-sm font-bold">{formatNumber(total_capital)} ريال</span>
+          <span className="text-sm font-bold dir-ltr">{formatNumber(total_capital)} ريال</span>
         </div>
         <div className="flex justify-between">
           <span className="text-sm font-medium">رأس المال المتاح</span>
-          <span className="text-sm font-bold">{formatNumber(available_capital)} ريال</span>
+          <span className="text-sm font-bold dir-ltr">{formatNumber(available_capital)} ريال</span>
         </div>
         <div className="flex justify-between">
           <span className="text-sm font-medium">رأس المال المحجوز</span>
-          <span className="text-sm font-bold">{formatNumber(reserved_capital)} ريال</span>
+          <span className="text-sm font-bold dir-ltr">{formatNumber(reserved_capital)} ريال</span>
         </div>
       </div>
 

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +17,6 @@ interface SalarySummaryProps {
 export function SalarySummary({ data, isLoading }: SalarySummaryProps) {
   const [currentSummary, setCurrentSummary] = useState<SalarySummaryType | undefined>(data);
 
-  // استعلام لجلب بيانات الرواتب
   const { data: salaryData, isLoading: isSalaryLoading } = useQuery({
     queryKey: ['salary_summary'],
     queryFn: async () => {
@@ -27,28 +25,22 @@ export function SalarySummary({ data, isLoading }: SalarySummaryProps) {
         const currentMonth = today.getMonth();
         const currentYear = today.getFullYear();
         
-        // تعيين تاريخ سداد الرواتب (27 من الشهر الحالي)
         const paymentDate = new Date(currentYear, currentMonth, 27);
         
-        // إذا كان تاريخ اليوم بعد 27، ننتقل للشهر التالي
         if (isAfter(today, paymentDate)) {
           paymentDate.setMonth(paymentDate.getMonth() + 1);
         }
         
-        // حساب عدد الأيام المتبقية
         const daysRemaining = differenceInDays(paymentDate, today);
         
-        // جلب سجلات الرواتب والموظفين
         const { data: employees, error: employeesError } = await supabase
           .from('employees')
           .select('id, salary');
         
         if (employeesError) throw employeesError;
         
-        // حساب إجمالي الرواتب
         const totalSalaries = employees?.reduce((sum, emp) => sum + (emp.salary || 0), 0) || 0;
         
-        // تحديد حالة السداد
         let status: 'upcoming' | 'due' | 'overdue' | 'paid' = 'upcoming';
         if (daysRemaining <= 0) {
           status = 'due';
@@ -56,7 +48,6 @@ export function SalarySummary({ data, isLoading }: SalarySummaryProps) {
           status = 'upcoming';
         }
         
-        // التحقق من وجود سجلات مدفوعة لهذا الشهر
         const { data: paidRecords, error: paidError } = await supabase
           .from('salary_records')
           .select('*')
@@ -133,7 +124,6 @@ export function SalarySummary({ data, isLoading }: SalarySummaryProps) {
 
   const { total_salaries, payment_date, days_remaining, employees_count, status } = currentSummary;
 
-  // نحدد نسبة التقدم بناءً على الأيام المتبقية (نفترض شهر = 30 يوم)
   const progressPercentage = Math.max(0, Math.min(100, ((30 - days_remaining) / 30) * 100));
 
   const statusInfo = {
@@ -172,7 +162,7 @@ export function SalarySummary({ data, isLoading }: SalarySummaryProps) {
           <div className="flex flex-col items-center p-4 bg-muted rounded-lg">
             <DollarSign className="h-8 w-8 mb-2 text-primary" />
             <span className="text-sm text-muted-foreground">إجمالي الرواتب</span>
-            <span className="text-xl font-bold mt-1 dir-ltr">{total_salaries.toLocaleString()} ريال</span>
+            <span className="text-xl font-bold mt-1 dir-ltr">{new Intl.NumberFormat('en-US').format(total_salaries)} ريال</span>
           </div>
           <div className="flex flex-col items-center p-4 bg-muted rounded-lg">
             <Users className="h-8 w-8 mb-2 text-primary" />

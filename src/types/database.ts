@@ -1,6 +1,8 @@
 
 // Add additional types to the existing file
 
+export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
+
 export interface FinancialSummaryType {
   total_income: number;
   total_expenses: number;
@@ -32,8 +34,8 @@ export interface Partner {
   identity_number: string;
   capital_amount: number;
   capital_percentage: number;
-  contact_phone: string;
-  contact_email: string;
+  contact_phone?: string;
+  contact_email?: string;
   position: string;
   created_at: string;
 }
@@ -44,7 +46,7 @@ export interface DocumentItem {
   url: string;
   size: number;
   uploaded_at: string;
-  [key: string]: string | number; // إضافة توقيع فهرس للتوافق مع Json
+  [key: string]: string | number;
 }
 
 export interface Address {
