@@ -1,157 +1,172 @@
 
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { DocumentItem } from '@/types/database';
+import { useState, useCallback } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { FileUpload } from "@/components/hr/FileUpload";
+import { Json } from "@/types/database";
 
-interface DocumentUploadDialogProps {
-  isOpen: boolean;
-  partnerId: string | null;
-  onClose: () => void;
-  onSuccess: () => void;
+// Define document item type separately to avoid infinite recursion
+export interface DocumentItem {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+  uploadedAt: string;
 }
 
-export function DocumentUploadDialog({ 
-  isOpen, 
-  partnerId, 
-  onClose, 
-  onSuccess 
+interface DocumentUploadDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  partnerId: string;
+  onSuccess?: () => void;
+}
+
+export function DocumentUploadDialog({
+  open,
+  onOpenChange,
+  partnerId,
+  onSuccess,
 }: DocumentUploadDialogProps) {
+  const [loading, setLoading] = useState(false);
+  const [documentName, setDocumentName] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [docType, setDocType] = useState('identity');
-  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
-    }
+  const resetForm = () => {
+    setDocumentName("");
+    setFile(null);
   };
 
-  const handleUpload = async () => {
-    if (!file || !partnerId) return;
+  const handleFileChange = useCallback((file: File | null) => {
+    setFile(file);
+  }, []);
 
-    try {
-      setIsUploading(true);
-      
-      // Upload file to storage
-      const fileName = `${partnerId}/${docType}/${Date.now()}-${file.name}`;
-      const { data: fileData, error: fileError } = await supabase.storage
-        .from('partner-documents')
-        .upload(fileName, file);
-      
-      if (fileError) throw fileError;
-      
-      // Get the public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('partner-documents')
-        .getPublicUrl(fileName);
-            
-      // Update partner record with document info
-      const { data: partnerData, error: partnerError } = await supabase
-        .from('company_partners')
-        .select('documents')
-        .eq('id', partnerId)
-        .single();
-        
-      if (partnerError) throw partnerError;
-      
-      // Prepare the documents array
-      let documents: DocumentItem[] = [];
-      
-      if (partnerData?.documents) {
-        if (typeof partnerData.documents === 'string') {
-          try {
-            documents = JSON.parse(partnerData.documents) as DocumentItem[];
-          } catch (e) {
-            documents = [];
-          }
-        } else if (Array.isArray(partnerData.documents)) {
-          documents = partnerData.documents.map((doc: any) => ({
-            type: doc.type || '',
-            filename: doc.filename || '',
-            url: doc.url || '',
-            size: doc.size || 0,
-            uploaded_at: doc.uploaded_at || new Date().toISOString()
-          }));
-        }
-      }
-      
-      // Add new document
-      const newDocument: DocumentItem = {
-        type: docType,
-        filename: file.name,
-        url: publicUrlData.publicUrl,
-        size: file.size,
-        uploaded_at: new Date().toISOString()
-      };
-      
-      documents.push(newDocument);
-      
-      // Update the partner record
-      const { error: updateError } = await supabase
-        .from('company_partners')
-        .update({ 
-          documents: documents
-        })
-        .eq('id', partnerId);
-        
-      if (updateError) throw updateError;
-      
+  const handleUpload = async () => {
+    if (!file || !documentName.trim()) {
       toast({
-        title: "تم رفع المستند بنجاح",
-        description: "تم إضافة المستند لملف الشريك",
+        title: "بيانات غير كاملة",
+        description: "يرجى تحديد ملف وإدخال اسم المستند",
+        variant: "destructive",
       });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Upload file to storage
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${partnerId}-${Date.now()}.${fileExt}`;
+      const filePath = `partners/${partnerId}/documents/${fileName}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("documents")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from("documents")
+        .getPublicUrl(filePath);
+
+      const documentUrl = publicUrlData.publicUrl;
+
+      // Fetch current documents
+      const { data: partner, error: fetchError } = await supabase
+        .from("partners")
+        .select("documents")
+        .eq("id", partnerId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Create new document object
+      const newDocument: DocumentItem = {
+        id: crypto.randomUUID(),
+        name: documentName,
+        url: documentUrl,
+        type: file.type,
+        size: file.size,
+        uploadedAt: new Date().toISOString(),
+      };
+
+      // Update documents array
+      const documents: DocumentItem[] = Array.isArray(partner.documents)
+        ? [...(partner.documents as any[])]
+        : [];
       
-      onSuccess();
+      documents.push(newDocument as any);
+
+      // Update partner record
+      const { error: updateError } = await supabase
+        .from("partners")
+        .update({ documents: documents as any })
+        .eq("id", partnerId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "تم الرفع بنجاح",
+        description: "تم رفع المستند بنجاح",
+      });
+
+      resetForm();
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error uploading document:", error);
       toast({
         title: "خطأ في رفع المستند",
-        description: "حدث خطأ أثناء محاولة رفع المستند",
+        description: "حدث خطأ أثناء رفع المستند",
         variant: "destructive",
       });
     } finally {
-      setIsUploading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>رفع مستند</DialogTitle>
+          <DialogTitle>رفع مستند جديد</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="docType">نوع المستند</Label>
-            <select
-              id="docType"
-              value={docType}
-              onChange={(e) => setDocType(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="identity">هوية وطنية</option>
-              <option value="commercial">سجل تجاري</option>
-              <option value="contract">عقد تأسيس</option>
-              <option value="other">مستند آخر</option>
-            </select>
+          <div className="grid w-full items-center gap-1.5">
+            <label htmlFor="documentName" className="text-sm font-medium">
+              اسم المستند
+            </label>
+            <Input
+              id="documentName"
+              value={documentName}
+              onChange={(e) => setDocumentName(e.target.value)}
+              placeholder="أدخل اسم المستند"
+            />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="file">اختر الملف</Label>
-            <Input id="file" type="file" onChange={handleFileChange} />
+          <div className="grid w-full items-center gap-1.5">
+            <label htmlFor="file" className="text-sm font-medium">
+              الملف
+            </label>
+            <FileUpload
+              onFileSelect={handleFileChange}
+              selectedFile={file}
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+            />
           </div>
-          <div className="flex justify-end space-x-2 space-x-reverse">
-            <Button variant="outline" onClick={onClose}>إلغاء</Button>
-            <Button 
-              onClick={handleUpload} 
-              disabled={!file || isUploading}
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={loading}
             >
-              {isUploading ? "جاري الرفع..." : "رفع المستند"}
+              إلغاء
+            </Button>
+            <Button onClick={handleUpload} disabled={loading || !file}>
+              {loading ? "جاري الرفع..." : "رفع المستند"}
             </Button>
           </div>
         </div>

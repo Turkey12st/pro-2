@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Receipt,
@@ -28,7 +29,7 @@ export function getNavigationMenu(): MenuItem[] {
       group: "المالية"
     },
     {
-      name: "إدارة رأس المال", // Add Capital Management
+      name: "إدارة رأس المال",
       href: "/capital",
       icon: <Building2 className="h-4 w-4" />,
       group: "المالية"

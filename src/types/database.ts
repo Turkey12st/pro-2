@@ -1,137 +1,173 @@
 
-// Add additional types to the existing file
-
-export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
-
-export interface FinancialSummaryType {
-  total_income: number;
-  total_expenses: number;
-  net_profit: number;
-  profit_margin: number;
-}
-
-export interface SalarySummary {
-  total_salaries: number;
-  payment_date: string;
-  days_remaining: number;
-  employees_count: number;
-  status: 'upcoming' | 'due' | 'overdue' | 'paid';
-}
-
-export interface DocumentWithDaysRemaining {
-  id: string;
-  title: string;
-  type: string;
-  expiry_date: string;
-  days_remaining: number;
-  status: 'active' | 'expired' | 'soon-expire';
-}
-
-export interface Partner {
-  id: string;
-  name: string;
-  nationality: string;
-  identity_number: string;
-  capital_amount: number;
-  capital_percentage: number;
-  contact_phone?: string;
-  contact_email?: string;
-  position: string;
-  created_at: string;
-}
-
-export interface DocumentItem {
-  type: string;
-  filename: string;
-  url: string;
-  size: number;
-  uploaded_at: string;
-  [key: string]: string | number;
-}
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json }
+  | Json[];
 
 export interface Address {
   street?: string;
   city?: string;
+  region?: string;
   postal_code?: string;
-  [key: string]: any;
+  country?: string;
 }
 
-export interface CompanyInfoRecord {
+export interface CompanyInfo {
   id: string;
-  company_name: string;
-  company_type: string;
-  establishment_date: string;
-  commercial_registration: string;
-  unified_national_number: string;
-  social_insurance_number: string;
-  hrsd_number: string;
-  bank_name: string;
-  bank_iban: string;
-  nitaqat_activity: string;
-  economic_activity: string;
-  tax_number: string;
-  address: string | Address;
-  metadata: Record<string, any>;
-  license_expiry_date: string;
-  created_at: string;
+  name: string;
+  company_name?: string;
+  company_type?: string;
+  commercial_registration?: string;
+  unified_national_number?: string;
+  social_insurance_number?: string;
+  hrsd_number?: string;
+  economic_activity?: string;
+  nitaqat_activity?: string;
+  establishment_date?: string;
+  logo_url?: string;
+  address?: Address;
+  bank_name?: string;
+  bank_iban?: string;
+  contact?: {
+    email?: string;
+    phone?: string;
+    website?: string;
+  };
+  metadata?: Record<string, any>;
+  legal_name?: string;
+  registration_number?: string;
+  tax_number?: string;
+  industry?: string;
+  "Unified National Number"?: number;
 }
 
-export interface CompanyInfo extends CompanyInfoRecord {}
+// Specific type for database record
+export interface CompanyInfoRecord extends CompanyInfo {
+  created_at?: string;
+  updated_at?: string;
+  unified_national_number: string;
+}
+
+export interface Employee {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  position: string;
+  department: string;
+  salary: number;
+  hire_date: string;
+  status: "active" | "inactive" | "terminated" | "on_leave";
+  national_id?: string;
+  birth_date?: string;
+  gender?: "male" | "female";
+  contact_number?: string;
+  emergency_contact?: string;
+  job_title?: string;
+  manager_id?: string;
+  created_at?: string;
+  updated_at?: string;
+  profile_image?: string;
+  bank_account?: string;
+  bank_name?: string;
+  iban?: string;
+}
+
+export interface CapitalManagement {
+  id: string;
+  total_capital: number;
+  available_capital: number;
+  reserved_capital: number;
+  utilized_capital?: number;
+  investments?: Array<{
+    id: string;
+    name: string;
+    amount: number;
+    description?: string;
+    date: string;
+    status: string;
+  }>;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export interface Document {
   id: string;
   title: string;
-  type: string;
-  number?: string;
-  issue_date: string;
-  expiry_date: string;
-  status: 'active' | 'expired' | 'soon-expire';
-  document_url?: string;
-  reminder_days: number[];
+  document_type: string;
+  file_url: string;
   created_at: string;
+  expiry_date?: string;
+  issue_date?: string;
+  status?: "active" | "expired" | "soon-expire";
+  document_url?: string;
+  type?: string;
+  number?: string;
+  reminder_days?: number[];
+  metadata?: Json;
+}
+
+export interface Partner {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  ownership_percentage: number;
+  contact_phone?: string;
+  national_id?: string;
+  role?: string;
+  status?: "active" | "inactive";
+  documents?: Json[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface JournalEntry {
   id: string;
-  entry_date: string;
-  description: string;
   amount: number;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  status: string;
+  attachment_url?: string;
+  ledger_id?: string;
+  // Added new fields
   entry_name?: string;
   entry_type?: string;
-  status?: string;
-  total_debit: number;
-  total_credit: number;
+  entry_date?: string;
   financial_statement_section?: string;
-  created_at: string;
-  updated_at: string;
-  attachment_url?: string;
+  total_debit?: number;
+  total_credit?: number;
+  date?: string; // To maintain compatibility with existing code
+  reference_no?: string; // To maintain compatibility with existing code
 }
 
-export interface CapitalManagement {
-  total_capital: number;
-  available_capital: number;
-  reserved_capital: number;
-  fiscal_year: number;
-  turnover_rate?: number;
-  last_updated: string;
-  created_at: string;
-  notes?: string;
-}
-
-export interface CompanyPartnerData {
-  id?: string;
+export interface Project {
+  id: string;
   name: string;
-  partner_type: string;
-  ownership_percentage: number;
-  share_value: number;
-  nationality?: string;
-  identity_number?: string;
-  position?: string;
-  contact_info: {
-    phone?: string;
-    email?: string;
-  };
-  created_at: string;
-  updated_at: string;
-  documents: DocumentItem[];
+  description?: string;
+  start_date: string;
+  end_date?: string;
+  budget?: number;
+  status: "planned" | "in_progress" | "completed" | "on_hold" | "cancelled";
+  client_id?: string;
+  manager_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Client {
+  id: string;
+  name: string;
+  contact_person?: string;
+  email?: string;
+  phone?: string;
+  address?: Address;
+  status: "active" | "inactive";
+  created_at?: string;
+  updated_at?: string;
 }
