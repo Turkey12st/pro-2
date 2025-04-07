@@ -1,123 +1,59 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import AccountingPage from "./pages/accounting/Index";
-import HRPage from "./pages/hr/Index";
-import ProjectsPage from "./pages/projects/Index";
-import ClientsPage from "./pages/clients/Index";
-import PartnersPage from "./pages/partners/Index";
-import DashboardPage from "./pages/dashboard/Index";
-import FinancialPage from "./pages/financial/Index";
-import ZakatPage from "./pages/zakat/Index";
-import DocumentsPage from "./pages/documents/Index";
-import AppLayout from "./components/AppLayout";
-import SettingsPage from "./pages/settings/Index";
+import React from 'react';
+import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import AppLayout from './components/AppLayout';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from './components/ThemeProvider';
+import { Toaster } from './components/ui/toaster';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
+// Main pages
+import DashboardPage from './pages/dashboard/Index';
+import HRPage from './pages/hr/Index';
+import CompanyPage from './pages/company/Index';
+import AccountingPage from './pages/accounting/Index';
+import PartnersPage from './pages/partners/Index';
+import ProjectsPage from './pages/projects/Index';
+import ClientsPage from './pages/clients/Index';
+import DocumentsPage from './pages/documents/Index';
+import ZakatPage from './pages/zakat/Index';
+import NotFoundPage from './pages/NotFound';
+import HomePage from './pages/Index';
+import SettingsPage from './pages/settings/Index';
+import FinancialPage from './pages/financial/Index';
+import CapitalPage from './pages/capital/Index';
+import CalendarPage from './pages/calendar/Index';
+import PayrollPage from './pages/payroll/Index';
+
+// Create a client
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route 
-              path="/dashboard" 
-              element={
-                <AppLayout>
-                  <DashboardPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/accounting" 
-              element={
-                <AppLayout>
-                  <AccountingPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/hr" 
-              element={
-                <AppLayout>
-                  <HRPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/projects" 
-              element={
-                <AppLayout>
-                  <ProjectsPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/clients" 
-              element={
-                <AppLayout>
-                  <ClientsPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/partners" 
-              element={
-                <AppLayout>
-                  <PartnersPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/financial" 
-              element={
-                <AppLayout>
-                  <FinancialPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="/zakat" 
-              element={
-                <AppLayout>
-                  <ZakatPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="documents" 
-              element={
-                <AppLayout>
-                  <DocumentsPage />
-                </AppLayout>
-              } 
-            />
-            <Route 
-              path="settings" 
-              element={
-                <AppLayout>
-                  <SettingsPage />
-                </AppLayout>
-              } 
-            />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/hr" element={<HRPage />} />
+            <Route path="/company" element={<CompanyPage />} />
+            <Route path="/accounting" element={<AccountingPage />} />
+            <Route path="/partners" element={<PartnersPage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/clients" element={<ClientsPage />} />
+            <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/zakat" element={<ZakatPage />} />
+            <Route path="/financial" element={<FinancialPage />} />
+            <Route path="/capital" element={<CapitalPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/payroll" element={<PayrollPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
+          <Toaster />
         </BrowserRouter>
-      </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
