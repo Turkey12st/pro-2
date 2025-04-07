@@ -1,6 +1,7 @@
+
 import React from "react";
 import { Container } from "@/components/ui/container";
-import CompanyInfoCard from "@/components/dashboard/CompanyInfoCard";
+import { CompanyInfoCard } from "@/components/dashboard/CompanyInfoCard";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { 
@@ -130,7 +131,7 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-12">
         <div className="md:col-span-3">
-          <CompanyInfoCard companyId="1" />
+          <CompanyInfoCard />
         </div>
         
         <div className="md:col-span-9">

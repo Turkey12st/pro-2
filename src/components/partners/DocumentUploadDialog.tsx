@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { FileUpload } from "@/components/hr/FileUpload";
+import FileUpload from "@/components/hr/FileUpload";
 import { Json } from "@/types/database";
 
 // Define document item type separately to avoid infinite recursion
@@ -21,7 +21,7 @@ export interface DocumentItem {
 interface DocumentUploadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  partnerId: string;
+  partnerId: string | null;
   onSuccess?: () => void;
 }
 
@@ -46,7 +46,7 @@ export function DocumentUploadDialog({
   }, []);
 
   const handleUpload = async () => {
-    if (!file || !documentName.trim()) {
+    if (!file || !documentName.trim() || !partnerId) {
       toast({
         title: "بيانات غير كاملة",
         description: "يرجى تحديد ملف وإدخال اسم المستند",
@@ -75,37 +75,15 @@ export function DocumentUploadDialog({
 
       const documentUrl = publicUrlData.publicUrl;
 
-      // Fetch current documents
-      const { data: partner, error: fetchError } = await supabase
-        .from("partners")
-        .select("documents")
-        .eq("id", partnerId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Create new document object
-      const newDocument: DocumentItem = {
-        id: crypto.randomUUID(),
-        name: documentName,
-        url: documentUrl,
-        type: file.type,
-        size: file.size,
-        uploadedAt: new Date().toISOString(),
-      };
-
-      // Update documents array
-      const documents: DocumentItem[] = Array.isArray(partner.documents)
-        ? [...(partner.documents as any[])]
-        : [];
-      
-      documents.push(newDocument as any);
-
-      // Update partner record
-      const { error: updateError } = await supabase
-        .from("partners")
-        .update({ documents: documents as any })
-        .eq("id", partnerId);
+      // Update the partner record directly without fetching current data
+      // This avoids the need to access a non-existent "partners" table
+      const { error: updateError } = await supabase.rpc("add_partner_document", {
+        p_partner_id: partnerId,
+        p_document_name: documentName,
+        p_document_url: documentUrl,
+        p_document_type: file.type,
+        p_document_size: file.size
+      });
 
       if (updateError) throw updateError;
 

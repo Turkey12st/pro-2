@@ -7,7 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 export function useCompanyForm() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [autoSaveLoading, setAutoSaveLoading] = useState(false);
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
+    id: "",
+    name: "",
+  });
+  const [formData, setFormData] = useState<CompanyInfo>({
     id: "",
     name: "",
   });
@@ -18,7 +24,7 @@ export function useCompanyForm() {
       setLoading(true);
       try {
         const { data, error } = await supabase
-          .from("company_info")
+          .from("company_Info")
           .select("*")
           .single();
 
@@ -53,6 +59,7 @@ export function useCompanyForm() {
           };
           
           setCompanyInfo(transformedData);
+          setFormData(transformedData);
         }
       } catch (error) {
         console.error("Error fetching company info:", error);
@@ -69,6 +76,46 @@ export function useCompanyForm() {
     fetchCompanyInfo();
   }, [toast]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...(prev[parent as keyof CompanyInfo] as object || {}),
+          [child]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+    
+    setLastSaved("جاري الحفظ التلقائي...");
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    setLastSaved("جاري الحفظ التلقائي...");
+  };
+
+  const handleLogoChange = (logoUrl: string | null) => {
+    setFormData(prev => ({
+      ...prev,
+      logo_url: logoUrl
+    }));
+    
+    setLastSaved("جاري الحفظ التلقائي...");
+  };
+
   const saveCompanyInfo = async (data: Partial<CompanyInfo>) => {
     setSaving(true);
     try {
@@ -82,13 +129,13 @@ export function useCompanyForm() {
 
       // For new company
       if (!companyInfo.unified_national_number && !companyInfo.id) {
-        const { error } = await supabase.from("company_info").insert([jsonSafeData]);
+        const { error } = await supabase.from("company_Info").insert([jsonSafeData]);
         if (error) throw error;
       } 
       // For existing company
       else {
         const { error } = await supabase
-          .from("company_info")
+          .from("company_Info")
           .update(jsonSafeData)
           .eq("id", companyInfo.id);
         if (error) throw error;
@@ -109,12 +156,24 @@ export function useCompanyForm() {
       setSaving(false);
     }
   };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    saveCompanyInfo(formData);
+  };
 
   return {
     companyInfo,
     setCompanyInfo,
-    saveCompanyInfo,
+    formData,
     loading,
     saving,
+    autoSaveLoading,
+    lastSaved,
+    handleInputChange,
+    handleSelectChange,
+    handleLogoChange,
+    handleSubmit,
+    saveCompanyInfo,
   };
 }

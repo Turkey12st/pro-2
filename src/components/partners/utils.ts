@@ -30,7 +30,9 @@ export const formValuesToPartner = (
     first_name: values.first_name,
     last_name: values.last_name,
     email: values.email,
+    name: `${values.first_name} ${values.last_name}`,
     ownership_percentage: values.ownership_percentage,
+    capital_percentage: values.ownership_percentage, // For compatibility
     contact_phone: values.contact_phone,
     national_id: values.national_id,
     role: values.role,
@@ -67,4 +69,29 @@ export const calculateTotalOwnership = (partners: Partner[]): number => {
 export const isValidTotalOwnership = (partners: Partner[]): boolean => {
   const total = calculateTotalOwnership(partners);
   return Math.abs(total - 100) < 0.01; // Allow for tiny floating-point errors
+};
+
+// Function to transform partner data from the database
+export const transformPartnerData = (data: any): Partner => {
+  return {
+    id: data.id || "",
+    first_name: data.first_name || "",
+    last_name: data.last_name || "",
+    email: data.email || "",
+    name: data.name || `${data.first_name || ""} ${data.last_name || ""}`,
+    ownership_percentage: data.ownership_percentage || 0,
+    capital_percentage: data.ownership_percentage || 0,
+    capital_amount: data.share_value || 0,
+    contact_phone: data.contact_info?.phone || "",
+    national_id: data.national_id || "",
+    identity_number: data.national_id || "",
+    nationality: data.contact_info?.nationality || "",
+    position: data.contact_info?.position || "",
+    role: data.partner_type || "",
+    status: data.status || "active",
+    documents: data.documents || [],
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+    partner_type: data.partner_type || "individual"
+  };
 };

@@ -135,9 +135,9 @@ export function PartnersList() {
       </AlertDialog>
 
       <DocumentUploadDialog 
-        isOpen={showDocumentUpload} 
+        open={showDocumentUpload} 
         partnerId={selectedPartnerId} 
-        onClose={() => setShowDocumentUpload(false)}
+        onOpenChange={setShowDocumentUpload}
         onSuccess={() => {
           setShowDocumentUpload(false);
           fetchPartners();

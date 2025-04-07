@@ -82,6 +82,7 @@ export interface CapitalManagement {
   available_capital: number;
   reserved_capital: number;
   utilized_capital?: number;
+  fiscal_year: number;
   investments?: Array<{
     id: string;
     name: string;
@@ -92,6 +93,9 @@ export interface CapitalManagement {
   }>;
   created_at?: string;
   updated_at?: string;
+  last_updated?: string;
+  notes?: string;
+  turnover_rate?: number;
 }
 
 export interface Document {
@@ -110,12 +114,22 @@ export interface Document {
   metadata?: Json;
 }
 
+export interface DocumentWithDaysRemaining extends Document {
+  days_remaining: number;
+}
+
 export interface Partner {
   id: string;
   first_name: string;
   last_name: string;
   email: string;
+  name: string;
   ownership_percentage: number;
+  capital_percentage?: number;
+  capital_amount?: number;
+  identity_number?: string;
+  nationality?: string;
+  position?: string;
   contact_phone?: string;
   national_id?: string;
   role?: string;
@@ -123,6 +137,7 @@ export interface Partner {
   documents?: Json[];
   created_at?: string;
   updated_at?: string;
+  partner_type?: string;
 }
 
 export interface JournalEntry {
@@ -170,4 +185,19 @@ export interface Client {
   status: "active" | "inactive";
   created_at?: string;
   updated_at?: string;
+}
+
+export interface SalarySummary {
+  total_salaries: number;
+  payment_date: string;
+  days_remaining: number;
+  employees_count: number;
+  status: 'upcoming' | 'due' | 'overdue' | 'paid';
+}
+
+export interface FinancialSummaryType {
+  total_income: number;
+  total_expenses: number;
+  net_profit: number;
+  profit_margin: number;
 }

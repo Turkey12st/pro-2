@@ -72,7 +72,7 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
           available_capital: newAvailableCapital,
           last_updated: new Date().toISOString(),
         })
-        .eq("fiscal_year", capitalData.fiscal_year)
+        .eq("id", capitalData.id)
         .select();
 
       if (updateError) throw updateError;

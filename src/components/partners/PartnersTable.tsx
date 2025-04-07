@@ -50,12 +50,12 @@ export function PartnersTable({ partners, onDelete, onUploadDocument, loading }:
         <TableBody>
           {partners.map((partner) => (
             <TableRow key={partner.id}>
-              <TableCell className="font-medium">{partner.name}</TableCell>
-              <TableCell>{partner.nationality}</TableCell>
-              <TableCell>{partner.identity_number}</TableCell>
-              <TableCell>{formatNumber(partner.capital_amount)} ريال</TableCell>
-              <TableCell>{formatPercentage(partner.capital_percentage)}</TableCell>
-              <TableCell>{partner.position}</TableCell>
+              <TableCell className="font-medium">{partner.name || `${partner.first_name} ${partner.last_name}`}</TableCell>
+              <TableCell>{partner.nationality || "غير محدد"}</TableCell>
+              <TableCell>{partner.identity_number || partner.national_id || "غير محدد"}</TableCell>
+              <TableCell>{formatNumber(partner.capital_amount || 0)} ريال</TableCell>
+              <TableCell>{formatPercentage(partner.capital_percentage || partner.ownership_percentage)}</TableCell>
+              <TableCell>{partner.position || partner.role || "غير محدد"}</TableCell>
               <TableCell className="flex items-center space-x-2 space-x-reverse">
                 <Button
                   variant="ghost"

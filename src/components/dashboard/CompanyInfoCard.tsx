@@ -1,7 +1,4 @@
 
-// Note: This is a simplified version as the original is in the read-only files
-// We only need to fix type issues while maintaining existing functionality
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +15,7 @@ export function CompanyInfoCard() {
     async function fetchCompanyInfo() {
       try {
         const { data, error } = await supabase
-          .from("company_info")
+          .from("company_Info")
           .select("*")
           .single();
 
@@ -31,7 +28,9 @@ export function CompanyInfoCard() {
         if (data) {
           const typedData = {
             ...data,
-            unified_national_number: data["Unified National Number"] || data.unified_national_number,
+            id: data.id || "",
+            name: data.company_name || "",
+            unified_national_number: data.unified_national_number || data["Unified National Number"] || "",
             // Ensure address is correctly typed
             address: data.address || {}
           } as CompanyInfoRecord;
