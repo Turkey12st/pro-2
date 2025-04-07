@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CompanyInfo } from "@/types/database";
+import { CompanyInfo, Json } from "@/types/database";
 import useAutoSave from "@/hooks/useAutoSave";
 
 export const useCompanyForm = () => {
@@ -37,6 +37,7 @@ export const useCompanyForm = () => {
           // تحويل البيانات إلى الشكل المطلوب
           const formattedData: CompanyInfo = {
             id: data.id,
+            name: data.company_name || '',
             company_name: data.company_name || '',
             company_type: data.company_type || '',
             establishment_date: data.establishment_date || '',
@@ -49,10 +50,8 @@ export const useCompanyForm = () => {
             nitaqat_activity: data.nitaqat_activity || '',
             economic_activity: data.economic_activity || '',
             tax_number: data.tax_number || '',
-            address: typeof data.address === 'object' ? data.address as Record<string, any> : { street: '', city: '', postal_code: '' },
-            metadata: data.metadata as Record<string, any> || {},
-            license_expiry_date: data.license_expiry_date || '',
-            created_at: data.created_at
+            address: typeof data.address === 'object' ? data.address : { street: '', city: '', postal_code: '' },
+            metadata: data.metadata || {},
           };
           
           setCompanyInfo(formattedData);
@@ -104,7 +103,7 @@ export const useCompanyForm = () => {
     setFormData(prev => ({
       ...prev,
       metadata: {
-        ...((prev.metadata as any) || {}),
+        ...(prev.metadata || {}),
         logo_url: logoUrl
       }
     }));
@@ -116,26 +115,38 @@ export const useCompanyForm = () => {
     try {
       setSaving(true);
       
-      const formDataToSave = {
-        ...formData,
-        "Unified National Number": formData.unified_national_number ? parseInt(formData.unified_national_number) : null
+      // Prepare data for saving
+      const formDataToSave: Record<string, any> = {
+        company_name: formData.company_name,
+        company_type: formData.company_type,
+        establishment_date: formData.establishment_date,
+        commercial_registration: formData.commercial_registration,
+        "Unified National Number": formData.unified_national_number ? parseInt(formData.unified_national_number) || null : null,
+        social_insurance_number: formData.social_insurance_number,
+        hrsd_number: formData.hrsd_number,
+        bank_name: formData.bank_name,
+        bank_iban: formData.bank_iban,
+        nitaqat_activity: formData.nitaqat_activity,
+        economic_activity: formData.economic_activity,
+        tax_number: formData.tax_number,
+        address: formData.address,
+        metadata: formData.metadata,
+        license_expiry_date: formData.license_expiry_date
       };
-      
-      delete formDataToSave.unified_national_number;
       
       let result;
       
       if (companyInfo?.id) {
-        // تحديث السجل الموجود
+        // Update existing record
         result = await supabase
           .from('company_Info')
           .update(formDataToSave)
           .eq('id', companyInfo.id);
       } else {
-        // إنشاء سجل جديد
+        // Create a new record
         result = await supabase
           .from('company_Info')
-          .insert([formDataToSave]);
+          .insert(formDataToSave);
       }
       
       const { error } = result;

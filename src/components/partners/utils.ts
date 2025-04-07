@@ -1,49 +1,55 @@
 
 import { Partner } from "@/types/database";
 
-interface CompanyPartnerRecord {
-  id?: string;
-  name: string;
-  partner_type?: string;
-  ownership_percentage?: number;
-  share_value?: number;
-  contact_info?: any;
-  documents?: any;
-  created_at: string;
-  updated_at?: string;
-}
-
-export const transformPartnerData = (item: CompanyPartnerRecord): Partner => {
-  let contactInfo: Record<string, any> = {};
+export const transformPartnerData = (partnerData: any): Partner => {
+  let formattedPartner: Partner = {
+    id: partnerData.id || '',
+    name: partnerData.name || '',
+    partner_type: partnerData.partner_type || 'individual',
+    ownership_percentage: Number(partnerData.ownership_percentage) || 0,
+  };
   
-  if (item.contact_info) {
-    if (typeof item.contact_info === 'object') {
-      contactInfo = item.contact_info as Record<string, any>;
-    } else if (typeof item.contact_info === 'string') {
+  // Add optional fields if they exist in the data
+  if (partnerData.nationality) formattedPartner.nationality = partnerData.nationality;
+  if (partnerData.identity_number) formattedPartner.identity_number = partnerData.identity_number;
+  if (partnerData.position) formattedPartner.position = partnerData.position;
+  if (partnerData.share_value) formattedPartner.capital_amount = Number(partnerData.share_value);
+  
+  // Calculate capital percentage if total capital is provided
+  if (partnerData.totalCapital && partnerData.share_value) {
+    const capitalPercentage = (Number(partnerData.share_value) / Number(partnerData.totalCapital)) * 100;
+    formattedPartner.capital_percentage = Math.round(capitalPercentage * 100) / 100; // Round to 2 decimal places
+  }
+  
+  // Format contact info
+  formattedPartner.contact_info = {};
+  if (partnerData.contact_info) {
+    // If contact_info is already an object
+    if (typeof partnerData.contact_info === 'object') {
+      formattedPartner.contact_info = partnerData.contact_info;
+    } 
+    // If it's a string, try to parse it (in case it's a JSON string)
+    else if (typeof partnerData.contact_info === 'string') {
       try {
-        contactInfo = JSON.parse(item.contact_info);
+        formattedPartner.contact_info = JSON.parse(partnerData.contact_info);
       } catch (e) {
-        console.error("Failed to parse contact_info string:", e);
+        // If parsing fails, set up empty object
+        formattedPartner.contact_info = {};
       }
     }
   }
   
-  const phone = contactInfo?.phone?.toString() || '';
-  const email = contactInfo?.email?.toString() || '';
+  // Add individual contact fields to contact_info if they exist
+  if (partnerData.email && !formattedPartner.contact_info.email) {
+    formattedPartner.contact_info.email = partnerData.email;
+  }
   
-  // Ensure we have a valid ID
-  const id = (item.id !== undefined) ? item.id.toString() : String(Date.now());
+  if (partnerData.phone && !formattedPartner.contact_info.phone) {
+    formattedPartner.contact_info.phone = partnerData.phone;
+  }
   
-  return {
-    id,
-    name: item.name || '',
-    nationality: 'غير محدد',
-    identity_number: 'غير محدد',
-    capital_amount: item.share_value || 0,
-    capital_percentage: item.ownership_percentage || 0,
-    contact_phone: phone,
-    contact_email: email,
-    position: 'شريك',
-    created_at: item.created_at
-  };
+  // Format documents
+  formattedPartner.documents = partnerData.documents || [];
+  
+  return formattedPartner;
 };

@@ -13,19 +13,13 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Upload } from "lucide-react";
+import { DocumentItem, Json } from "@/types/database";
 
 interface DocumentUploadDialogProps {
   partnerId: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-}
-
-interface DocumentItem {
-  id: string;
-  name: string;
-  url: string;
-  uploaded_at: string;
 }
 
 export function DocumentUploadDialog({
@@ -98,7 +92,7 @@ export function DocumentUploadDialog({
 
       // Safely handle documents as an array
       const existingDocs: DocumentItem[] = Array.isArray(partnerData.documents) 
-        ? partnerData.documents 
+        ? partnerData.documents as DocumentItem[]
         : [];
       
       const newDoc: DocumentItem = {
@@ -111,7 +105,7 @@ export function DocumentUploadDialog({
       const { error: updateError } = await supabase
         .from("company_partners")
         .update({
-          documents: [...existingDocs, newDoc],
+          documents: [...existingDocs, newDoc] as Json[],
         })
         .eq("id", partnerId);
 
