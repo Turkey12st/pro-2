@@ -34,10 +34,12 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
         }
 
         if (data) {
-          let formattedAddress: Address | undefined;
+          let formattedAddress: string | Address = "";
           if (data.address) {
             if (typeof data.address === 'object') {
               formattedAddress = data.address as Address;
+            } else {
+              formattedAddress = String(data.address);
             }
           }
 
@@ -52,9 +54,13 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
             hrsd_number: data.hrsd_number,
             bank_name: data.bank_name,
             bank_iban: data.bank_iban,
+            nitaqat_activity: data.nitaqat_activity,
+            economic_activity: data.economic_activity,
             tax_number: data.tax_number,
             address: formattedAddress,
             metadata: typeof data.metadata === 'object' ? data.metadata : {},
+            license_expiry_date: data.license_expiry_date || "",
+            created_at: data.created_at
           };
           setCompany(formattedData);
         }
@@ -124,40 +130,40 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
             <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
               <img 
                 src={logoUrl as string} 
-                alt={company.company_name || "الشركة"} 
+                alt={company.company_name} 
                 className="h-full w-full object-cover"
               />
             </div>
           ) : (
             <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
               <span className="text-lg font-semibold text-gray-500">
-                {company.company_name ? company.company_name.charAt(0) : "C"}
+                {company.company_name.charAt(0)}
               </span>
             </div>
           )}
           <div>
-            <h3 className="font-medium">{company.company_name || "الشركة"}</h3>
-            <p className="text-sm text-muted-foreground">{company.company_type || "شركة"}</p>
+            <h3 className="font-medium">{company.company_name}</h3>
+            <p className="text-sm text-muted-foreground">{company.company_type}</p>
           </div>
         </div>
         
         <div className="grid gap-1">
           <div className="flex justify-between py-1 border-b">
             <span className="text-sm text-muted-foreground">السجل التجاري</span>
-            <span className="text-sm font-medium">{company.commercial_registration || "-"}</span>
+            <span className="text-sm font-medium">{company.commercial_registration}</span>
           </div>
           <div className="flex justify-between py-1 border-b">
             <span className="text-sm text-muted-foreground">الرقم الموحد</span>
-            <span className="text-sm font-medium">{company.unified_national_number || "-"}</span>
+            <span className="text-sm font-medium">{company.unified_national_number}</span>
           </div>
           <div className="flex justify-between py-1 border-b">
             <span className="text-sm text-muted-foreground">رقم التأمينات</span>
-            <span className="text-sm font-medium">{company.social_insurance_number || "-"}</span>
+            <span className="text-sm font-medium">{company.social_insurance_number}</span>
           </div>
           <div className="flex justify-between py-1">
             <span className="text-sm text-muted-foreground">تاريخ التأسيس</span>
             <span className="text-sm font-medium">
-              {company.establishment_date || "-"}
+              {company.establishment_date}
             </span>
           </div>
         </div>

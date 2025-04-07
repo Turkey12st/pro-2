@@ -33,7 +33,7 @@ export default function DocumentsList() {
       if (error) throw error;
 
       if (data) {
-        // Process the data and add missing fields to match Document type
+        // معالجة البيانات وإضافة حالة المستند
         const processedDocuments = data.map(doc => {
           const expiryDate = new Date(doc.expiry_date);
           const today = new Date();
@@ -49,24 +49,11 @@ export default function DocumentsList() {
             status = 'active';
           }
           
-          // Create a document that matches our Document interface
-          const document: Document = {
+          return {
+            ...doc,
+            status,
             id: doc.id,
-            title: doc.title,
-            description: '',
-            file_url: doc.document_url || '',
-            document_type: doc.type || '',
-            status: status,
-            created_at: doc.created_at,
-            // Additional fields from company_documents
-            type: doc.type,
-            number: doc.number || '',
-            issue_date: doc.issue_date,
-            expiry_date: doc.expiry_date,
-            document_url: doc.document_url
-          };
-          
-          return document;
+          } as Document;
         });
 
         setDocuments(processedDocuments);
@@ -179,12 +166,12 @@ export default function DocumentsList() {
                     <TableCell>{doc.type}</TableCell>
                     <TableCell dir="ltr">{doc.number || '-'}</TableCell>
                     <TableCell>
-                      {doc.issue_date && format(new Date(doc.issue_date), 'yyyy/MM/dd', { locale: ar })}
+                      {format(new Date(doc.issue_date), 'yyyy/MM/dd', { locale: ar })}
                     </TableCell>
                     <TableCell>
-                      {doc.expiry_date && format(new Date(doc.expiry_date), 'yyyy/MM/dd', { locale: ar })}
+                      {format(new Date(doc.expiry_date), 'yyyy/MM/dd', { locale: ar })}
                     </TableCell>
-                    <TableCell>{doc.expiry_date && getDaysRemaining(doc.expiry_date)}</TableCell>
+                    <TableCell>{getDaysRemaining(doc.expiry_date)}</TableCell>
                     <TableCell>{getStatusBadge(doc.status)}</TableCell>
                     <TableCell className="flex items-center space-x-2 space-x-reverse">
                       {doc.document_url && (
