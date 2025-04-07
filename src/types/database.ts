@@ -38,6 +38,15 @@ export interface Partner {
   created_at: string;
 }
 
+export interface DocumentItem {
+  type: string;
+  filename: string;
+  url: string;
+  size: number;
+  uploaded_at: string;
+  [key: string]: string | number; // إضافة توقيع فهرس للتوافق مع Json
+}
+
 export interface Address {
   street?: string;
   city?: string;
@@ -122,5 +131,5 @@ export interface CompanyPartnerData {
   };
   created_at: string;
   updated_at: string;
-  documents: Record<string, any>[];
+  documents: DocumentItem[];
 }

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,22 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { DocumentItem } from '@/types/database';
 
 interface DocumentUploadDialogProps {
   isOpen: boolean;
   partnerId: string | null;
   onClose: () => void;
   onSuccess: () => void;
-}
-
-// Define the document type as Record to meet Json requirements
-interface DocumentInfo {
-  type: string;
-  filename: string;
-  url: string;
-  size: number;
-  uploaded_at: string;
-  [key: string]: string | number; // Add index signature to match Json requirements
 }
 
 export function DocumentUploadDialog({ 
@@ -69,20 +61,19 @@ export function DocumentUploadDialog({
       if (partnerError) throw partnerError;
       
       // Prepare the documents array
-      let documents: DocumentInfo[] = [];
+      let documents: DocumentItem[] = [];
       
       if (partnerData?.documents) {
-        // Type assertion to handle dynamic data from database
+        // Handle different data formats from the database
         if (typeof partnerData.documents === 'string') {
           try {
-            documents = JSON.parse(partnerData.documents) as DocumentInfo[];
+            documents = JSON.parse(partnerData.documents) as DocumentItem[];
           } catch (e) {
             documents = [];
           }
         } else if (Array.isArray(partnerData.documents)) {
-          // Cast to DocumentInfo[] with type assertion after validation
-          const docsArray = partnerData.documents as any[];
-          documents = docsArray.map(doc => ({
+          // Safe conversion with type checking
+          documents = (partnerData.documents as any[]).map(doc => ({
             type: doc.type || '',
             filename: doc.filename || '',
             url: doc.url || '',
@@ -93,7 +84,7 @@ export function DocumentUploadDialog({
       }
       
       // Add new document
-      const newDocument: DocumentInfo = {
+      const newDocument: DocumentItem = {
         type: docType,
         filename: file.name,
         url: publicUrlData.publicUrl,
@@ -103,10 +94,12 @@ export function DocumentUploadDialog({
       
       documents.push(newDocument);
       
-      // Update the partner record
+      // Update the partner record with proper serialization
       const { error: updateError } = await supabase
         .from('company_partners')
-        .update({ documents }) // Supabase will handle the JSON conversion
+        .update({ 
+          documents: documents as any
+        })
         .eq('id', partnerId);
         
       if (updateError) throw updateError;

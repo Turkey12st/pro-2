@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CompanyInfo } from "@/types/database";
+import { CompanyInfo, Address } from "@/types/database";
 import useAutoSave from "@/hooks/useAutoSave";
 
 export const useCompanyForm = () => {
@@ -35,6 +35,15 @@ export const useCompanyForm = () => {
         
         if (data) {
           // تحويل البيانات إلى الشكل المطلوب
+          let addressData: Address = { street: '', city: '', postal_code: '' };
+          if (data.address) {
+            if (typeof data.address === 'object') {
+              addressData = data.address as Address;
+            } else {
+              addressData = { street: String(data.address) };
+            }
+          }
+          
           const formattedData: CompanyInfo = {
             id: data.id,
             company_name: data.company_name || '',
@@ -49,8 +58,8 @@ export const useCompanyForm = () => {
             nitaqat_activity: data.nitaqat_activity || '',
             economic_activity: data.economic_activity || '',
             tax_number: data.tax_number || '',
-            address: typeof data.address === 'object' ? data.address as Record<string, any> : { street: '', city: '', postal_code: '' },
-            metadata: data.metadata as Record<string, any> || {},
+            address: addressData,
+            metadata: data.metadata || {},
             license_expiry_date: data.license_expiry_date || '',
             created_at: data.created_at
           };
@@ -71,7 +80,7 @@ export const useCompanyForm = () => {
     };
     
     fetchCompanyInfo();
-  }, [toast]);
+  }, [toast, setFormData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -104,7 +113,7 @@ export const useCompanyForm = () => {
     setFormData(prev => ({
       ...prev,
       metadata: {
-        ...((prev.metadata as any) || {}),
+        ...(prev.metadata || {}),
         logo_url: logoUrl
       }
     }));
@@ -116,11 +125,13 @@ export const useCompanyForm = () => {
     try {
       setSaving(true);
       
-      const formDataToSave = {
+      // تحويل البيانات إلى الشكل المناسب للتخزين
+      const formDataToSave: any = {
         ...formData,
         "Unified National Number": formData.unified_national_number ? parseInt(formData.unified_national_number) : null
       };
       
+      // حذف الحقول التي لا تتوافق مع جدول قاعدة البيانات
       delete formDataToSave.unified_national_number;
       
       let result;

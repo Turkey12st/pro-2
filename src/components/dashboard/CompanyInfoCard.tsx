@@ -52,13 +52,13 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
             unified_national_number: String(data["Unified National Number"] || ""),
             social_insurance_number: data.social_insurance_number,
             hrsd_number: data.hrsd_number,
-            bank_name: data.bank_name,
-            bank_iban: data.bank_iban,
+            bank_name: data.bank_name || "",
+            bank_iban: data.bank_iban || "",
             nitaqat_activity: data.nitaqat_activity,
             economic_activity: data.economic_activity,
             tax_number: data.tax_number,
             address: formattedAddress,
-            metadata: typeof data.metadata === 'object' ? data.metadata : {},
+            metadata: data.metadata || {},
             license_expiry_date: data.license_expiry_date || "",
             created_at: data.created_at
           };
@@ -107,7 +107,7 @@ const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ companyId = "1" }) =>
     );
   }
 
-  const logoUrl = company?.metadata && typeof company.metadata === 'object' && 'logo_url' in company.metadata 
+  const logoUrl = company.metadata && typeof company.metadata === 'object' && 'logo_url' in company.metadata
     ? company.metadata.logo_url 
     : undefined;
 
