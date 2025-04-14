@@ -52,3 +52,12 @@ export interface DbCompanyData {
   website: string;
   metadata: Record<string, any>;
 }
+
+export interface DocumentItem {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+  uploadedAt: string;
+}

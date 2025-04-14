@@ -2,17 +2,14 @@
 import { useState, useEffect } from "react";
 import { CompanyFormData } from "@/types/company";
 import { useToast } from "@/hooks/use-toast";
-import { fetchCompanyInfo, saveCompanyInfo } from "@/services/companyService";
+import { saveCompanyInfo } from "@/services/companyService";
+import { useCompanyData } from "@/hooks/useCompanyData";
 
 export function useCompanyForm() {
-  const [loading, setLoading] = useState(false);
+  const { companyInfo, loading, refreshCompanyInfo, setCompanyInfo } = useCompanyData();
   const [saving, setSaving] = useState(false);
   const [autoSaveLoading, setAutoSaveLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
-  const [companyInfo, setCompanyInfo] = useState<CompanyFormData>({
-    id: "",
-    name: "",
-  });
   const [formData, setFormData] = useState<CompanyFormData>({
     id: "",
     name: "",
@@ -20,29 +17,10 @@ export function useCompanyForm() {
   const { toast } = useToast();
 
   useEffect(() => {
-    async function loadCompanyInfo() {
-      setLoading(true);
-      try {
-        const data = await fetchCompanyInfo();
-        
-        if (data) {
-          setCompanyInfo(data);
-          setFormData(data);
-        }
-      } catch (error) {
-        console.error("Error fetching company info:", error);
-        toast({
-          title: "خطأ في جلب بيانات الشركة",
-          description: "حدث خطأ أثناء محاولة جلب بيانات الشركة",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
+    if (companyInfo && companyInfo.id) {
+      setFormData(companyInfo);
     }
-
-    loadCompanyInfo();
-  }, [toast]);
+  }, [companyInfo]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -93,6 +71,7 @@ export function useCompanyForm() {
         title: "تم الحفظ",
         description: "تم حفظ بيانات الشركة بنجاح",
       });
+      await refreshCompanyInfo();
     } catch (error) {
       console.error("Error saving company info:", error);
       toast({
@@ -121,7 +100,6 @@ export function useCompanyForm() {
     handleSelectChange,
     handleLogoChange,
     handleSubmit,
-    saveCompanyInfo: handleSaveCompanyInfo,
-    setCompanyInfo,
+    saveCompanyInfo: handleSaveCompanyInfo
   };
 }

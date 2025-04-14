@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { DocumentItem } from "@/types/database";
+import { DocumentItem } from "@/types/company";
 
 interface FileUploadProps {
   value: File | null;
@@ -97,7 +97,7 @@ export function DocumentUploadDialog({
       if (error) throw error;
 
       // Create document object
-      const newDocument: DocumentItem = {
+      const newDocument = {
         id: crypto.randomUUID(),
         name: documentName,
         url: documentUrl,

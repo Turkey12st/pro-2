@@ -2,58 +2,13 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Mail, Phone, MapPin } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { CompanyFormData } from "@/types/company";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useCompanyData } from "@/hooks/useCompanyData";
 
 export function CompanyInfoCard() {
-  const [companyInfo, setCompanyInfo] = useState<Partial<CompanyFormData>>({});
-  const [loading, setLoading] = useState(true);
+  const { companyInfo, loading } = useCompanyData();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    async function fetchCompanyInfo() {
-      try {
-        const { data, error } = await supabase
-          .from("company_Info")
-          .select("*")
-          .single();
-
-        if (error && error.code !== "PGSQL_NO_ROWS_RETURNED") {
-          console.error("Error fetching company info:", error);
-          return;
-        }
-
-        if (data) {
-          setCompanyInfo({
-            id: data.id,
-            name: data.company_name,
-            company_name: data.company_name,
-            company_type: data.company_type,
-            unified_national_number: data["Unified National Number"]?.toString(),
-            address: data.address && typeof data.address === 'object' ? {
-              street: (data.address as any).street || "",
-              city: (data.address as any).city || "", 
-              postal_code: (data.address as any).postal_code || "",
-              country: (data.address as any).country || ""
-            } : {},
-            contact: {
-              email: data.email || "",
-              phone: data.phone || "",
-              website: data.website || ""
-            }
-          });
-        }
-      } catch (err) {
-        console.error("Error fetching company info:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCompanyInfo();
-  }, []);
 
   return (
     <Card className="h-full">
