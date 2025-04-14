@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CompanyInfo, Address, Json } from "@/types/database";
+import { CompanyInfo } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
 
 export function useCompanyForm() {
@@ -39,22 +39,22 @@ export function useCompanyForm() {
             company_name: data.company_name || "",
             company_type: data.company_type || "",
             commercial_registration: data.commercial_registration || "",
-            unified_national_number: data.unified_national_number || data["Unified National Number"] || "",
+            unified_national_number: data["Unified National Number"]?.toString() || "",
             social_insurance_number: data.social_insurance_number || "",
             hrsd_number: data.hrsd_number || "",
             economic_activity: data.economic_activity || "",
             nitaqat_activity: data.nitaqat_activity || "",
             establishment_date: data.establishment_date || "",
             logo_url: data.logo_url || "",
-            address: data.address as Address || {},
+            address: data.address || {},
             bank_name: data.bank_name || "",
             bank_iban: data.bank_iban || "",
             contact: {
-              email: data.contact?.email || "",
-              phone: data.contact?.phone || "",
-              website: data.contact?.website || "",
+              email: data.email || "",
+              phone: data.phone || "",
+              website: data.website || "",
             },
-            metadata: data.metadata as Record<string, any> || {},
+            metadata: data.metadata || {},
             name: data.company_name || "",
           };
           
@@ -119,24 +119,34 @@ export function useCompanyForm() {
   const saveCompanyInfo = async (data: Partial<CompanyInfo>) => {
     setSaving(true);
     try {
-      // Convert any complex objects to JSON-compatible format
-      const jsonSafeData = {
-        ...data,
-        address: data.address ? JSON.parse(JSON.stringify(data.address)) : null,
-        contact: data.contact ? JSON.parse(JSON.stringify(data.contact)) : null,
-        metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata)) : null,
+      // Convert complex objects for database compatibility
+      const dbData = {
+        company_name: data.company_name || "",
+        company_type: data.company_type || "",
+        commercial_registration: data.commercial_registration || "",
+        "Unified National Number": data.unified_national_number ? parseInt(data.unified_national_number) : null,
+        social_insurance_number: data.social_insurance_number || "",
+        hrsd_number: data.hrsd_number || "",
+        economic_activity: data.economic_activity || "",
+        nitaqat_activity: data.nitaqat_activity || "",
+        establishment_date: data.establishment_date || "",
+        logo_url: data.logo_url || "",
+        address: data.address || {},
+        bank_name: data.bank_name || "",
+        bank_iban: data.bank_iban || "",
+        metadata: data.metadata || {}
       };
 
       // For new company
-      if (!companyInfo.unified_national_number && !companyInfo.id) {
-        const { error } = await supabase.from("company_Info").insert([jsonSafeData]);
+      if (!companyInfo.id) {
+        const { error } = await supabase.from("company_Info").insert([dbData]);
         if (error) throw error;
       } 
       // For existing company
       else {
         const { error } = await supabase
           .from("company_Info")
-          .update(jsonSafeData)
+          .update(dbData)
           .eq("id", companyInfo.id);
         if (error) throw error;
       }
@@ -164,7 +174,6 @@ export function useCompanyForm() {
 
   return {
     companyInfo,
-    setCompanyInfo,
     formData,
     loading,
     saving,
@@ -175,5 +184,6 @@ export function useCompanyForm() {
     handleLogoChange,
     handleSubmit,
     saveCompanyInfo,
+    setCompanyInfo,
   };
 }

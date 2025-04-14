@@ -6,17 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import FileUpload from "@/components/hr/FileUpload";
-import { Json } from "@/types/database";
-
-// Define document item type separately to avoid infinite recursion
-export interface DocumentItem {
-  id: string;
-  name: string;
-  url: string;
-  type: string;
-  size: number;
-  uploadedAt: string;
-}
+import { DocumentItem } from "@/types/database";
 
 interface DocumentUploadDialogProps {
   open: boolean;
@@ -75,15 +65,34 @@ export function DocumentUploadDialog({
 
       const documentUrl = publicUrlData.publicUrl;
 
-      // Update the partner record directly without fetching current data
-      // This avoids the need to access a non-existent "partners" table
-      const { error: updateError } = await supabase.rpc("add_partner_document", {
-        p_partner_id: partnerId,
-        p_document_name: documentName,
-        p_document_url: documentUrl,
-        p_document_type: file.type,
-        p_document_size: file.size
-      });
+      // Update the partner record with the document
+      const { data, error } = await supabase
+        .from("company_partners")
+        .select()
+        .eq("id", partnerId)
+        .single();
+
+      if (error) throw error;
+
+      // Create document object
+      const newDocument = {
+        id: crypto.randomUUID(),
+        name: documentName,
+        url: documentUrl,
+        type: file.type,
+        size: file.size,
+        uploadedAt: new Date().toISOString()
+      };
+
+      // Add document to documents array
+      const documents = data.documents || [];
+      documents.push(newDocument);
+
+      // Update partner record
+      const { error: updateError } = await supabase
+        .from("company_partners")
+        .update({ documents })
+        .eq("id", partnerId);
 
       if (updateError) throw updateError;
 
@@ -130,8 +139,8 @@ export function DocumentUploadDialog({
               الملف
             </label>
             <FileUpload
-              onFileSelect={handleFileChange}
-              selectedFile={file}
+              onChange={handleFileChange}
+              value={file}
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
             />
           </div>
@@ -152,3 +161,5 @@ export function DocumentUploadDialog({
     </Dialog>
   );
 }
+
+export default DocumentUploadDialog;

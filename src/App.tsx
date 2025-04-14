@@ -1,5 +1,6 @@
+
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainPage from "./pages/MainPage";
 import DashboardPage from "./pages/dashboard/Index";
 import AccountingPage from "./pages/accounting/Index";
@@ -16,7 +17,7 @@ import CapitalManagementPage from "./pages/capital/Index";
 
 function App() {
   return (
-    
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -32,7 +33,7 @@ function App() {
         <Route path="/zakat" element={<ZakatPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    
+    </BrowserRouter>
   );
 }
 
