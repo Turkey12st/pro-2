@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { CompanyInfo } from "@/types/database";
+import { CompanyInfo, Address } from "@/types/database";
 import { useToast } from "@/hooks/use-toast";
 
 export function useCompanyForm() {
@@ -36,17 +36,18 @@ export function useCompanyForm() {
           // Type-safe transformation
           const transformedData: CompanyInfo = {
             id: data.id || "",
+            name: data.company_name || "",
             company_name: data.company_name || "",
             company_type: data.company_type || "",
             commercial_registration: data.commercial_registration || "",
-            unified_national_number: data["Unified National Number"]?.toString() || "",
+            unified_national_number: data["Unified National Number"] ? data["Unified National Number"].toString() : "",
             social_insurance_number: data.social_insurance_number || "",
             hrsd_number: data.hrsd_number || "",
             economic_activity: data.economic_activity || "",
             nitaqat_activity: data.nitaqat_activity || "",
             establishment_date: data.establishment_date || "",
             tax_number: data.tax_number || "",
-            address: data.address ? {
+            address: data.address && typeof data.address === 'object' ? {
               street: data.address.street || "",
               city: data.address.city || "", 
               postal_code: data.address.postal_code || "",
@@ -60,7 +61,6 @@ export function useCompanyForm() {
               website: data.website || "",
             },
             metadata: data.metadata || {},
-            name: data.company_name || "",
           };
           
           setCompanyInfo(transformedData);
@@ -121,7 +121,7 @@ export function useCompanyForm() {
     setLastSaved("جاري الحفظ التلقائي...");
   };
 
-  const saveCompanyInfo = async (data: Partial<CompanyInfo>) => {
+  const saveCompanyInfo = async (data: CompanyInfo) => {
     setSaving(true);
     try {
       // Convert complex objects for database compatibility
@@ -149,7 +149,7 @@ export function useCompanyForm() {
       if (!companyInfo.id) {
         const { error } = await supabase
           .from("company_Info")
-          .insert([dbData]);
+          .insert(dbData);
         
         if (error) throw error;
       } 

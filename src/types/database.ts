@@ -77,7 +77,7 @@ export interface Document {
   number?: string;
   issue_date: string;
   expiry_date: string;
-  status: string;
+  status: 'active' | 'expired' | 'soon-expire';
   document_url?: string;
 }
 
@@ -96,13 +96,8 @@ export interface FinancialSummaryType {
   profit_margin: number;
 }
 
-export interface DocumentWithDaysRemaining {
-  id: string;
-  title: string;
-  type: string;
-  expiry_date: string;
+export interface DocumentWithDaysRemaining extends Document {
   days_remaining: number;
-  status: string;
 }
 
 export interface JournalEntry {

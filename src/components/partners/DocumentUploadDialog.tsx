@@ -5,8 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import FileUpload from "@/components/hr/FileUpload";
 import { DocumentItem } from "@/types/database";
+
+interface FileUploadProps {
+  value: File | null;
+  accept?: string;
+  onChange: (file: File | null) => void;
+}
+
+// A simplified FileUpload component if the imported one doesn't match our needs
+const FileUpload = ({ value, accept, onChange }: FileUploadProps) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      onChange(e.target.files[0]);
+    }
+  };
+
+  return (
+    <Input
+      type="file"
+      onChange={handleChange}
+      accept={accept || "*"}
+    />
+  );
+};
 
 interface DocumentUploadDialogProps {
   open: boolean;
@@ -68,14 +90,14 @@ export function DocumentUploadDialog({
       // Update the partner record with the document
       const { data, error } = await supabase
         .from("company_partners")
-        .select()
+        .select("*")
         .eq("id", partnerId)
         .single();
 
       if (error) throw error;
 
       // Create document object
-      const newDocument = {
+      const newDocument: DocumentItem = {
         id: crypto.randomUUID(),
         name: documentName,
         url: documentUrl,
@@ -85,7 +107,13 @@ export function DocumentUploadDialog({
       };
 
       // Add document to documents array
-      const documents = data.documents || [];
+      let documents = data.documents || [];
+      if (typeof documents === 'string') {
+        documents = [];
+      } else if (!Array.isArray(documents)) {
+        documents = [];
+      }
+
       documents.push(newDocument);
 
       // Update partner record
