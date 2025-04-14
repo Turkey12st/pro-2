@@ -1,7 +1,11 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { CompanyFormData, DbCompanyData } from "@/types/company";
+import { CompanyFormData } from "@/types/company";
+import { Tables } from "@/integrations/supabase/types";
 
+// Define interface for database structure
+type CompanyInfoTable = Tables<"company_Info">;
+ 
 export async function fetchCompanyInfo(): Promise<CompanyFormData | null> {
   const { data, error } = await supabase
     .from("company_Info")
@@ -39,23 +43,32 @@ export async function fetchCompanyInfo(): Promise<CompanyFormData | null> {
     bank_name: data.bank_name || "",
     bank_iban: data.bank_iban || "",
     contact: {
-      email: data.email || "",
-      phone: data.phone || "",
-      website: data.website || "",
+      // Use metadata for contact info since these fields aren't in the table schema
+      email: data.metadata && typeof data.metadata === 'object' ? (data.metadata as any).email || "" : "",
+      phone: data.metadata && typeof data.metadata === 'object' ? (data.metadata as any).phone || "" : "",
+      website: data.metadata && typeof data.metadata === 'object' ? (data.metadata as any).website || "" : "",
     },
-    metadata: data.metadata || {},
+    metadata: data.metadata && typeof data.metadata === 'object' ? data.metadata as Record<string, any> : {},
   };
 
   return transformedData;
 }
 
 export async function saveCompanyInfo(data: CompanyFormData, companyId: string | null): Promise<void> {
+  // Extract contact info to save in metadata
+  const metadata: Record<string, any> = {
+    ...(data.metadata || {}),
+    email: data.contact?.email || "",
+    phone: data.contact?.phone || "",
+    website: data.contact?.website || "",
+  };
+
   // Convert complex objects for database compatibility
-  const dbData: DbCompanyData = {
+  const dbData = {
     company_name: data.company_name || "",
     company_type: data.company_type || "",
     commercial_registration: data.commercial_registration || "",
-    "Unified National Number": data.unified_national_number ? parseInt(data.unified_national_number) : null,
+    "Unified National Number": data.unified_national_number ? parseInt(data.unified_national_number) || 0 : 0,
     social_insurance_number: data.social_insurance_number || "",
     hrsd_number: data.hrsd_number || "",
     economic_activity: data.economic_activity || "",
@@ -65,10 +78,7 @@ export async function saveCompanyInfo(data: CompanyFormData, companyId: string |
     address: data.address || {},
     bank_name: data.bank_name || "",
     bank_iban: data.bank_iban || "",
-    email: data.contact?.email || "",
-    phone: data.contact?.phone || "",
-    website: data.contact?.website || "",
-    metadata: data.metadata || {}
+    metadata: metadata
   };
 
   // For new company
