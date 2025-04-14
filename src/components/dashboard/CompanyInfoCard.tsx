@@ -3,12 +3,12 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Mail, Phone, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { CompanyInfo } from "@/types/database";
+import { CompanyFormData } from "@/types/company";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 export function CompanyInfoCard() {
-  const [companyInfo, setCompanyInfo] = useState<Partial<CompanyInfo>>({});
+  const [companyInfo, setCompanyInfo] = useState<Partial<CompanyFormData>>({});
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 

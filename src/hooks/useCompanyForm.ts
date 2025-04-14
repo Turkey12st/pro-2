@@ -1,70 +1,33 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { CompanyInfo, Address } from "@/types/database";
+import { CompanyFormData } from "@/types/company";
 import { useToast } from "@/hooks/use-toast";
+import { fetchCompanyInfo, saveCompanyInfo } from "@/services/companyService";
 
 export function useCompanyForm() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [autoSaveLoading, setAutoSaveLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
+  const [companyInfo, setCompanyInfo] = useState<CompanyFormData>({
     id: "",
     name: "",
   });
-  const [formData, setFormData] = useState<CompanyInfo>({
+  const [formData, setFormData] = useState<CompanyFormData>({
     id: "",
     name: "",
   });
   const { toast } = useToast();
 
   useEffect(() => {
-    async function fetchCompanyInfo() {
+    async function loadCompanyInfo() {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("company_Info")
-          .select("*")
-          .single();
-
-        if (error && error.code !== "PGSQL_NO_ROWS_RETURNED") {
-          throw error;
-        }
-
+        const data = await fetchCompanyInfo();
+        
         if (data) {
-          // Transform to type-safe format
-          const transformedData: CompanyInfo = {
-            id: data.id || "",
-            name: data.company_name || "",
-            company_name: data.company_name || "",
-            company_type: data.company_type || "",
-            commercial_registration: data.commercial_registration || "",
-            unified_national_number: data["Unified National Number"] ? data["Unified National Number"].toString() : "",
-            social_insurance_number: data.social_insurance_number || "",
-            hrsd_number: data.hrsd_number || "",
-            economic_activity: data.economic_activity || "",
-            nitaqat_activity: data.nitaqat_activity || "",
-            establishment_date: data.establishment_date || "",
-            tax_number: data.tax_number || "",
-            address: data.address && typeof data.address === 'object' ? {
-              street: (data.address as any).street || "",
-              city: (data.address as any).city || "", 
-              postal_code: (data.address as any).postal_code || "",
-              country: (data.address as any).country || ""
-            } : {},
-            bank_name: data.bank_name || "",
-            bank_iban: data.bank_iban || "",
-            contact: {
-              email: data.email || "",
-              phone: data.phone || "",
-              website: data.website || "",
-            },
-            metadata: data.metadata || {},
-          };
-          
-          setCompanyInfo(transformedData);
-          setFormData(transformedData);
+          setCompanyInfo(data);
+          setFormData(data);
         }
       } catch (error) {
         console.error("Error fetching company info:", error);
@@ -78,7 +41,7 @@ export function useCompanyForm() {
       }
     }
 
-    fetchCompanyInfo();
+    loadCompanyInfo();
   }, [toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -89,7 +52,7 @@ export function useCompanyForm() {
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof CompanyInfo] as object || {}),
+          ...(prev[parent as keyof CompanyFormData] as object || {}),
           [child]: value
         }
       }));
@@ -121,48 +84,11 @@ export function useCompanyForm() {
     setLastSaved("جاري الحفظ التلقائي...");
   };
 
-  const saveCompanyInfo = async (data: CompanyInfo) => {
+  const handleSaveCompanyInfo = async (data: CompanyFormData) => {
     setSaving(true);
     try {
-      // Convert complex objects for database compatibility
-      const dbData = {
-        company_name: data.company_name || "",
-        company_type: data.company_type || "",
-        commercial_registration: data.commercial_registration || "",
-        "Unified National Number": data.unified_national_number ? parseInt(data.unified_national_number) : null,
-        social_insurance_number: data.social_insurance_number || "",
-        hrsd_number: data.hrsd_number || "",
-        economic_activity: data.economic_activity || "",
-        nitaqat_activity: data.nitaqat_activity || "",
-        establishment_date: data.establishment_date || "",
-        tax_number: data.tax_number || "",
-        address: data.address || {},
-        bank_name: data.bank_name || "",
-        bank_iban: data.bank_iban || "",
-        email: data.contact?.email || "",
-        phone: data.contact?.phone || "",
-        website: data.contact?.website || "",
-        metadata: data.metadata || {}
-      };
-
-      // For new company
-      if (!companyInfo.id) {
-        const { error } = await supabase
-          .from("company_Info")
-          .insert([dbData]);
-        
-        if (error) throw error;
-      } 
-      // For existing company
-      else {
-        const { error } = await supabase
-          .from("company_Info")
-          .update(dbData)
-          .eq("id", companyInfo.id);
-          
-        if (error) throw error;
-      }
-
+      await saveCompanyInfo(data, companyInfo.id);
+      
       toast({
         title: "تم الحفظ",
         description: "تم حفظ بيانات الشركة بنجاح",
@@ -181,7 +107,7 @@ export function useCompanyForm() {
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    saveCompanyInfo(formData);
+    handleSaveCompanyInfo(formData);
   };
 
   return {
@@ -195,7 +121,7 @@ export function useCompanyForm() {
     handleSelectChange,
     handleLogoChange,
     handleSubmit,
-    saveCompanyInfo,
+    saveCompanyInfo: handleSaveCompanyInfo,
     setCompanyInfo,
   };
 }
