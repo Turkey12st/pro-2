@@ -33,7 +33,7 @@ export function useCompanyForm() {
         }
 
         if (data) {
-          // Type-safe transformation
+          // Transform to type-safe format
           const transformedData: CompanyInfo = {
             id: data.id || "",
             name: data.company_name || "",
@@ -48,10 +48,10 @@ export function useCompanyForm() {
             establishment_date: data.establishment_date || "",
             tax_number: data.tax_number || "",
             address: data.address && typeof data.address === 'object' ? {
-              street: data.address.street || "",
-              city: data.address.city || "", 
-              postal_code: data.address.postal_code || "",
-              country: data.address.country || ""
+              street: (data.address as any).street || "",
+              city: (data.address as any).city || "", 
+              postal_code: (data.address as any).postal_code || "",
+              country: (data.address as any).country || ""
             } : {},
             bank_name: data.bank_name || "",
             bank_iban: data.bank_iban || "",
@@ -149,7 +149,7 @@ export function useCompanyForm() {
       if (!companyInfo.id) {
         const { error } = await supabase
           .from("company_Info")
-          .insert(dbData);
+          .insert([dbData]);
         
         if (error) throw error;
       } 

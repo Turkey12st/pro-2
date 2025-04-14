@@ -32,11 +32,11 @@ export function CompanyInfoCard() {
             company_name: data.company_name,
             company_type: data.company_type,
             unified_national_number: data["Unified National Number"]?.toString(),
-            address: data.address ? {
-              street: data.address.street || "",
-              city: data.address.city || "", 
-              postal_code: data.address.postal_code || "",
-              country: data.address.country || ""
+            address: data.address && typeof data.address === 'object' ? {
+              street: (data.address as any).street || "",
+              city: (data.address as any).city || "", 
+              postal_code: (data.address as any).postal_code || "",
+              country: (data.address as any).country || ""
             } : {},
             contact: {
               email: data.email || "",
@@ -99,10 +99,10 @@ export function CompanyInfoCard() {
               <div className="text-sm">
                 {companyInfo.address && (
                   <address className="not-italic text-muted-foreground">
-                    {(companyInfo.address)?.city && (companyInfo.address)?.city + ", "}
-                    {(companyInfo.address)?.street}
-                    {(companyInfo.address)?.postal_code && (
-                      <span dir="ltr"> {(companyInfo.address)?.postal_code}</span>
+                    {companyInfo.address?.city && companyInfo.address?.city + ", "}
+                    {companyInfo.address?.street}
+                    {companyInfo.address?.postal_code && (
+                      <span dir="ltr"> {companyInfo.address?.postal_code}</span>
                     )}
                   </address>
                 )}

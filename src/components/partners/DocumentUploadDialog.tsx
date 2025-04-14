@@ -97,7 +97,7 @@ export function DocumentUploadDialog({
       if (error) throw error;
 
       // Create document object
-      const newDocument: DocumentItem = {
+      const newDocument = {
         id: crypto.randomUUID(),
         name: documentName,
         url: documentUrl,
@@ -119,7 +119,7 @@ export function DocumentUploadDialog({
       // Update partner record
       const { error: updateError } = await supabase
         .from("company_partners")
-        .update({ documents })
+        .update({ documents: documents })
         .eq("id", partnerId);
 
       if (updateError) throw updateError;
