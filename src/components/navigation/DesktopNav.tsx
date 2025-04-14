@@ -35,7 +35,7 @@ export function DesktopNav({ menuItems, groupedMenuItems, isActive, user }: Desk
             <div key={group} className="mb-4">
               <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground">{group}</h3>
               {items.map((item) => (
-                <div key={item.title}>
+                <div key={item.name}>
                   {item.children ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -47,8 +47,8 @@ export function DesktopNav({ menuItems, groupedMenuItems, isActive, user }: Desk
                           )}
                           disabled={item.disabled}
                         >
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
+                          {item.icon && <item.icon className="h-4 w-4" />}
+                          <span>{item.name}</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
@@ -57,7 +57,7 @@ export function DesktopNav({ menuItems, groupedMenuItems, isActive, user }: Desk
                         side="right"
                       >
                         {item.children.map((child) => (
-                          <Link to={child.href} key={child.title}>
+                          <Link to={child.href} key={child.name}>
                             <DropdownMenuItem
                               className={cn(
                                 "gap-2",
@@ -65,8 +65,8 @@ export function DesktopNav({ menuItems, groupedMenuItems, isActive, user }: Desk
                               )}
                               disabled={child.disabled}
                             >
-                              <child.icon className="h-4 w-4" />
-                              <span>{child.title}</span>
+                              {child.icon && <child.icon className="h-4 w-4" />}
+                              <span>{child.name}</span>
                             </DropdownMenuItem>
                           </Link>
                         ))}
@@ -83,8 +83,8 @@ export function DesktopNav({ menuItems, groupedMenuItems, isActive, user }: Desk
                       disabled={item.disabled}
                     >
                       <Link to={item.href}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
+                        {item.icon && <item.icon className="h-4 w-4" />}
+                        <span>{item.name}</span>
                         {item.new && (
                           <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
                             جديد

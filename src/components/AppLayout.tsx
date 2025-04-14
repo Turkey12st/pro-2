@@ -1,6 +1,6 @@
 
 import { SidebarProvider, Sidebar, SidebarContent, SidebarTrigger } from "@/components/ui/sidebar";
-import { Menu, User, Settings, LogOut, LayoutDashboard, Calculator, Users, Wallet, Calendar, Building, FolderKanban, UserSquare2, FileText } from "lucide-react";
+import { Menu, User, Settings, LogOut, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { AppNavigation } from "./AppNavigation";
 import { 
@@ -48,29 +48,48 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // إنشاء قائمة الانتقال السريع مع تصنيف العناصر حسب المجموعة - تظهر أيضًا في الجانب الأيمن
   const organizeQuickLinks = () => {
-    const categories = {
-      "نظرة عامة": [
-        { icon: LayoutDashboard, label: "لوحة المعلومات", href: "/dashboard" },
-      ],
-      "العمليات المالية": [
-        { icon: Wallet, label: "المحاسبة", href: "/accounting" },
-        { icon: Calculator, label: "الزكاة والضرائب", href: "/zakat" },
-      ],
-      "العمليات الأساسية": [
-        { icon: Users, label: "الموارد البشرية", href: "/hr" },
-        { icon: Users, label: "الشركاء", href: "/partners" },
-        { icon: UserSquare2, label: "العملاء", href: "/clients" },
-        { icon: FolderKanban, label: "المشاريع", href: "/projects" },
-      ],
-      "الوثائق والمستندات": [
-        { icon: Building, label: "معلومات الشركة", href: "/company" },
-        { icon: FileText, label: "المستندات", href: "/documents" },
-      ],
-      "الأدوات والإعدادات": [
-        { icon: Calendar, label: "التقويم", href: "/calendar" },
-        { icon: Settings, label: "إعدادات النظام", href: "/settings" },
-      ],
+    const navItems = getNavigationMenu();
+    const categories: Record<string, { icon: any, label: string, href: string }[]> = {
+      "نظرة عامة": [],
+      "العمليات المالية": [],
+      "العمليات الأساسية": [],
+      "الوثائق والمستندات": [],
+      "الأدوات والإعدادات": [],
     };
+    
+    navItems.forEach(item => {
+      if (item.group === "إدارة النظام" && (item.href === "/dashboard")) {
+        categories["نظرة عامة"].push({
+          icon: item.icon,
+          label: item.name,
+          href: item.href
+        });
+      } else if (item.group === "المالية") {
+        categories["العمليات المالية"].push({
+          icon: item.icon,
+          label: item.name,
+          href: item.href
+        });
+      } else if (["إدارة المشاريع", "إدارة الموارد البشرية", "إدارة العملاء"].includes(item.group || "")) {
+        categories["العمليات الأساسية"].push({
+          icon: item.icon,
+          label: item.name,
+          href: item.href
+        });
+      } else if (item.href === "/documents" || item.href === "/company") {
+        categories["الوثائق والمستندات"].push({
+          icon: item.icon,
+          label: item.name,
+          href: item.href
+        });
+      } else if (item.href === "/calendar" || item.href === "/settings") {
+        categories["الأدوات والإعدادات"].push({
+          icon: item.icon,
+          label: item.name,
+          href: item.href
+        });
+      }
+    });
     
     return categories;
   };
@@ -112,7 +131,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       {links.map((link) => (
                         <DropdownMenuItem key={link.href} asChild>
                           <Link to={link.href} className="flex items-center gap-2 cursor-pointer">
-                            <link.icon className="h-4 w-4" />
+                            {link.icon && <link.icon className="h-4 w-4" />}
                             <span>{link.label}</span>
                           </Link>
                         </DropdownMenuItem>

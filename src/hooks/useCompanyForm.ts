@@ -45,8 +45,13 @@ export function useCompanyForm() {
             economic_activity: data.economic_activity || "",
             nitaqat_activity: data.nitaqat_activity || "",
             establishment_date: data.establishment_date || "",
-            logo_url: data.logo_url || "",
-            address: data.address || {},
+            tax_number: data.tax_number || "",
+            address: data.address ? {
+              street: data.address.street || "",
+              city: data.address.city || "", 
+              postal_code: data.address.postal_code || "",
+              country: data.address.country || ""
+            } : {},
             bank_name: data.bank_name || "",
             bank_iban: data.bank_iban || "",
             contact: {
@@ -130,16 +135,22 @@ export function useCompanyForm() {
         economic_activity: data.economic_activity || "",
         nitaqat_activity: data.nitaqat_activity || "",
         establishment_date: data.establishment_date || "",
-        logo_url: data.logo_url || "",
+        tax_number: data.tax_number || "",
         address: data.address || {},
         bank_name: data.bank_name || "",
         bank_iban: data.bank_iban || "",
+        email: data.contact?.email || "",
+        phone: data.contact?.phone || "",
+        website: data.contact?.website || "",
         metadata: data.metadata || {}
       };
 
       // For new company
       if (!companyInfo.id) {
-        const { error } = await supabase.from("company_Info").insert([dbData]);
+        const { error } = await supabase
+          .from("company_Info")
+          .insert([dbData]);
+        
         if (error) throw error;
       } 
       // For existing company
@@ -148,6 +159,7 @@ export function useCompanyForm() {
           .from("company_Info")
           .update(dbData)
           .eq("id", companyInfo.id);
+          
         if (error) throw error;
       }
 

@@ -20,7 +20,6 @@ export interface CompanyInfo {
   company_name?: string;
   company_type?: string;
   commercial_registration?: string;
-  "Unified National Number"?: number;
   unified_national_number?: string;
   social_insurance_number?: string;
   hrsd_number?: string;
@@ -31,6 +30,7 @@ export interface CompanyInfo {
   address?: Address;
   bank_name?: string;
   bank_iban?: string;
+  tax_number?: string;
   contact?: {
     email?: string;
     phone?: string;
@@ -41,10 +41,10 @@ export interface CompanyInfo {
 
 export interface Partner {
   id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  name?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  name: string;
   ownership_percentage: number;
   capital_percentage?: number;
   capital_amount?: number;
@@ -55,7 +55,7 @@ export interface Partner {
   position?: string;
   role?: string;
   partner_type?: string;
-  status?: string;
+  status?: "active" | "inactive";
   documents?: DocumentItem[];
   created_at?: string;
   updated_at?: string;
@@ -68,6 +68,17 @@ export interface DocumentItem {
   type: string;
   size: number;
   uploadedAt: string;
+}
+
+export interface Document {
+  id: string;
+  title: string;
+  type: string;
+  number?: string;
+  issue_date: string;
+  expiry_date: string;
+  status: string;
+  document_url?: string;
 }
 
 export interface SalarySummary {

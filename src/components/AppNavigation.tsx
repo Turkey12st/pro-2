@@ -26,10 +26,11 @@ export function AppNavigation() {
       username: "مستخدم النظام"
     });
 
-    // Group menu items by their group property
+    // Get menu items
     const navItems = getNavigationMenu();
     setMenuItems(navItems);
     
+    // Group menu items by their group property
     const grouped: Record<string, MenuItem[]> = {};
     
     navItems.forEach(item => {

@@ -32,11 +32,16 @@ export function CompanyInfoCard() {
             company_name: data.company_name,
             company_type: data.company_type,
             unified_national_number: data["Unified National Number"]?.toString(),
-            address: data.address || {},
+            address: data.address ? {
+              street: data.address.street || "",
+              city: data.address.city || "", 
+              postal_code: data.address.postal_code || "",
+              country: data.address.country || ""
+            } : {},
             contact: {
-              email: data.email,
-              phone: data.phone,
-              website: data.website
+              email: data.email || "",
+              phone: data.phone || "",
+              website: data.website || ""
             }
           });
         }
@@ -94,10 +99,10 @@ export function CompanyInfoCard() {
               <div className="text-sm">
                 {companyInfo.address && (
                   <address className="not-italic text-muted-foreground">
-                    {(companyInfo.address as any)?.city}, 
-                    {(companyInfo.address as any)?.street}
-                    {(companyInfo.address as any)?.postal_code && (
-                      <span dir="ltr"> {(companyInfo.address as any)?.postal_code}</span>
+                    {(companyInfo.address)?.city && (companyInfo.address)?.city + ", "}
+                    {(companyInfo.address)?.street}
+                    {(companyInfo.address)?.postal_code && (
+                      <span dir="ltr"> {(companyInfo.address)?.postal_code}</span>
                     )}
                   </address>
                 )}
@@ -132,5 +137,3 @@ export function CompanyInfoCard() {
     </Card>
   );
 }
-
-export default CompanyInfoCard;

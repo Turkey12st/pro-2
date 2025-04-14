@@ -144,7 +144,7 @@ export function SalarySummary({ data, isLoading }: SalarySummaryProps) {
           <Badge 
             variant={
               status === 'paid' ? 'outline' : 
-              status === 'due' ? 'destructive' : 
+              status === 'upcoming' ? 'destructive' : 
               'outline'
             }
             className={
@@ -196,7 +196,7 @@ export function SalarySummary({ data, isLoading }: SalarySummaryProps) {
       
       {status !== 'paid' && (
         <CardFooter>
-          <Button className="w-full" variant={status === 'due' ? 'default' : 'outline'}>
+          <Button className="w-full" variant={status === 'upcoming' ? 'default' : 'outline'}>
             إدارة الرواتب
           </Button>
         </CardFooter>

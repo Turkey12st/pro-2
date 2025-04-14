@@ -80,15 +80,15 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
               <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground">{group}</h3>
               {items.map((item) => (
                 item.children ? (
-                  <Accordion type="single" collapsible key={item.title}>
-                    <AccordionItem value={item.title} className="border-none">
+                  <Accordion type="single" collapsible key={item.name}>
+                    <AccordionItem value={item.name} className="border-none">
                       <AccordionTrigger className={cn(
                         "py-2 text-sm font-medium",
                         isActive(item.href) && "text-primary"
                       )}>
                         <div className="flex items-center gap-2">
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
+                          {item.icon && <item.icon className="h-4 w-4" />}
+                          <span>{item.name}</span>
                           {item.new && (
                             <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
                               جديد
@@ -105,7 +105,7 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                         <div className="flex flex-col space-y-2">
                           {item.children.map((child) => (
                             <Button
-                              key={child.title}
+                              key={child.name}
                               variant="ghost"
                               className={cn(
                                 "flex w-full items-center justify-start gap-2 py-2 text-sm transition-colors",
@@ -115,8 +115,8 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                               onClick={() => handleMenuClick(child.href)}
                               disabled={child.disabled}
                             >
-                              <child.icon className="h-4 w-4" />
-                              <span>{child.title}</span>
+                              {child.icon && <child.icon className="h-4 w-4" />}
+                              <span>{child.name}</span>
                               {child.new && (
                                 <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
                                   جديد
@@ -130,7 +130,7 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                   </Accordion>
                 ) : (
                   <Button
-                    key={item.title}
+                    key={item.name}
                     variant="ghost"
                     className={cn(
                       "flex w-full items-center justify-start gap-2 py-2 text-sm transition-colors",
@@ -140,8 +140,8 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                     onClick={() => handleMenuClick(item.href)}
                     disabled={item.disabled}
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
+                    {item.icon && <item.icon className="h-4 w-4" />}
+                    <span>{item.name}</span>
                     {item.new && (
                       <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">جديد</span>
                     )}
