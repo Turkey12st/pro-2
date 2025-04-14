@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { DocumentItem } from "@/types/company";
+import { Json } from "@/integrations/supabase/types";
 
 interface FileUploadProps {
   value: File | null;
@@ -107,17 +108,18 @@ export function DocumentUploadDialog({
       };
 
       // Add document to documents array
-      let documents: DocumentItem[] = [];
+      let existingDocs: any[] = [];
+      
       if (data.documents && Array.isArray(data.documents)) {
-        documents = [...data.documents];
+        existingDocs = [...data.documents];
       }
-
-      documents.push(newDocument);
+      
+      existingDocs.push(newDocument);
 
       // Update partner record
       const { error: updateError } = await supabase
         .from("company_partners")
-        .update({ documents })
+        .update({ documents: existingDocs })
         .eq("id", partnerId);
 
       if (updateError) throw updateError;

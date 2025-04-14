@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CompanyFormData } from "@/types/company";
 import { Tables } from "@/integrations/supabase/types";
+import { Json } from "@/integrations/supabase/types";
 
 // Define interface for database structure
 type CompanyInfoTable = Tables<"company_Info">;
@@ -63,6 +64,15 @@ export async function saveCompanyInfo(data: CompanyFormData, companyId: string |
     website: data.contact?.website || "",
   };
 
+  // Convert address to JSON compatible format
+  const addressJson: Record<string, string> = {};
+  if (data.address) {
+    if (data.address.street) addressJson.street = data.address.street;
+    if (data.address.city) addressJson.city = data.address.city;
+    if (data.address.postal_code) addressJson.postal_code = data.address.postal_code;
+    if (data.address.country) addressJson.country = data.address.country;
+  }
+
   // Convert complex objects for database compatibility
   const dbData = {
     company_name: data.company_name || "",
@@ -75,10 +85,10 @@ export async function saveCompanyInfo(data: CompanyFormData, companyId: string |
     nitaqat_activity: data.nitaqat_activity || "",
     establishment_date: data.establishment_date || "",
     tax_number: data.tax_number || "",
-    address: data.address || {},
+    address: addressJson as Json,
     bank_name: data.bank_name || "",
     bank_iban: data.bank_iban || "",
-    metadata: metadata
+    metadata: metadata as Json
   };
 
   // For new company

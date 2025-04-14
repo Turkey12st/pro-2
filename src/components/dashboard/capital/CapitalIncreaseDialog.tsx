@@ -37,19 +37,17 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
       // 1. إضافة سجل في جدول capital_history
       const { data: historyResult, error: historyError } = await supabase
         .from("capital_history")
-        .insert([
-          {
-            previous_capital: capitalData.total_capital,
-            amount: data.amount,
-            new_capital: 
-              data.transaction_type === "increase" 
-                ? capitalData.total_capital + data.amount 
-                : capitalData.total_capital - data.amount,
-            transaction_type: data.transaction_type,
-            notes: data.notes,
-            effective_date: new Date().toISOString().split("T")[0],
-          },
-        ])
+        .insert({
+          previous_capital: capitalData.total_capital,
+          amount: data.amount,
+          new_capital: 
+            data.transaction_type === "increase" 
+              ? capitalData.total_capital + data.amount 
+              : capitalData.total_capital - data.amount,
+          transaction_type: data.transaction_type,
+          notes: data.notes,
+          effective_date: new Date().toISOString().split("T")[0],
+        })
         .select();
 
       if (historyError) throw historyError;
