@@ -98,7 +98,7 @@ export function DocumentUploadDialog({
       if (error) throw error;
 
       // Create document object
-      const newDocument: DocumentItem = {
+      const newDocument = {
         id: crypto.randomUUID(),
         name: documentName,
         url: documentUrl,
@@ -108,10 +108,11 @@ export function DocumentUploadDialog({
       };
 
       // Add document to documents array
-      let existingDocs: any[] = [];
+      let existingDocs = [];
       
       if (data.documents && Array.isArray(data.documents)) {
-        existingDocs = [...data.documents];
+        // Convert documents to a plain array without reference to the original
+        existingDocs = JSON.parse(JSON.stringify(data.documents));
       }
       
       existingDocs.push(newDocument);
