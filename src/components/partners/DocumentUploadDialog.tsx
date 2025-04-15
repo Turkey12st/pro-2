@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { DocumentItem } from "@/types/company";
-import { Json } from "@/integrations/supabase/types";
 
 interface FileUploadProps {
   value: File | null;
@@ -107,14 +105,18 @@ export function DocumentUploadDialog({
         uploadedAt: new Date().toISOString()
       };
 
-      // Add document to documents array
-      let existingDocs = [];
+      // Add document to documents array - fixed by creating a proper array
+      let existingDocs: any[] = [];
       
-      if (data.documents && Array.isArray(data.documents)) {
-        // Convert documents to a plain array without reference to the original
-        existingDocs = JSON.parse(JSON.stringify(data.documents));
+      if (data.documents) {
+        // Use a simple approach to ensure we're working with a basic array
+        if (Array.isArray(data.documents)) {
+          // Create a fresh copy without references to avoid deep nesting
+          existingDocs = data.documents.map(doc => ({...doc}));
+        }
       }
       
+      // Add the new document to our array
       existingDocs.push(newDocument);
 
       // Update partner record

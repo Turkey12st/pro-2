@@ -75,7 +75,8 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
 
       if (updateError) throw updateError;
 
-      return { historyResult, updateResult };
+      // Return a simple object to avoid deep nesting
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["capital_management"] });
