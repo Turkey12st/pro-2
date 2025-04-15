@@ -25,8 +25,12 @@ export function DesktopNav({ menuItems, groupedMenuItems, isActive, user }: Desk
   return (
     <nav className="hidden md:flex flex-col h-full bg-card">
       <div className="p-4 border-b flex items-center">
-        <img src="/logo-color.png" alt="Logo" className="h-8" />
-        <span className="font-bold text-xl mr-2">نظام الشركة</span>
+        <Link to="/">
+          <img src="/logo-color.png" alt="Logo" className="h-8" />
+        </Link>
+        <Link to="/" className="no-underline">
+          <span className="font-bold text-xl mr-2">نظام الشركة</span>
+        </Link>
       </div>
       
       <div className="flex-1 overflow-auto p-2">
@@ -53,22 +57,25 @@ export function DesktopNav({ menuItems, groupedMenuItems, isActive, user }: Desk
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="start"
-                        className="w-56 bg-card bg-opacity-100 border border-border"
+                        className="w-56 bg-card"
                         side="right"
+                        sideOffset={5}
                       >
                         {item.children.map((child) => (
-                          <Link to={child.href} key={child.name}>
-                            <DropdownMenuItem
-                              className={cn(
-                                "gap-2",
-                                isActive(child.href) && "bg-accent"
-                              )}
-                              disabled={child.disabled}
-                            >
+                          <DropdownMenuItem
+                            key={child.name}
+                            className={cn(
+                              "gap-2",
+                              isActive(child.href) && "bg-accent"
+                            )}
+                            disabled={child.disabled}
+                            asChild
+                          >
+                            <Link to={child.href} className="w-full flex items-center">
                               {child.icon && <child.icon className="h-4 w-4" />}
                               <span>{child.name}</span>
-                            </DropdownMenuItem>
-                          </Link>
+                            </Link>
+                          </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -124,21 +131,26 @@ export function DesktopNav({ menuItems, groupedMenuItems, isActive, user }: Desk
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-56 bg-card bg-opacity-100 border border-border"
+              className="w-56"
+              sideOffset={5}
             >
               <DropdownMenuLabel>حسابي</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2">
-                <User className="h-4 w-4" />
-                <span>الملف الشخصي</span>
+              <DropdownMenuItem asChild className="gap-2 cursor-pointer">
+                <Link to="/settings/profile" className="w-full">
+                  <User className="h-4 w-4 ml-2" />
+                  <span>الملف الشخصي</span>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2">
-                <Settings className="h-4 w-4" />
-                <span>الإعدادات</span>
+              <DropdownMenuItem asChild className="gap-2 cursor-pointer">
+                <Link to="/settings" className="w-full">
+                  <Settings className="h-4 w-4 ml-2" />
+                  <span>الإعدادات</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 text-destructive">
-                <LogOut className="h-4 w-4" />
+              <DropdownMenuItem className="gap-2 text-destructive cursor-pointer">
+                <LogOut className="h-4 w-4 ml-2" />
                 <span>تسجيل الخروج</span>
               </DropdownMenuItem>
             </DropdownMenuContent>

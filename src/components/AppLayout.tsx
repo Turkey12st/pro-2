@@ -112,6 +112,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <Menu className="h-5 w-5" />
                 </div>
               </SidebarTrigger>
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-9 gap-1">
@@ -119,7 +120,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <span className="hidden md:inline">الانتقال السريع</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-popover">
+                <DropdownMenuContent align="end" className="w-56" sideOffset={5}>
                   <DropdownMenuLabel>الانتقال السريع</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   
@@ -131,7 +132,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         </DropdownMenuLabel>
                         {links.map((link) => (
                           <DropdownMenuItem key={link.href} asChild>
-                            <Link to={link.href} className="flex items-center gap-2 cursor-pointer">
+                            <Link to={link.href} className="flex w-full items-center gap-2 cursor-pointer">
                               {link.icon && <link.icon className="h-4 w-4" />}
                               <span>{link.label}</span>
                             </Link>
@@ -154,7 +155,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-popover" align="end" forceMount>
+              <DropdownMenuContent className="w-56" align="end" forceMount sideOffset={5}>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user.name}</p>
@@ -164,14 +165,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer" asChild>
-                  <Link to="/settings/profile" className="flex items-center">
+                <DropdownMenuItem asChild>
+                  <Link to="/settings/profile" className="flex w-full items-center cursor-pointer">
                     <User className="ml-2 h-4 w-4" />
                     <span>الملف الشخصي</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" asChild>
-                  <Link to="/settings" className="flex items-center">
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="flex w-full items-center cursor-pointer">
                     <Settings className="ml-2 h-4 w-4" />
                     <span>الإعدادات</span>
                   </Link>

@@ -26,7 +26,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { MenuItem } from "@/types/navigation";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
@@ -66,14 +66,14 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
       </SheetTrigger>
       <SheetContent side="right" className="w-[85%] sm:w-[380px] overflow-y-auto">
         <SheetHeader className="space-y-2">
-          <SheetTitle>القائمة الرئيسية</SheetTitle>
-          <SheetDescription>
+          <SheetTitle className="text-right">القائمة الرئيسية</SheetTitle>
+          <SheetDescription className="text-right">
             استكشف خيارات النظام الأساسية للوصول السريع.
           </SheetDescription>
         </SheetHeader>
         <Separator className="my-4" />
         
-        <div className="flex flex-col space-y-1">
+        <div className="flex flex-col space-y-1 mt-4">
           {/* Group sections */}
           {Object.entries(groupedMenuItems).map(([group, items]) => (
             <div key={group} className="mb-4">
@@ -104,16 +104,15 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                       <AccordionContent className="pr-8">
                         <div className="flex flex-col space-y-2">
                           {item.children.map((child) => (
-                            <Button
+                            <Link
                               key={child.name}
-                              variant="ghost"
+                              to={child.href}
+                              onClick={() => setIsOpen(false)}
                               className={cn(
-                                "flex w-full items-center justify-start gap-2 py-2 text-sm transition-colors",
-                                isActive(child.href) ? 'text-primary' : 'hover:bg-muted',
+                                "flex w-full items-center justify-start gap-2 py-2 px-2 text-sm transition-colors rounded-md",
+                                isActive(child.href) ? 'text-primary bg-primary/10' : 'hover:bg-muted',
                                 child.disabled && "opacity-50 cursor-not-allowed"
                               )}
-                              onClick={() => handleMenuClick(child.href)}
-                              disabled={child.disabled}
                             >
                               {child.icon && <child.icon className="h-4 w-4" />}
                               <span>{child.name}</span>
@@ -122,23 +121,22 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                                   جديد
                                 </span>
                               )}
-                            </Button>
+                            </Link>
                           ))}
                         </div>
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
                 ) : (
-                  <Button
+                  <Link
                     key={item.name}
-                    variant="ghost"
+                    to={item.href}
+                    onClick={() => setIsOpen(false)}
                     className={cn(
-                      "flex w-full items-center justify-start gap-2 py-2 text-sm transition-colors",
-                      isActive(item.href) ? 'text-primary' : 'hover:bg-muted',
+                      "flex w-full items-center justify-start gap-2 py-2 px-2 text-sm transition-colors rounded-md",
+                      isActive(item.href) ? 'text-primary bg-primary/10' : 'hover:bg-muted',
                       item.disabled && "opacity-50 cursor-not-allowed"
                     )}
-                    onClick={() => handleMenuClick(item.href)}
-                    disabled={item.disabled}
                   >
                     {item.icon && <item.icon className="h-4 w-4" />}
                     <span>{item.name}</span>
@@ -150,7 +148,7 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                         {item.badge}
                       </span>
                     )}
-                  </Button>
+                  </Link>
                 )
               ))}
             </div>
@@ -171,12 +169,25 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-white">
+            <DropdownMenuContent align="end" className="w-56" sideOffset={5}>
               <DropdownMenuLabel>حسابي</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleMenuClick("/settings")} className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                الإعدادات
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/settings/profile" className="w-full flex items-center">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>الملف الشخصي</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/settings" className="w-full flex items-center">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>الإعدادات</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive cursor-pointer">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>تسجيل الخروج</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
