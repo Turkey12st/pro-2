@@ -119,25 +119,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <span className="hidden md:inline">الانتقال السريع</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-card bg-opacity-100 border border-border">
+                <DropdownMenuContent align="end" className="w-56 bg-popover">
                   <DropdownMenuLabel>الانتقال السريع</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   
                   {Object.entries(quickLinksCategories).map(([category, links]) => (
-                    <div key={category}>
-                      <DropdownMenuLabel className="text-xs text-muted-foreground py-1">
-                        {category}
-                      </DropdownMenuLabel>
-                      {links.map((link) => (
-                        <DropdownMenuItem key={link.href} asChild>
-                          <Link to={link.href} className="flex items-center gap-2 cursor-pointer">
-                            {link.icon && <link.icon className="h-4 w-4" />}
-                            <span>{link.label}</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                      <DropdownMenuSeparator />
-                    </div>
+                    links.length > 0 && (
+                      <div key={category}>
+                        <DropdownMenuLabel className="text-xs text-muted-foreground py-1">
+                          {category}
+                        </DropdownMenuLabel>
+                        {links.map((link) => (
+                          <DropdownMenuItem key={link.href} asChild>
+                            <Link to={link.href} className="flex items-center gap-2 cursor-pointer">
+                              {link.icon && <link.icon className="h-4 w-4" />}
+                              <span>{link.label}</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                      </div>
+                    )
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -152,7 +154,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-card bg-opacity-100 border border-border" align="end" forceMount>
+              <DropdownMenuContent className="w-56 bg-popover" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user.name}</p>
@@ -162,13 +164,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
-                  <User className="ml-2 h-4 w-4" />
-                  <span>الملف الشخصي</span>
+                <DropdownMenuItem className="cursor-pointer" asChild>
+                  <Link to="/settings/profile" className="flex items-center">
+                    <User className="ml-2 h-4 w-4" />
+                    <span>الملف الشخصي</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Settings className="ml-2 h-4 w-4" />
-                  <span>الإعدادات</span>
+                <DropdownMenuItem className="cursor-pointer" asChild>
+                  <Link to="/settings" className="flex items-center">
+                    <Settings className="ml-2 h-4 w-4" />
+                    <span>الإعدادات</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
