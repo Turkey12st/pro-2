@@ -72,7 +72,7 @@ export default function CapitalManagementPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="md:col-span-3">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xl">ملخص رأس المال</CardTitle>
+              <CardTitle className="text-xl text-center">ملخص رأس المال</CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading ? <div className="text-center py-8">جاري تحميل البيانات...</div> : capitalData ? <CapitalDetails data={capitalData} /> : <div className="text-center py-8">
@@ -83,7 +83,7 @@ export default function CapitalManagementPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-xl">إحصائيات</CardTitle>
+              <CardTitle className="text-xl text-right">إحصائيات</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -169,7 +169,7 @@ export default function CapitalManagementPage() {
           <TabsContent value="transactions" className="space-y-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>سجل معاملات رأس المال</CardTitle>
+                <CardTitle className="text-center">سجل معاملات رأس المال</CardTitle>
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm" className="flex items-center gap-1">
                     <Download className="h-4 w-4" /> تصدير
@@ -216,7 +216,7 @@ export default function CapitalManagementPage() {
           <TabsContent value="analysis" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>تحليل رأس المال</CardTitle>
+                <CardTitle className="text-center">تحليل رأس المال</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-10">
