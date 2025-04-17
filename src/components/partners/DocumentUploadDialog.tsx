@@ -36,6 +36,16 @@ interface DocumentUploadDialogProps {
   onSuccess?: () => void;
 }
 
+// Define a type for document objects to avoid type instantiation issues
+interface DocumentObject {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+  uploadedAt: string;
+}
+
 export function DocumentUploadDialog({
   open,
   onOpenChange,
@@ -96,7 +106,7 @@ export function DocumentUploadDialog({
       if (error) throw error;
 
       // Create document object
-      const newDocument = {
+      const newDocument: DocumentObject = {
         id: crypto.randomUUID(),
         name: documentName,
         url: documentUrl,
@@ -105,14 +115,21 @@ export function DocumentUploadDialog({
         uploadedAt: new Date().toISOString()
       };
 
-      // Add document to documents array - fixed by creating a proper array
-      let existingDocs: any[] = [];
+      // Add document to documents array - safely
+      let existingDocs: DocumentObject[] = [];
       
       if (data.documents) {
         // Use a simple approach to ensure we're working with a basic array
         if (Array.isArray(data.documents)) {
-          // Create a fresh copy without references to avoid deep nesting
-          existingDocs = data.documents.map(doc => ({...doc}));
+          // Create copies of each document object without reference issues
+          existingDocs = data.documents.map((doc: any) => ({
+            id: doc.id || "",
+            name: doc.name || "",
+            url: doc.url || "",
+            type: doc.type || "",
+            size: doc.size || 0,
+            uploadedAt: doc.uploadedAt || new Date().toISOString()
+          }));
         }
       }
       

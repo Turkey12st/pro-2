@@ -63,19 +63,18 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
           ? capitalData.available_capital + data.amount 
           : capitalData.available_capital - data.amount;
 
-      const { data: updateResult, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from("capital_management")
         .update({
           total_capital: newTotalCapital,
           available_capital: newAvailableCapital,
           last_updated: new Date().toISOString(),
         })
-        .eq("id", capitalData.id)
-        .select();
+        .eq("id", capitalData.id);
 
       if (updateError) throw updateError;
 
-      // Return a simple object to avoid deep nesting
+      // Return a simple object to avoid recursive type definitions
       return { success: true };
     },
     onSuccess: () => {
