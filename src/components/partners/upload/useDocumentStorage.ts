@@ -52,7 +52,7 @@ export function useDocumentStorage(partnerId: string | null) {
       uploadedAt: new Date().toISOString()
     };
 
-    // Convert existing documents to a proper array to avoid recursive type issues
+    // تحويل المستندات الموجودة إلى مصفوفة صحيحة لتجنب مشاكل الأنواع المتعمقة
     const existingDocs = Array.isArray(data.documents) 
       ? data.documents.map((doc: any) => ({
           id: doc.id || "",
@@ -66,7 +66,9 @@ export function useDocumentStorage(partnerId: string | null) {
 
     const { error: updateError } = await supabase
       .from("company_partners")
-      .update({ documents: [...existingDocs, newDocument] })
+      .update({ 
+        documents: [...existingDocs, newDocument] 
+      })
       .eq("id", partnerId);
 
     if (updateError) throw updateError;

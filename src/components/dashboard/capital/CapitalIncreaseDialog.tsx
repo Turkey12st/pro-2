@@ -36,7 +36,7 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const updateCapital = useMutation<CapitalUpdateResult, Error, CapitalUpdateData>({
+  const updateCapital = useMutation({
     mutationFn: async (data: CapitalUpdateData) => {
       if (!amount || amount <= 0) {
         throw new Error("Invalid amount");
@@ -55,8 +55,7 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
           transaction_type: data.transaction_type,
           notes: data.notes,
           effective_date: new Date().toISOString().split("T")[0],
-        })
-        .select();
+        });
 
       if (historyError) throw historyError;
 

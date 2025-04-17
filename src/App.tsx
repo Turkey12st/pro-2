@@ -14,6 +14,7 @@ import SettingsPage from "./pages/settings/Index";
 import NotFound from "./pages/NotFound";
 import ZakatPage from "./pages/zakat/Index";
 import CapitalManagementPage from "./pages/capital/Index";
+import CalendarPage from "./pages/calendar/Index";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/partners" element={<PartnersPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/zakat" element={<ZakatPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
