@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +20,7 @@ import { CapitalManagement } from "@/types/database";
 interface CapitalUpdateData {
   amount: number;
   notes: string;
-  transaction_type: string;
+  transaction_type: "increase" | "decrease";
 }
 
 interface CapitalUpdateResult {
@@ -30,7 +29,7 @@ interface CapitalUpdateResult {
 
 export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalManagement }) {
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState<number | undefined>(undefined);
   const [notes, setNotes] = useState("");
   const [transactionType, setTransactionType] = useState<"increase" | "decrease">("increase");
   const { toast } = useToast();
@@ -38,15 +37,19 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
 
   const updateCapital = useMutation<CapitalUpdateResult, Error, CapitalUpdateData>({
     mutationFn: async (data: CapitalUpdateData) => {
+      if (!amount || amount <= 0) {
+        throw new Error("Invalid amount");
+      }
+
       // 1. إضافة سجل في جدول capital_history
       const { error: historyError } = await supabase
         .from("capital_history")
         .insert({
           previous_capital: capitalData.total_capital,
           amount: data.amount,
-          new_capital: 
-            data.transaction_type === "increase" 
-              ? capitalData.total_capital + data.amount 
+          new_capital:
+            data.transaction_type === "increase"
+              ? capitalData.total_capital + data.amount
               : capitalData.total_capital - data.amount,
           transaction_type: data.transaction_type,
           notes: data.notes,
@@ -57,14 +60,14 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
       if (historyError) throw historyError;
 
       // 2. تحديث السجل في جدول capital_management
-      const newTotalCapital = 
-        data.transaction_type === "increase" 
-          ? capitalData.total_capital + data.amount 
+      const newTotalCapital =
+        data.transaction_type === "increase"
+          ? capitalData.total_capital + data.amount
           : capitalData.total_capital - data.amount;
-          
-      const newAvailableCapital = 
-        data.transaction_type === "increase" 
-          ? capitalData.available_capital + data.amount 
+
+      const newAvailableCapital =
+        data.transaction_type === "increase"
+          ? capitalData.available_capital + data.amount
           : capitalData.available_capital - data.amount;
 
       const { error: updateError } = await supabase
@@ -78,7 +81,6 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
 
       if (updateError) throw updateError;
 
-      // Return a simple object with success status
       return { success: true };
     },
     onSuccess: () => {
@@ -88,7 +90,7 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
         description: `تم تحديث قيمة رأس المال بنجاح`,
       });
       setOpen(false);
-      setAmount("");
+      setAmount(undefined);
       setNotes("");
     },
     onError: (error) => {
@@ -103,7 +105,7 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || Number(amount) <= 0) {
+    if (!amount || amount <= 0) {
       toast({
         title: "خطأ في الإدخال",
         description: "يرجى إدخال قيمة صحيحة أكبر من صفر",
@@ -113,7 +115,7 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
     }
 
     updateCapital.mutate({
-      amount: Number(amount),
+      amount,
       notes,
       transaction_type: transactionType,
     });
@@ -159,8 +161,15 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
               id="amount"
               type="number"
               placeholder="أدخل المبلغ"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              value={amount ?? ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (!value || isNaN(Number(value))) {
+                  setAmount(undefined);
+                } else {
+                  setAmount(Number(value));
+                }
+              }}
             />
           </div>
           <div className="space-y-2">
