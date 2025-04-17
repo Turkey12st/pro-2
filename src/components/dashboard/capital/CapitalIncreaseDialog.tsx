@@ -24,6 +24,10 @@ interface CapitalUpdateData {
   transaction_type: string;
 }
 
+interface CapitalUpdateResult {
+  success: boolean;
+}
+
 export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalManagement }) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
@@ -32,10 +36,10 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const updateCapital = useMutation({
+  const updateCapital = useMutation<CapitalUpdateResult, Error, CapitalUpdateData>({
     mutationFn: async (data: CapitalUpdateData) => {
       // 1. إضافة سجل في جدول capital_history
-      const { data: historyResult, error: historyError } = await supabase
+      const { error: historyError } = await supabase
         .from("capital_history")
         .insert({
           previous_capital: capitalData.total_capital,
@@ -74,7 +78,7 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
 
       if (updateError) throw updateError;
 
-      // Return a simple object to avoid recursive type definitions
+      // Return a simple object with success status
       return { success: true };
     },
     onSuccess: () => {

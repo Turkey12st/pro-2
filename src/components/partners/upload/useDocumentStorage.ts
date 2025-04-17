@@ -33,6 +33,8 @@ export function useDocumentStorage(partnerId: string | null) {
     documentName: string,
     file: File
   ): Promise<boolean> => {
+    if (!partnerId) return false;
+    
     const { data, error } = await supabase
       .from("company_partners")
       .select("*")
@@ -50,6 +52,7 @@ export function useDocumentStorage(partnerId: string | null) {
       uploadedAt: new Date().toISOString()
     };
 
+    // Handle existing documents as a proper array to avoid recursion
     const existingDocs = Array.isArray(data.documents) 
       ? data.documents.map((doc: any) => ({
           id: doc.id || "",
