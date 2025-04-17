@@ -52,7 +52,7 @@ export function useDocumentStorage(partnerId: string | null) {
       uploadedAt: new Date().toISOString()
     };
 
-    // Handle existing documents as a proper array to avoid recursion
+    // Convert existing documents to a proper array to avoid recursive type issues
     const existingDocs = Array.isArray(data.documents) 
       ? data.documents.map((doc: any) => ({
           id: doc.id || "",
