@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CapitalManagement } from "@/types/database";
+import { debounce } from "lodash";
 
 interface CapitalUpdateData {
   amount: number;
@@ -33,6 +33,7 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
   const [amount, setAmount] = useState<number | undefined>(undefined);
   const [notes, setNotes] = useState("");
   const [transactionType, setTransactionType] = useState<"increase" | "decrease">("increase");
+  const [amountError, setAmountError] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -85,7 +86,7 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
       return { success: true };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["capital_management"] });
+      queryClient.invalidateQueries({ queryKey: ["capital_management", capitalData.id] });
       toast({
         title: transactionType === "increase" ? "تم زيادة رأس المال" : "تم تخفيض رأس المال",
         description: `تم تحديث قيمة رأس المال بنجاح`,
@@ -98,7 +99,7 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
       console.error("Error updating capital:", error);
       toast({
         title: "خطأ في تحديث رأس المال",
-        description: "حدث خطأ أثناء محاولة تحديث رأس المال",
+        description: error.message || "حدث خطأ أثناء محاولة تحديث رأس المال",
         variant: "destructive",
       });
     },
@@ -107,13 +108,10 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || amount <= 0) {
-      toast({
-        title: "خطأ في الإدخال",
-        description: "يرجى إدخال قيمة صحيحة أكبر من صفر",
-        variant: "destructive",
-      });
+      setAmountError("يرجى إدخال قيمة صحيحة أكبر من صفر");
       return;
     }
+    setAmountError(null);
 
     updateCapital.mutate({
       amount,
@@ -121,6 +119,10 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
       transaction_type: transactionType,
     });
   };
+
+  const debouncedSetAmount = debounce((value: number) => {
+    setAmount(value);
+  }, 300);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -162,16 +164,19 @@ export function CapitalIncreaseDialog({ capitalData }: { capitalData: CapitalMan
               id="amount"
               type="number"
               placeholder="أدخل المبلغ"
-              value={amount ?? ""}
+              value={amount?.toString() || ""}
               onChange={(e) => {
                 const value = e.target.value;
                 if (!value || isNaN(Number(value))) {
                   setAmount(undefined);
+                  setAmountError("يرجى إدخال قيمة صحيحة");
                 } else {
-                  setAmount(Number(value));
+                  debouncedSetAmount(Number(value));
+                  setAmountError(null);
                 }
               }}
             />
+            {amountError && <p className="text-red-500 text-sm">{amountError}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="notes">ملاحظات</Label>
