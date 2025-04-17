@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,22 +9,21 @@ import { Button } from '@/components/ui/button';
 import { Building2, Wallet, ArrowUpDown, LineChart, Download, Upload } from 'lucide-react';
 import { CapitalManagement } from '@/types/database';
 import AppLayout from '@/components/AppLayout';
-
 export default function CapitalManagementPage() {
   const [activeTab, setActiveTab] = React.useState('overview');
-
-  const { data: capitalData, isLoading } = useQuery({
+  const {
+    data: capitalData,
+    isLoading
+  } = useQuery({
     queryKey: ['capital_management'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('capital_management')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
+      const {
+        data,
+        error
+      } = await supabase.from('capital_management').select('*').order('created_at', {
+        ascending: false
+      }).limit(1).maybeSingle();
       if (error) throw error;
-      
       if (!data) {
         // If no capital data exists, create a default record
         const currentYear = new Date().getFullYear();
@@ -36,44 +34,38 @@ export default function CapitalManagementPage() {
           fiscal_year: currentYear,
           last_updated: new Date().toISOString()
         };
-        
-        const { data: newData, error: insertError } = await supabase
-          .from('capital_management')
-          .insert([defaultCapital])
-          .select()
-          .single();
-        
+        const {
+          data: newData,
+          error: insertError
+        } = await supabase.from('capital_management').insert([defaultCapital]).select().single();
         if (insertError) throw insertError;
         return newData;
       }
-      
       return data;
-    },
+    }
   });
-
-  const { data: capitalHistory, isLoading: isHistoryLoading } = useQuery({
+  const {
+    data: capitalHistory,
+    isLoading: isHistoryLoading
+  } = useQuery({
     queryKey: ['capital_history'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('capital_history')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
+      const {
+        data,
+        error
+      } = await supabase.from('capital_history').select('*').order('created_at', {
+        ascending: false
+      }).limit(10);
       if (error) throw error;
       return data || [];
-    },
+    }
   });
-
-  return (
-    <AppLayout>
+  return <AppLayout>
       <div className="container mx-auto p-4 space-y-6">
         <header className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">إدارة رأس المال</h1>
           <div className="space-x-2 space-x-reverse">
-            {capitalData && (
-              <CapitalIncreaseDialog capitalData={capitalData} />
-            )}
+            {capitalData && <CapitalIncreaseDialog capitalData={capitalData} />}
           </div>
         </header>
 
@@ -83,15 +75,9 @@ export default function CapitalManagementPage() {
               <CardTitle className="text-xl">ملخص رأس المال</CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8">جاري تحميل البيانات...</div>
-              ) : capitalData ? (
-                <CapitalDetails data={capitalData} />
-              ) : (
-                <div className="text-center py-8">
+              {isLoading ? <div className="text-center py-8">جاري تحميل البيانات...</div> : capitalData ? <CapitalDetails data={capitalData} /> : <div className="text-center py-8">
                   <p className="text-muted-foreground">لا توجد بيانات رأس المال</p>
-                </div>
-              )}
+                </div>}
             </CardContent>
           </Card>
 
@@ -137,10 +123,10 @@ export default function CapitalManagementPage() {
           <TabsContent value="overview" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>معلومات رأس المال</CardTitle>
+                <CardTitle className="text-right">معلومات رأس المال</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p>
+                <p className="text-right">
                   يمثل رأس المال الأصول المالية المتاحة للشركة لتمويل عملياتها ونموها. 
                   يتضمن ذلك رأس المال المستثمر من قبل المساهمين والأرباح المحتجزة.
                 </p>
@@ -148,7 +134,7 @@ export default function CapitalManagementPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">كيفية زيادة رأس المال</CardTitle>
+                      <CardTitle className="text-lg text-right">كيفية زيادة رأس المال</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ul className="list-disc list-inside space-y-2">
@@ -163,7 +149,7 @@ export default function CapitalManagementPage() {
                   
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">إدارة رأس المال الفعالة</CardTitle>
+                      <CardTitle className="text-lg text-right">إدارة رأس المال الفعالة</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ul className="list-disc list-inside space-y-2">
@@ -204,13 +190,9 @@ export default function CapitalManagementPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {isHistoryLoading ? (
-                        <tr>
+                      {isHistoryLoading ? <tr>
                           <td colSpan={6} className="py-4 text-center">جاري تحميل البيانات...</td>
-                        </tr>
-                      ) : capitalHistory && capitalHistory.length > 0 ? (
-                        capitalHistory.map((item: any) => (
-                          <tr key={item.id} className="border-b hover:bg-muted/50">
+                        </tr> : capitalHistory && capitalHistory.length > 0 ? capitalHistory.map((item: any) => <tr key={item.id} className="border-b hover:bg-muted/50">
                             <td className="py-2 px-4">{new Date(item.created_at).toLocaleDateString('en-US')}</td>
                             <td className="py-2 px-4">
                               <span className={`px-2 py-1 rounded text-xs ${item.transaction_type === 'increase' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -221,13 +203,9 @@ export default function CapitalManagementPage() {
                             <td className="py-2 px-4 dir-ltr text-right">{new Intl.NumberFormat('en-US').format(item.previous_capital)} ريال</td>
                             <td className="py-2 px-4 dir-ltr text-right">{new Intl.NumberFormat('en-US').format(item.new_capital)} ريال</td>
                             <td className="py-2 px-4">{item.notes || '-'}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
+                          </tr>) : <tr>
                           <td colSpan={6} className="py-4 text-center">لا توجد معاملات</td>
-                        </tr>
-                      )}
+                        </tr>}
                     </tbody>
                   </table>
                 </div>
@@ -254,6 +232,5 @@ export default function CapitalManagementPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
-  );
+    </AppLayout>;
 }
