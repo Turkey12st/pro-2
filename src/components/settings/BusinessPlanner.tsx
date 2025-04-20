@@ -297,20 +297,141 @@ export function BusinessPlanner() {
         </TabsContent>
 
         <TabsContent value="planning" className="mt-0">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-6">
-                <LineChart className="h-16 w-16 mx-auto text-muted-foreground" />
-                <h3 className="text-xl font-medium mt-4">التخطيط الاستراتيجي</h3>
-                <p className="text-muted-foreground mt-2">
-                  سيتم توفير أدوات التخطيط الاستراتيجي والتحليل في التحديثات القادمة
-                </p>
-                <Button variant="outline" className="mt-4">
-                  الإشعار عند التوفر
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>تحليل SWOT</CardTitle>
+                <CardDescription>تحليل نقاط القوة والضعف والفرص والتحديات</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 dark:bg-green-900/10 rounded-lg">
+                      <Label className="text-green-700 dark:text-green-300">نقاط القوة</Label>
+                      <Textarea 
+                        placeholder="أدخل نقاط القوة الرئيسية للشركة"
+                        className="mt-2"
+                      />
+                    </div>
+                    <div className="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-lg">
+                      <Label className="text-amber-700 dark:text-amber-300">الفرص</Label>
+                      <Textarea 
+                        placeholder="أدخل الفرص المتاحة في السوق"
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-red-50 dark:bg-red-900/10 rounded-lg">
+                      <Label className="text-red-700 dark:text-red-300">نقاط الضعف</Label>
+                      <Textarea 
+                        placeholder="أدخل نقاط الضعف التي تحتاج للتحسين"
+                        className="mt-2"
+                      />
+                    </div>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg">
+                      <Label className="text-blue-700 dark:text-blue-300">التحديات</Label>
+                      <Textarea 
+                        placeholder="أدخل التحديات والمخاطر المحتملة"
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>تحليل PESTEL</CardTitle>
+                <CardDescription>تحليل العوامل الخارجية المؤثرة</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="space-y-2">
+                  <Label>العوامل السياسية</Label>
+                  <Textarea placeholder="التشريعات والقوانين المؤثرة على العمل" />
+                </div>
+                <div className="space-y-2">
+                  <Label>العوامل الاقتصادية</Label>
+                  <Textarea placeholder="الوضع الاقتصادي وتأثيره على العمل" />
+                </div>
+                <div className="space-y-2">
+                  <Label>العوامل الاجتماعية</Label>
+                  <Textarea placeholder="العادات والتقاليد والتغيرات الاجتماعية" />
+                </div>
+                <div className="space-y-2">
+                  <Label>العوامل التقنية</Label>
+                  <Textarea placeholder="التطورات التقنية وتأثيرها على العمل" />
+                </div>
+                <div className="space-y-2">
+                  <Label>العوامل البيئية</Label>
+                  <Textarea placeholder="القضايا البيئية والاستدامة" />
+                </div>
+                <div className="space-y-2">
+                  <Label>العوامل القانونية</Label>
+                  <Textarea placeholder="القوانين واللوائح التنظيمية" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>استراتيجية المنافسة</CardTitle>
+                <CardDescription>تحليل القوى التنافسية الخمس لبورتر</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="space-y-2">
+                  <Label>المنافسون الحاليون</Label>
+                  <Textarea placeholder="تحليل المنافسين الحاليين في السوق" />
+                </div>
+                <div className="space-y-2">
+                  <Label>المنافسون المحتملون</Label>
+                  <Textarea placeholder="تحليل احتمالية دخول منافسين جدد" />
+                </div>
+                <div className="space-y-2">
+                  <Label>قوة المشترين</Label>
+                  <Textarea placeholder="تحليل قوة التفاوض للعملاء" />
+                </div>
+                <div className="space-y-2">
+                  <Label>قوة الموردين</Label>
+                  <Textarea placeholder="تحليل قوة التفاوض للموردين" />
+                </div>
+                <div className="space-y-2">
+                  <Label>تهديد المنتجات البديلة</Label>
+                  <Textarea placeholder="تحليل المنتجات والخدمات البديلة" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>الخطة الاستراتيجية</CardTitle>
+                <CardDescription>تحديد الرؤية والرسالة والأهداف</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="space-y-2">
+                  <Label>الرؤية</Label>
+                  <Textarea placeholder="ما هو طموحنا وما نسعى لتحقيقه" />
+                </div>
+                <div className="space-y-2">
+                  <Label>الرسالة</Label>
+                  <Textarea placeholder="كيف سنحقق رؤيتنا وما هي قيمنا" />
+                </div>
+                <div className="space-y-2">
+                  <Label>القيم</Label>
+                  <Textarea placeholder="القيم الأساسية التي تحكم عملنا" />
+                </div>
+                <div className="space-y-2">
+                  <Label>الأهداف الاستراتيجية</Label>
+                  <Textarea placeholder="الأهداف الرئيسية للسنوات القادمة" />
+                </div>
+                <div className="space-y-2">
+                  <Label>مؤشرات الأداء</Label>
+                  <Textarea placeholder="كيف سنقيس نجاحنا في تحقيق الأهداف" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
