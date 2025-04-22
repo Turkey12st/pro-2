@@ -12,23 +12,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { CapitalManagement } from "@/types/database";
 
 interface CapitalIncreaseDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   onSuccess?: () => void;
-  currentCapital: number;
+  currentCapital?: number;
+  capitalData?: CapitalManagement;
 }
 
 export function CapitalIncreaseDialog({
-  isOpen,
-  onClose,
+  isOpen = false,
+  onClose = () => {},
   onSuccess,
   currentCapital,
+  capitalData,
 }: CapitalIncreaseDialogProps) {
   const [amount, setAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  
+  // Use currentCapital if provided, otherwise use capitalData.total_capital
+  const actualCapital = currentCapital !== undefined 
+    ? currentCapital 
+    : (capitalData?.total_capital || 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +45,13 @@ export function CapitalIncreaseDialog({
     setIsSubmitting(true);
     try {
       const numericAmount = parseFloat(amount);
-      const newCapital = currentCapital + numericAmount;
+      const newCapital = actualCapital + numericAmount;
 
       const { error } = await supabase
         .from("capital_history")
         .insert({
           amount: numericAmount,
-          previous_capital: currentCapital,
+          previous_capital: actualCapital,
           new_capital: newCapital,
           transaction_type: "increase",
           status: "completed",

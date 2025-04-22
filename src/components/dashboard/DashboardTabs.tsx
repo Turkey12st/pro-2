@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
@@ -15,6 +16,37 @@ import {
   DollarSign,
   CalendarCheck
 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatNumber } from "@/utils/formatters";
+import { 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  Tooltip, 
+  Legend,
+  AreaChart,
+  Area,
+  CartesianGrid,
+  XAxis,
+  YAxis
+} from "recharts";
+
+// Defining types for props
+interface FinancialSummaryType {
+  total_income: number;
+  total_expenses: number;
+  net_profit: number;
+  profit_margin: number;
+}
+
+interface SalarySummaryType {
+  total_salaries: number;
+  payment_date: string;
+  days_remaining: number;
+  employees_count: number;
+  status: "upcoming" | "overdue" | "paid";
+}
 
 interface DashboardTabsProps {
   financialData: FinancialSummaryType;
@@ -35,6 +67,26 @@ interface DashboardTabsProps {
     status: string;
   }>;
 }
+
+// Sample data for KPI chart
+const kpiData = [
+  { name: "استثمارات", value: 400000 },
+  { name: "أصول", value: 300000 },
+  { name: "مبيعات", value: 250000 },
+];
+
+// Sample data for cash flow trends
+const cashFlowTrends = [
+  { month: "يناير", income: 45000, expenses: 32000 },
+  { month: "فبراير", income: 52000, expenses: 36000 },
+  { month: "مارس", income: 49000, expenses: 39000 },
+  { month: "أبريل", income: 58000, expenses: 41000 },
+  { month: "مايو", income: 56000, expenses: 38000 },
+  { month: "يونيو", income: 54000, expenses: 39000 },
+];
+
+// Colors for pie chart
+const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#0088fe"];
 
 export function DashboardTabs({ financialData, salarySummary, notifications, expiringDocuments }: DashboardTabsProps) {
   return (

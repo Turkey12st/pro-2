@@ -2,7 +2,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Building2 } from "lucide-react";
 import { CapitalManagement } from "@/types/database";
-import { CapitalIncreaseDialog } from "./capital/CapitalIncreaseDialog";
 import { CapitalDetails } from "./capital/CapitalDetails";
 import { CapitalSummaryLoader } from "./capital/CapitalSummaryLoader";
 
@@ -29,7 +28,6 @@ export function CapitalSummary({ data, isLoading = false }: CapitalSummaryProps)
       </CardHeader>
       <CardContent className="space-y-4">
         <CapitalDetails data={data} />
-        <CapitalIncreaseDialog capitalData={data} />
       </CardContent>
     </Card>
   );
