@@ -1,82 +1,65 @@
 
-import { useCallback } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DocumentObject } from "./types";
 import { useToast } from "@/hooks/use-toast";
 
-export function useDocumentStorage(partnerId: string | null) {
+export const useDocumentStorage = () => {
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
-  const uploadDocument = useCallback(async (
-    file: File,
-    documentName: string
-  ): Promise<string | null> => {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${partnerId}-${Date.now()}.${fileExt}`;
-    const filePath = `partners/${partnerId}/documents/${fileName}`;
+  const uploadDocument = async (file: File, path: string): Promise<string | null> => {
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${path}/${fileName}`;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("documents")
-      .upload(filePath, file);
+      const { error: uploadError, data } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
 
-    if (uploadError) throw uploadError;
+      if (uploadError) throw uploadError;
 
-    const { data: publicUrlData } = supabase.storage
-      .from("documents")
-      .getPublicUrl(filePath);
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
 
-    return publicUrlData.publicUrl;
-  }, [partnerId]);
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      toast({
+        title: "خطأ في رفع المستند",
+        description: "حدث خطأ أثناء محاولة رفع المستند",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
-  const saveDocumentMetadata = useCallback(async (
-    documentUrl: string,
-    documentName: string,
-    file: File
-  ): Promise<boolean> => {
-    if (!partnerId) return false;
-    
-    const { data, error } = await supabase
-      .from("company_partners")
-      .select("*")
-      .eq("id", partnerId)
-      .single();
+  const deleteDocument = async (path: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.storage
+        .from('documents')
+        .remove([path]);
 
-    if (error) throw error;
-
-    const newDocument: DocumentObject = {
-      id: crypto.randomUUID(),
-      name: documentName,
-      url: documentUrl,
-      type: file.type,
-      size: file.size,
-      uploadedAt: new Date().toISOString()
-    };
-
-    // تحويل المستندات الموجودة إلى مصفوفة صحيحة لتجنب مشاكل الأنواع المتعمقة
-    const existingDocs = Array.isArray(data.documents) 
-      ? data.documents.map((doc: any) => ({
-          id: doc.id || "",
-          name: doc.name || "",
-          url: doc.url || "",
-          type: doc.type || "",
-          size: doc.size || 0,
-          uploadedAt: doc.uploadedAt || new Date().toISOString()
-        }))
-      : [];
-
-    const { error: updateError } = await supabase
-      .from("company_partners")
-      .update({ 
-        documents: [...existingDocs, newDocument] 
-      })
-      .eq("id", partnerId);
-
-    if (updateError) throw updateError;
-    return true;
-  }, [partnerId]);
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast({
+        title: "خطأ في حذف المستند",
+        description: "حدث خطأ أثناء محاولة حذف المستند",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
 
   return {
     uploadDocument,
-    saveDocumentMetadata
+    deleteDocument,
+    isUploading,
   };
-}
+};

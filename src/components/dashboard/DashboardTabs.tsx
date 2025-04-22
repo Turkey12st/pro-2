@@ -1,8 +1,6 @@
-
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
-import { FinancialChart } from "@/components/dashboard/FinancialChart";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { NotificationsList } from "@/components/dashboard/NotificationsList";
 import { SalarySummary } from "@/components/dashboard/SalarySummary";
@@ -17,21 +15,6 @@ import {
   DollarSign,
   CalendarCheck
 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  Tooltip,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid
-} from "recharts";
-import { SalarySummary as SalarySummaryType, FinancialSummaryType } from "@/types/database";
 
 interface DashboardTabsProps {
   financialData: FinancialSummaryType;
@@ -54,30 +37,6 @@ interface DashboardTabsProps {
 }
 
 export function DashboardTabs({ financialData, salarySummary, notifications, expiringDocuments }: DashboardTabsProps) {
-  // Sample KPI data for financial performance
-  const kpiData = [
-    { name: 'إيرادات', value: financialData.total_income },
-    { name: 'مصروفات', value: financialData.total_expenses },
-    { name: 'صافي الربح', value: financialData.net_profit },
-  ];
-
-  const COLORS = ['#4f46e5', '#ef4444', '#22c55e', '#eab308'];
-
-  // Sample cash flow trend data
-  const cashFlowTrends = [
-    { month: 'يناير', income: 42000, expenses: 31500 },
-    { month: 'فبراير', income: 52000, expenses: 37800 },
-    { month: 'مارس', income: 38000, expenses: 29500 },
-    { month: 'أبريل', income: 61000, expenses: 42500 },
-    { month: 'مايو', income: 55000, expenses: 38900 },
-    { month: 'يونيو', income: 67000, expenses: 44500 },
-  ];
-
-  // Formatter for numbers
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('ar-SA').format(num);
-  };
-
   return (
     <Tabs defaultValue="financial" className="w-full">
       <TabsList className="mb-4">
@@ -106,7 +65,6 @@ export function DashboardTabs({ financialData, salarySummary, notifications, exp
       <TabsContent value="financial" className="space-y-4">
         <FinancialSummary data={financialData} />
         <div className="grid gap-4 md:grid-cols-2">
-          <FinancialChart />
           <CashFlowChart />
         </div>
       </TabsContent>
