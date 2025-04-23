@@ -168,6 +168,56 @@ export type Database = {
         }
         Relationships: []
       }
+      chart_of_accounts: {
+        Row: {
+          account_name: string
+          account_number: string
+          account_type: string
+          balance_type: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          level: number
+          parent_account_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          account_type: string
+          balance_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          level?: number
+          parent_account_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          account_type?: string
+          balance_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          level?: number
+          parent_account_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_of_accounts_parent_account_id_fkey"
+            columns: ["parent_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_categories: {
         Row: {
           created_at: string
@@ -584,57 +634,81 @@ export type Database = {
       journal_entries: {
         Row: {
           amount: number | null
+          approved_at: string | null
+          approved_by: string | null
           attachment_url: string | null
           created_at: string
           created_by: string | null
+          currency: string | null
           description: string
           entry_date: string
           entry_name: string | null
           entry_type: string | null
+          exchange_rate: number | null
           financial_statement_section: string | null
           id: string
+          is_approved: boolean | null
+          is_recurring: boolean | null
           posted_at: string | null
           posted_by: string | null
+          recurrence_pattern: Json | null
           reference_number: string | null
           status: string | null
+          tags: string[] | null
           total_credit: number | null
           total_debit: number | null
           updated_at: string
         }
         Insert: {
           amount?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
           attachment_url?: string | null
           created_at?: string
           created_by?: string | null
+          currency?: string | null
           description: string
           entry_date: string
           entry_name?: string | null
           entry_type?: string | null
+          exchange_rate?: number | null
           financial_statement_section?: string | null
           id?: string
+          is_approved?: boolean | null
+          is_recurring?: boolean | null
           posted_at?: string | null
           posted_by?: string | null
+          recurrence_pattern?: Json | null
           reference_number?: string | null
           status?: string | null
+          tags?: string[] | null
           total_credit?: number | null
           total_debit?: number | null
           updated_at?: string
         }
         Update: {
           amount?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
           attachment_url?: string | null
           created_at?: string
           created_by?: string | null
+          currency?: string | null
           description?: string
           entry_date?: string
           entry_name?: string | null
           entry_type?: string | null
+          exchange_rate?: number | null
           financial_statement_section?: string | null
           id?: string
+          is_approved?: boolean | null
+          is_recurring?: boolean | null
           posted_at?: string | null
           posted_by?: string | null
+          recurrence_pattern?: Json | null
           reference_number?: string | null
           status?: string | null
+          tags?: string[] | null
           total_credit?: number | null
           total_debit?: number | null
           updated_at?: string
@@ -644,30 +718,54 @@ export type Database = {
       journal_entry_items: {
         Row: {
           account_id: string
+          account_number: string | null
           created_at: string
           credit: number | null
+          currency: string | null
           debit: number | null
           description: string | null
+          dimension1: string | null
+          dimension2: string | null
+          exchange_rate: number | null
           id: string
+          is_cleared: boolean | null
           journal_entry_id: string | null
+          tax_amount: number | null
+          tax_code: string | null
         }
         Insert: {
           account_id: string
+          account_number?: string | null
           created_at?: string
           credit?: number | null
+          currency?: string | null
           debit?: number | null
           description?: string | null
+          dimension1?: string | null
+          dimension2?: string | null
+          exchange_rate?: number | null
           id?: string
+          is_cleared?: boolean | null
           journal_entry_id?: string | null
+          tax_amount?: number | null
+          tax_code?: string | null
         }
         Update: {
           account_id?: string
+          account_number?: string | null
           created_at?: string
           credit?: number | null
+          currency?: string | null
           debit?: number | null
           description?: string | null
+          dimension1?: string | null
+          dimension2?: string | null
+          exchange_rate?: number | null
           id?: string
+          is_cleared?: boolean | null
           journal_entry_id?: string | null
+          tax_amount?: number | null
+          tax_code?: string | null
         }
         Relationships: [
           {
@@ -1114,6 +1212,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_account_path: {
+        Args: { account_id: string }
+        Returns: string[]
+      }
       get_journal_entry_attachment: {
         Args: { p_entry_id: string }
         Returns: string

@@ -114,6 +114,48 @@ export interface JournalEntry {
   attachment_url?: string;
   created_at?: string;
   updated_at?: string;
+  currency?: string;
+  exchange_rate?: number;
+  is_recurring?: boolean;
+  recurrence_pattern?: Record<string, any>;
+  tags?: string[];
+  is_approved?: boolean;
+  approved_by?: string;
+  approved_at?: string;
+}
+
+export interface JournalEntryItem {
+  id: string;
+  journal_entry_id: string;
+  account_id: string;
+  account_number?: string;
+  description?: string;
+  debit: number;
+  credit: number;
+  created_at?: string;
+  currency?: string;
+  exchange_rate?: number;
+  tax_amount?: number;
+  tax_code?: string;
+  dimension1?: string;
+  dimension2?: string;
+  is_cleared?: boolean;
+}
+
+export interface ChartOfAccount {
+  id: string;
+  account_number: string;
+  account_name: string;
+  account_type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  parent_account_id?: string;
+  level: number;
+  is_active: boolean;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+  balance_type: 'debit' | 'credit';
+  children?: ChartOfAccount[];
+  balance?: number;
 }
 
 export interface CapitalManagement {

@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import ZakatPage from "./pages/zakat/Index";
 import CapitalManagementPage from "./pages/capital/Index";
 import CalendarPage from "./pages/calendar/Index";
+import FinancialPage from "./pages/financial/Index";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/" element={<MainPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/accounting" element={<AccountingPage />} />
+        <Route path="/financial" element={<FinancialPage />} />
         <Route path="/capital" element={<CapitalManagementPage />} />
         <Route path="/hr" element={<HRPage />} />
         <Route path="/hr/employee/:id" element={<EmployeeProfile />} />
