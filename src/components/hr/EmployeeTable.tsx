@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatDate, formatSalary } from "@/utils/formatters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Pencil, Trash, AlertCircle } from "lucide-react";
+import { Eye, Pencil, Trash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface EmployeeTableProps {
@@ -68,7 +68,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({ employees, onDelete }) =>
                 <TableCell>{getEmployeeTypeDisplay(employee.employee_type)}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/hr/employees/${employee.id}`)}>
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/hr/employee/${employee.id}`)}>
                       <Eye className="h-4 w-4 ml-1" /> عرض
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => navigate(`/hr/employees/edit/${employee.id}`)}>

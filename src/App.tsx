@@ -5,6 +5,7 @@ import MainPage from "./pages/MainPage";
 import DashboardPage from "./pages/dashboard/Index";
 import AccountingPage from "./pages/accounting/Index";
 import HRPage from "./pages/hr/Index";
+import EmployeeProfile from "./pages/hr/EmployeeProfile";
 import DocumentsPage from "./pages/documents/Index";
 import ProjectsPage from "./pages/projects/Index";
 import ClientsPage from "./pages/clients/Index";
@@ -25,6 +26,7 @@ function App() {
         <Route path="/accounting" element={<AccountingPage />} />
         <Route path="/capital" element={<CapitalManagementPage />} />
         <Route path="/hr" element={<HRPage />} />
+        <Route path="/hr/employee/:id" element={<EmployeeProfile />} />
         <Route path="/documents" element={<DocumentsPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/clients" element={<ClientsPage />} />

@@ -1,17 +1,35 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Partner } from "@/types/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { transformPartnerData } from "./utils";
 import { PartnersCapitalInfo } from "./PartnersCapitalInfo";
 import { PartnersTable } from "./PartnersTable";
 import { DocumentUploadDialog } from "./DocumentUploadDialog";
+
+interface Partner {
+  id: string;
+  name?: string;
+  first_name?: string;
+  last_name?: string;
+  nationality?: string;
+  identity_number?: string;
+  national_id?: string;
+  capital_amount?: number;
+  capital_percentage?: number;
+  ownership_percentage?: number;
+  position?: string;
+  role?: string;
+  documents?: Array<{
+    name: string;
+    url: string;
+    type: string;
+  }>;
+}
 
 export function PartnersList() {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -38,8 +56,22 @@ export function PartnersList() {
       if (error) throw error;
       
       if (data) {
-        // Transform the data properly
-        const partnersData: Partner[] = data.map((item) => transformPartnerData(item));
+        // Transform the data properly for display
+        const partnersData: Partner[] = data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          first_name: item.first_name,
+          last_name: item.last_name,
+          nationality: item.nationality,
+          identity_number: item.identity_number,
+          national_id: item.national_id,
+          capital_amount: item.capital_amount,
+          capital_percentage: item.capital_percentage,
+          ownership_percentage: item.ownership_percentage,
+          position: item.position,
+          role: item.role,
+          documents: item.documents
+        }));
         
         setPartners(partnersData);
         
