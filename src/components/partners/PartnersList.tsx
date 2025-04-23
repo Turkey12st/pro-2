@@ -65,12 +65,12 @@ export function PartnersList() {
           nationality: item.nationality,
           identity_number: item.identity_number,
           national_id: item.national_id,
-          capital_amount: item.capital_amount,
-          capital_percentage: item.capital_percentage,
+          capital_amount: item.capital_amount || item.share_value, // Support both field names
+          capital_percentage: item.capital_percentage || item.ownership_percentage, // Support both field names
           ownership_percentage: item.ownership_percentage,
           position: item.position,
           role: item.role,
-          documents: item.documents
+          documents: Array.isArray(item.documents) ? item.documents : []
         }));
         
         setPartners(partnersData);

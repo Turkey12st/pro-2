@@ -73,7 +73,9 @@ export function EmployeeDocuments({ employeeId, documents }: EmployeeDocumentsPr
 
       if (fetchError) throw fetchError;
 
-      const existingDocuments = employee.documents || [];
+      // Cast documents to the correct array type or provide a default empty array
+      const existingDocuments = Array.isArray(employee.documents) ? employee.documents : [];
+      
       const updatedDocuments = [
         ...existingDocuments,
         {
@@ -158,7 +160,11 @@ export function EmployeeDocuments({ employeeId, documents }: EmployeeDocumentsPr
                   <TableCell className="font-medium">{doc.name}</TableCell>
                   <TableCell>{doc.type}</TableCell>
                   <TableCell className="flex items-center space-x-2 space-x-reverse">
-                    <Button variant="ghost" size="sm" onClick={() => viewDocument(doc.url)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => viewDocument(doc.url)}
+                    >
                       <Eye className="h-4 w-4" />
                       <span className="sr-only">عرض</span>
                     </Button>

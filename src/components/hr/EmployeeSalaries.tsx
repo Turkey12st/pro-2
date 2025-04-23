@@ -34,7 +34,7 @@ export function EmployeeSalaries({ employeeId, employee }: EmployeeSalariesProps
     // في حالة عدم وجود جدول للرواتب بعد، يتم استخدام بيانات افتراضية 
     // يمكن إزالة هذا الجزء عند إنشاء جدول الرواتب الحقيقي
     enabled: !!employeeId,
-    placeholderData: () => {
+    placeholderData: employee ? () => {
       if (!employee) return [];
       
       // إنشاء بيانات افتراضية لعرض مثال للمستخدم
@@ -54,6 +54,7 @@ export function EmployeeSalaries({ employeeId, employee }: EmployeeSalariesProps
           transportation_allowance: employee.transportationAllowance,
           other_allowances: employee.otherAllowances,
           deductions: [{name: "التأمينات الاجتماعية", amount: employee.employeeGosiContribution || 0}],
+          gosi_subscription: employee.gosiSubscription || 0, // Added this field
           total_salary: employee.salary,
           payment_date: currentDate.toISOString(),
           status: "pending",
@@ -67,6 +68,7 @@ export function EmployeeSalaries({ employeeId, employee }: EmployeeSalariesProps
           transportation_allowance: employee.transportationAllowance,
           other_allowances: employee.otherAllowances,
           deductions: [{name: "التأمينات الاجتماعية", amount: employee.employeeGosiContribution || 0}],
+          gosi_subscription: employee.gosiSubscription || 0, // Added this field
           total_salary: employee.salary,
           payment_date: lastMonth.toISOString(),
           status: "paid",
@@ -80,13 +82,14 @@ export function EmployeeSalaries({ employeeId, employee }: EmployeeSalariesProps
           transportation_allowance: employee.transportationAllowance,
           other_allowances: employee.otherAllowances,
           deductions: [{name: "التأمينات الاجتماعية", amount: employee.employeeGosiContribution || 0}],
+          gosi_subscription: employee.gosiSubscription || 0, // Added this field
           total_salary: employee.salary,
           payment_date: twoMonthsAgo.toISOString(),
           status: "paid",
           created_at: twoMonthsAgo.toISOString(),
         },
       ];
-    }
+    } : undefined
   });
 
   const getStatusBadge = (status: string) => {
