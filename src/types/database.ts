@@ -144,16 +144,16 @@ export interface JournalEntryItem {
 
 export interface ChartOfAccount {
   id: string;
+  parent_account_id?: string;
   account_number: string;
   account_name: string;
-  account_type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
-  parent_account_id?: string;
+  account_type: 'asset' | 'liability' | 'equity' | 'revenue' | 'expense' | string;
+  balance_type: 'debit' | 'credit' | string;
+  description?: string;
   level: number;
   is_active: boolean;
-  description?: string;
   created_at: string;
   updated_at: string;
-  balance_type: 'debit' | 'credit';
   children?: ChartOfAccount[];
   balance?: number;
 }

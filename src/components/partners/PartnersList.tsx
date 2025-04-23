@@ -58,19 +58,25 @@ export function PartnersList() {
       if (data) {
         // Transform the data properly for display
         const partnersData: Partner[] = data.map((item) => ({
-          id: item.id,
+          id: item.id || crypto.randomUUID(),
           name: item.name,
-          first_name: item.first_name,
-          last_name: item.last_name,
-          nationality: item.nationality,
-          identity_number: item.identity_number,
-          national_id: item.national_id,
-          capital_amount: item.capital_amount || item.share_value, // Support both field names
-          capital_percentage: item.capital_percentage || item.ownership_percentage, // Support both field names
-          ownership_percentage: item.ownership_percentage,
-          position: item.position,
-          role: item.role,
-          documents: Array.isArray(item.documents) ? item.documents : []
+          first_name: item.first_name || undefined,
+          last_name: item.last_name || undefined,
+          nationality: item.nationality || undefined,
+          identity_number: item.identity_number || undefined,
+          national_id: item.national_id || undefined,
+          capital_amount: item.capital_amount || item.share_value || 0,
+          capital_percentage: item.capital_percentage || item.ownership_percentage || 0,
+          ownership_percentage: item.ownership_percentage || 0,
+          position: item.position || undefined,
+          role: item.role || undefined,
+          documents: Array.isArray(item.documents) 
+            ? item.documents.map((doc: any) => ({
+                name: doc.name || "",
+                url: doc.url || "",
+                type: doc.type || ""
+              }))
+            : []
         }));
         
         setPartners(partnersData);
@@ -141,7 +147,7 @@ export function PartnersList() {
         </CardHeader>
         <CardContent>
           <PartnersTable 
-            partners={partners} 
+            partners={partners as any} 
             loading={loading} 
             onDelete={setPartnerToDelete} 
             onUploadDocument={handleUploadDocument} 

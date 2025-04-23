@@ -11,6 +11,7 @@ import JournalEntryImportExport from "./components/JournalEntryImportExport";
 import { ChartOfAccountsManager } from "@/components/accounting/ChartOfAccountsManager";
 import { useJournalEntries } from "./hooks/useJournalEntries";
 import type { JournalEntry } from "@/types/database";
+import FinancialReports from "./components/FinancialReports";
 
 export default function AccountingPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,11 +27,6 @@ export default function AccountingPage() {
   const handleAddEntry = () => {
     setEditingEntry(null);
     setIsOpen(true);
-  };
-
-  const handleDialogClose = () => {
-    setIsOpen(false);
-    setEditingEntry(null);
   };
 
   return (
@@ -67,6 +63,7 @@ export default function AccountingPage() {
                 onDelete={handleDeleteEntry}
               />
               
+              {/* Dialog for adding/editing journal entries */}
               <JournalEntryDialog 
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
@@ -80,10 +77,7 @@ export default function AccountingPage() {
             </TabsContent>
             
             <TabsContent value="reports">
-              <div className="text-center py-10 text-muted-foreground">
-                <h3 className="text-lg font-medium mb-2">قريبًا</h3>
-                <p>سيتم إضافة التقارير المالية قريبًا.</p>
-              </div>
+              <FinancialReports />
             </TabsContent>
           </Tabs>
         </CardContent>

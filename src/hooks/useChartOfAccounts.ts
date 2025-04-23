@@ -22,8 +22,15 @@ export function useChartOfAccounts() {
 
       if (error) throw error;
       
-      // تنظيم البيانات في شكل شجرة
-      const organizedAccounts = organizeAccountsHierarchy(data || []);
+      // Cast the returned data to ChartOfAccount type
+      const typedAccounts: ChartOfAccount[] = data?.map(account => ({
+        ...account,
+        account_type: account.account_type as ChartOfAccount['account_type'],
+        balance_type: account.balance_type as 'debit' | 'credit'
+      })) || [];
+      
+      // Organize the data in a tree structure
+      const organizedAccounts = organizeAccountsHierarchy(typedAccounts);
       setAccounts(organizedAccounts);
     } catch (err) {
       console.error("خطأ في جلب الحسابات:", err);
@@ -40,17 +47,36 @@ export function useChartOfAccounts() {
 
   const addAccount = async (accountData: Partial<ChartOfAccount>): Promise<ChartOfAccount | null> => {
     try {
+      if (!accountData.account_name || !accountData.account_number || !accountData.account_type) {
+        throw new Error("بيانات الحساب غير مكتملة");
+      }
+
       const { data, error } = await supabase
         .from("chart_of_accounts")
-        .insert(accountData)
+        .insert({
+          account_name: accountData.account_name,
+          account_number: accountData.account_number,
+          account_type: accountData.account_type,
+          balance_type: accountData.balance_type || 'debit',
+          description: accountData.description,
+          parent_account_id: accountData.parent_account_id,
+          level: accountData.level || 1,
+          is_active: accountData.is_active !== undefined ? accountData.is_active : true
+        })
         .select("*")
         .single();
 
       if (error) throw error;
       
       if (data) {
-        setAccounts(prev => organizeAccountsHierarchy([...prev, data]));
-        return data;
+        const typedAccount: ChartOfAccount = {
+          ...data,
+          account_type: data.account_type as ChartOfAccount['account_type'],
+          balance_type: data.balance_type as 'debit' | 'credit'
+        };
+        
+        setAccounts(prev => organizeAccountsHierarchy([...prev, typedAccount]));
+        return typedAccount;
       }
       return null;
     } catch (err) {
@@ -76,13 +102,19 @@ export function useChartOfAccounts() {
       if (error) throw error;
 
       if (data) {
+        const typedAccount: ChartOfAccount = {
+          ...data,
+          account_type: data.account_type as ChartOfAccount['account_type'],
+          balance_type: data.balance_type as 'debit' | 'credit'
+        };
+        
         setAccounts(prev => {
           const updatedAccounts = prev.map(account => 
-            account.id === accountId ? { ...account, ...data } : account
+            account.id === accountId ? { ...account, ...typedAccount } : account
           );
           return organizeAccountsHierarchy(updatedAccounts);
         });
-        return data;
+        return typedAccount;
       }
       return null;
     } catch (err) {
@@ -163,10 +195,10 @@ function organizeAccountsHierarchy(accounts: ChartOfAccount[]): ChartOfAccount[]
   const accountsWithChildren = accounts.map(account => ({
     ...account,
     children: []
-  }));
+  })) as ChartOfAccount[];
 
   // إنشاء مؤشر للوصول السريع للحسابات حسب المعرف
-  const accountMap = new Map<string, ChartOfAccount & { children: ChartOfAccount[] }>();
+  const accountMap = new Map<string, ChartOfAccount>();
   accountsWithChildren.forEach(account => {
     accountMap.set(account.id, account);
   });
@@ -175,7 +207,7 @@ function organizeAccountsHierarchy(accounts: ChartOfAccount[]): ChartOfAccount[]
   accountsWithChildren.forEach(account => {
     if (account.parent_account_id) {
       const parent = accountMap.get(account.parent_account_id);
-      if (parent) {
+      if (parent && parent.children) {
         parent.children.push(account);
       }
     }
