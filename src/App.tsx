@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainPage from "./pages/MainPage";
@@ -31,6 +30,7 @@ function App() {
         <Route path="/hr/employee/:id" element={<EmployeeProfile />} />
         <Route path="/documents" element={<DocumentsPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/projects/:id" element={<ProjectDetails />} />
         <Route path="/clients" element={<ClientsPage />} />
         <Route path="/company" element={<CompanyPage />} />
         <Route path="/partners" element={<PartnersPage />} />

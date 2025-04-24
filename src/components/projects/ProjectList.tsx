@@ -1,6 +1,6 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -75,8 +75,8 @@ export default function ProjectList() {
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const navigate = useNavigate();
 
-  // استعلام لجلب المشاريع
   const { data: projects, isLoading } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
@@ -90,7 +90,6 @@ export default function ProjectList() {
     },
   });
 
-  // حذف مشروع
   const deleteProjectMutation = useMutation({
     mutationFn: async (projectId: string) => {
       const { error } = await supabase
@@ -119,7 +118,6 @@ export default function ProjectList() {
     }
   });
 
-  // تغيير حالة المشروع
   const updateProjectStatusMutation = useMutation({
     mutationFn: async ({ projectId, status }: { projectId: string, status: string }) => {
       const { error } = await supabase
@@ -146,20 +144,17 @@ export default function ProjectList() {
     }
   });
 
-  // تأكيد حذف المشروع
   const confirmDeleteProject = (project: Project) => {
     setProjectToDelete(project);
     setDeleteDialogOpen(true);
   };
 
-  // تنفيذ حذف المشروع
   const executeDeleteProject = () => {
     if (projectToDelete) {
       deleteProjectMutation.mutate(projectToDelete.id);
     }
   };
 
-  // تغيير حالة المشروع
   const changeProjectStatus = (projectId: string, status: string) => {
     updateProjectStatusMutation.mutate({ projectId, status });
   };
@@ -201,7 +196,11 @@ export default function ProjectList() {
                 const statusBadge = getStatusBadge(project.status);
                 
                 return (
-                  <TableRow key={project.id}>
+                  <TableRow 
+                    key={project.id}
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/projects/${project.id}`)}
+                  >
                     <TableCell className="font-medium">{project.title}</TableCell>
                     <TableCell>
                       {format(new Date(project.start_date), "dd MMMM yyyy", {
@@ -295,7 +294,6 @@ export default function ProjectList() {
         </Table>
       </div>
 
-      {/* حوار تأكيد الحذف */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
