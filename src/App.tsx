@@ -16,6 +16,7 @@ import ZakatPage from "./pages/zakat/Index";
 import CapitalManagementPage from "./pages/capital/Index";
 import CalendarPage from "./pages/calendar/Index";
 import FinancialPage from "./pages/financial/Index";
+import ProjectDetails from "./pages/projects/ProjectDetails";
 
 function App() {
   return (
