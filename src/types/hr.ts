@@ -31,6 +31,10 @@ export type Employee = {
   visaFees: number;
   transferFees: number;
   laborFees: number;
+  costBreakdown?: any;
+  employeeType?: string;
+  gosiDetails?: any;
+  documentsExpiry?: any[];
 };
 
 export type DbEmployee = {
@@ -97,37 +101,50 @@ export type SalaryRecord = {
   created_at: string;
 };
 
-export const mapDbEmployeeToEmployee = (dbEmployee: DbEmployee): Employee => ({
-  id: dbEmployee.id,
-  created_at: dbEmployee.created_at,
-  name: dbEmployee.name,
-  identityNumber: dbEmployee.identity_number,
-  birthDate: dbEmployee.birth_date,
-  nationality: dbEmployee.nationality,
-  position: dbEmployee.position,
-  department: dbEmployee.department,
-  salary: dbEmployee.salary,
-  joiningDate: dbEmployee.joining_date,
-  contractType: dbEmployee.contract_type as 'full-time' | 'part-time' | 'contract',
-  email: dbEmployee.email,
-  phone: dbEmployee.phone,
-  photoUrl: dbEmployee.photo_url,
-  documents: dbEmployee.documents,
-  created_by: dbEmployee.created_by,
-  employmentNumber: dbEmployee.employment_number,
-  branch: dbEmployee.branch,
-  baseSalary: dbEmployee.base_salary,
-  housingAllowance: dbEmployee.housing_allowance,
-  transportationAllowance: dbEmployee.transportation_allowance,
-  otherAllowances: dbEmployee.other_allowances,
-  gosiSubscription: dbEmployee.gosi_subscription,
-  employeeGosiContribution: dbEmployee.employee_gosi_contribution,
-  companyGosiContribution: dbEmployee.company_gosi_contribution,
-  medicalInsuranceCost: dbEmployee.medical_insurance_cost,
-  visaFees: dbEmployee.visa_fees,
-  transferFees: dbEmployee.transfer_fees,
-  laborFees: dbEmployee.labor_fees
-});
+export function mapDbEmployeeToEmployee(data: DbEmployee | any): Employee {
+  // Create documents array safely
+  const documents = Array.isArray(data.documents) ? data.documents : [];
+  
+  return {
+    id: data.id,
+    created_at: data.created_at,
+    name: data.name,
+    identityNumber: data.identity_number,
+    birthDate: data.birth_date,
+    nationality: data.nationality,
+    position: data.position,
+    department: data.department,
+    contractType: data.contract_type as 'full-time' | 'part-time' | 'contract',
+    joiningDate: data.joining_date,
+    email: data.email,
+    phone: data.phone,
+    salary: data.salary,
+    baseSalary: data.base_salary,
+    housingAllowance: data.housing_allowance,
+    transportationAllowance: data.transportation_allowance,
+    otherAllowances: data.other_allowances || [],
+    documents: documents.map((doc: any) => ({
+      name: doc.name || '',
+      url: doc.url || '',
+      type: doc.type || ''
+    })),
+    photoUrl: data.photo_url,
+    employmentNumber: data.employment_number,
+    branch: data.branch,
+    created_by: data.created_by,
+    gosiSubscription: data.gosi_subscription || 0,
+    employeeGosiContribution: data.employee_gosi_contribution || 0,
+    companyGosiContribution: data.company_gosi_contribution || 0,
+    medicalInsuranceCost: data.medical_insurance_cost || 0,
+    visaFees: data.visa_fees || 0,
+    transferFees: data.transfer_fees || 0,
+    laborFees: data.labor_fees || 0,
+    costBreakdown: data.cost_breakdown,
+    employeeType: data.employee_type,
+    gosiDetails: data.gosi_details,
+    documentsExpiry: data.documents_expiry,
+  };
+}
 
 export const mapEmployeeToDbEmployee = (employee: Employee): DbEmployee => ({
   id: employee.id,
@@ -144,7 +161,7 @@ export const mapEmployeeToDbEmployee = (employee: Employee): DbEmployee => ({
   email: employee.email,
   phone: employee.phone,
   photo_url: employee.photoUrl,
-  documents: employee.documents,
+  documents: employee.documents || [],
   created_by: employee.created_by,
   employment_number: employee.employmentNumber,
   branch: employee.branch,
@@ -158,48 +175,9 @@ export const mapEmployeeToDbEmployee = (employee: Employee): DbEmployee => ({
   medical_insurance_cost: employee.medicalInsuranceCost,
   visa_fees: employee.visaFees,
   transfer_fees: employee.transferFees,
-  labor_fees: employee.laborFees
+  labor_fees: employee.laborFees,
+  cost_breakdown: employee.costBreakdown || {},
+  employee_type: employee.employeeType,
+  gosi_details: employee.gosiDetails,
+  documents_expiry: employee.documentsExpiry
 });
-
-export function mapDbEmployeeToEmployee(data: any): Employee {
-  // Create documents array safely
-  const documents = Array.isArray(data.documents) ? data.documents : [];
-  
-  return {
-    id: data.id,
-    name: data.name,
-    identityNumber: data.identity_number,
-    nationality: data.nationality,
-    birthDate: data.birth_date,
-    position: data.position,
-    department: data.department,
-    contractType: data.contract_type,
-    joiningDate: data.joining_date,
-    email: data.email,
-    phone: data.phone,
-    salary: data.salary,
-    baseSalary: data.base_salary,
-    housingAllowance: data.housing_allowance,
-    transportationAllowance: data.transportation_allowance,
-    otherAllowances: data.other_allowances,
-    documents: documents.map((doc: any) => ({
-      name: doc.name || '',
-      url: doc.url || '',
-      type: doc.type || ''
-    })),
-    photoUrl: data.photo_url,
-    employmentNumber: data.employment_number,
-    branch: data.branch,
-    gosiSubscription: data.gosi_subscription,
-    employeeGosiContribution: data.employee_gosi_contribution,
-    companyGosiContribution: data.company_gosi_contribution,
-    medicalInsuranceCost: data.medical_insurance_cost,
-    visaFees: data.visa_fees,
-    transferFees: data.transfer_fees,
-    laborFees: data.labor_fees,
-    costBreakdown: data.cost_breakdown,
-    employeeType: data.employee_type,
-    gosiDetails: data.gosi_details,
-    documentsExpiry: data.documents_expiry,
-  };
-}

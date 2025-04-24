@@ -24,7 +24,7 @@ interface ProjectTasksProps {
 }
 
 export default function ProjectTasks({ projectId }: ProjectTasksProps) {
-  const { data: tasks } = useQuery({
+  const { data: tasksData } = useQuery({
     queryKey: ["project-tasks", projectId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,9 +39,19 @@ export default function ProjectTasks({ projectId }: ProjectTasksProps) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Task[];
+      return data;
     },
   });
+
+  // Transform data to ensure it matches the Task interface
+  const tasks: Task[] = tasksData ? tasksData.map((task: any) => ({
+    id: task.id,
+    title: task.title,
+    assignee: task.assignee?.error ? { name: "غير محدد" } : task.assignee,
+    priority: task.priority,
+    status: task.status,
+    due_date: task.due_date
+  })) : [];
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {

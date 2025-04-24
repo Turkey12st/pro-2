@@ -1212,9 +1212,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      count_journal_entries: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      delete_journal_entry: {
+        Args: { p_entry_id: string }
+        Returns: undefined
+      }
       get_account_path: {
         Args: { account_id: string }
         Returns: string[]
+      }
+      get_all_companies: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          unified_national_number: string
+        }[]
+      }
+      get_all_journal_entries: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          title: string
+          content: string
+          attachment_url: string
+        }[]
       }
       get_journal_entry_attachment: {
         Args: { p_entry_id: string }
@@ -1230,6 +1255,10 @@ export type Database = {
       }
       update_company_information: {
         Args: { p_company_id: string; p_unified_national_number: string }
+        Returns: undefined
+      }
+      update_company_name: {
+        Args: { p_company_id: string; p_new_name: string }
         Returns: undefined
       }
       update_journal_entry_attachment: {
