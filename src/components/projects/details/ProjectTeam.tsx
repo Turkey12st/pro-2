@@ -34,14 +34,16 @@ export default function ProjectTeam({ projectId }: ProjectTeamProps) {
 
   // Parse team members safely, ensuring we have an array of the correct type
   const teamMembers: TeamMember[] = project?.team_members 
-    ? (Array.isArray(project.team_members) 
-        ? project.team_members.map((member: any) => ({
-            id: member.id || "",
-            name: member.name || "",
-            avatar: member.avatar || undefined,
-            role: member.role || undefined,
-            department: member.department || undefined
-          }))
+    ? (typeof project.team_members === 'object' && project.team_members !== null
+        ? (Array.isArray(project.team_members)
+            ? project.team_members.map((member: any) => ({
+                id: member.id || "",
+                name: member.name || "",
+                avatar: member.avatar || undefined,
+                role: member.role || undefined,
+                department: member.department || undefined
+              }))
+            : [])
         : [])
     : [];
 

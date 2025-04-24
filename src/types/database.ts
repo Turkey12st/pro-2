@@ -56,6 +56,8 @@ export interface Partner {
   contact_info: {
     email?: string;
     phone?: string;
+    nationality?: string;
+    position?: string;
   };
   documents?: Array<{
     name: string;

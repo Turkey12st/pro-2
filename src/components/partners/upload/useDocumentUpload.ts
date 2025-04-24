@@ -62,20 +62,18 @@ export function useDocumentUpload(partnerId: string | null, onSuccess?: () => vo
       // تحديث مصفوفة المستندات
       const existingDocs = Array.isArray(partnerData.documents) ? partnerData.documents : [];
       
-      const updatedDocs = [
-        ...existingDocs,
-        {
-          name: documentName,
-          url: documentUrl,
-          type: file.type,
-          uploaded_at: new Date().toISOString()
-        }
-      ];
-      
+      // Using a simple array to avoid deep type instantiation
+      const newDoc = {
+        name: documentName,
+        url: documentUrl,
+        type: file.type,
+        uploaded_at: new Date().toISOString()
+      };
+
       // تحديث بيانات الشريك
       const { error: updateError } = await supabase
         .from('company_partners')
-        .update({ documents: updatedDocs })
+        .update({ documents: [...existingDocs, newDoc] })
         .eq('id', partnerId);
       
       if (updateError) throw updateError;

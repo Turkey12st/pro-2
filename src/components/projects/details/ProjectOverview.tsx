@@ -65,11 +65,11 @@ export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
     id: projectData.id,
     title: projectData.title,
     description: projectData.description,
-    client: projectData.client?.error ? undefined : {
-      name: projectData.client?.name || "غير محدد",
-      email: projectData.client?.email || "",
-      phone: projectData.client?.phone || ""
-    },
+    client: projectData.client && !('error' in projectData.client) ? {
+      name: projectData.client.name || "غير محدد",
+      email: projectData.client.email || "",
+      phone: projectData.client.phone || ""
+    } : undefined,
     start_date: projectData.start_date,
     end_date: projectData.end_date,
     budget: projectData.budget,

@@ -29,14 +29,17 @@ export const formValuesToPartner = (
     id: id || crypto.randomUUID(),
     first_name: values.first_name,
     last_name: values.last_name,
-    email: values.email,
     name: `${values.first_name} ${values.last_name}`,
     ownership_percentage: values.ownership_percentage,
     capital_percentage: values.ownership_percentage, // For compatibility
-    contact_phone: values.contact_phone,
+    share_value: values.ownership_percentage, // Using ownership_percentage as share_value
     national_id: values.national_id,
     role: values.role,
-    status: values.status,
+    partner_type: 'individual',
+    contact_info: {
+      email: values.email,
+      phone: values.contact_phone
+    },
     documents: [],
   };
 };
@@ -44,20 +47,20 @@ export const formValuesToPartner = (
 // Function to convert a Partner object to form values
 export const partnerToFormValues = (partner: Partner): PartnerFormValues => {
   return {
-    first_name: partner.first_name,
-    last_name: partner.last_name,
-    email: partner.email,
+    first_name: partner.first_name || '',
+    last_name: partner.last_name || '',
+    email: partner.contact_info?.email || '',
     ownership_percentage: partner.ownership_percentage,
-    contact_phone: partner.contact_phone || "",
-    national_id: partner.national_id || "",
-    role: partner.role || "",
-    status: partner.status || "active",
+    contact_phone: partner.contact_info?.phone || '',
+    national_id: partner.national_id || '',
+    role: partner.role || '',
+    status: 'active', // Default status
   };
 };
 
 // Function to get the full name of a partner
 export const getPartnerFullName = (partner: Partner): string => {
-  return `${partner.first_name} ${partner.last_name}`;
+  return `${partner.first_name || ''} ${partner.last_name || ''}`;
 };
 
 // Function to calculate total ownership percentage
@@ -77,21 +80,25 @@ export const transformPartnerData = (data: any): Partner => {
     id: data.id || "",
     first_name: data.first_name || "",
     last_name: data.last_name || "",
-    email: data.email || "",
     name: data.name || `${data.first_name || ""} ${data.last_name || ""}`,
     ownership_percentage: data.ownership_percentage || 0,
     capital_percentage: data.ownership_percentage || 0,
     capital_amount: data.share_value || 0,
-    contact_phone: data.contact_info?.phone || "",
+    share_value: data.share_value || 0,
     national_id: data.national_id || "",
     identity_number: data.national_id || "",
     nationality: data.contact_info?.nationality || "",
     position: data.contact_info?.position || "",
     role: data.partner_type || "",
-    status: data.status || "active",
+    contact_info: {
+      email: data.contact_info?.email || "",
+      phone: data.contact_info?.phone || "",
+      nationality: data.contact_info?.nationality || "",
+      position: data.contact_info?.position || ""
+    },
+    partner_type: data.partner_type || "individual",
     documents: data.documents || [],
     created_at: data.created_at,
-    updated_at: data.updated_at,
-    partner_type: data.partner_type || "individual"
+    updated_at: data.updated_at
   };
 };

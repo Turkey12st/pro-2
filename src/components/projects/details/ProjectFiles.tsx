@@ -34,13 +34,15 @@ export default function ProjectFiles({ projectId }: ProjectFilesProps) {
 
   // Get attachments safely and transform to the correct type
   const attachments: ProjectFile[] = project?.attachments 
-    ? (Array.isArray(project.attachments) 
-        ? project.attachments.map((file: any) => ({
-            name: file.name || "Unnamed File",
-            type: file.type || "Unknown",
-            size: file.size || "0 KB",
-            url: file.url || "#"
-          }))
+    ? (typeof project.attachments === 'object' && project.attachments !== null
+        ? (Array.isArray(project.attachments)
+            ? project.attachments.map((file: any) => ({
+                name: file.name || "Unnamed File",
+                type: file.type || "Unknown",
+                size: file.size || "0 KB",
+                url: file.url || "#"
+              }))
+            : [])
         : [])
     : [];
 
