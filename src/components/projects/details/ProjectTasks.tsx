@@ -6,6 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 
+interface Assignee {
+  name: string;
+}
+
+interface Task {
+  id: string;
+  title: string;
+  assignee?: Assignee;
+  priority: string;
+  status: string;
+  due_date?: string;
+}
+
 interface ProjectTasksProps {
   projectId?: string;
 }
@@ -26,7 +39,7 @@ export default function ProjectTasks({ projectId }: ProjectTasksProps) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as Task[];
     },
   });
 
@@ -84,6 +97,13 @@ export default function ProjectTasks({ projectId }: ProjectTasksProps) {
               </TableCell>
             </TableRow>
           ))}
+          {(!tasks || tasks.length === 0) && (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                لا توجد مهام مسجلة لهذا المشروع
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

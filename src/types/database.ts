@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -41,23 +40,29 @@ export interface CompanyInfo {
 
 export interface Partner {
   id: string;
+  name?: string;
   first_name?: string;
   last_name?: string;
-  email?: string;
-  name: string;
-  ownership_percentage: number;
-  capital_percentage?: number;
-  capital_amount?: number;
-  contact_phone?: string;
-  national_id?: string;
-  identity_number?: string;
   nationality?: string;
+  identity_number?: string;
+  national_id?: string;
+  capital_amount?: number;
+  capital_percentage?: number;
+  ownership_percentage: number;
+  share_value: number;
   position?: string;
   role?: string;
-  partner_type?: string;
-  status?: "active" | "inactive";
-  documents?: DocumentItem[];
-  created_at?: string;
+  partner_type: string;
+  contact_info: {
+    email?: string;
+    phone?: string;
+  };
+  documents?: Array<{
+    name: string;
+    url: string;
+    type: string;
+  }>;
+  created_at: string;
   updated_at?: string;
 }
 
@@ -103,25 +108,29 @@ export interface DocumentWithDaysRemaining extends Document {
 export interface JournalEntry {
   id: string;
   entry_date: string;
-  description: string;
-  entry_name?: string;
-  amount?: number;
-  entry_type?: string;
-  financial_statement_section?: string;
   total_debit?: number;
   total_credit?: number;
-  status?: string;
-  attachment_url?: string;
-  created_at?: string;
-  updated_at?: string;
-  currency?: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+  posted_at?: string;
+  posted_by?: string;
+  amount?: number;
   exchange_rate?: number;
   is_recurring?: boolean;
   recurrence_pattern?: Record<string, any>;
-  tags?: string[];
   is_approved?: boolean;
   approved_by?: string;
   approved_at?: string;
+  description: string;
+  reference_number?: string;
+  status?: string;
+  financial_statement_section?: string;
+  entry_name?: string;
+  entry_type?: string;
+  attachment_url?: string;
+  currency?: string;
+  tags?: string[];
 }
 
 export interface JournalEntryItem {

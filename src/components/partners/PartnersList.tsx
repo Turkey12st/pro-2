@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,26 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { PartnersCapitalInfo } from "./PartnersCapitalInfo";
 import { PartnersTable } from "./PartnersTable";
 import { DocumentUploadDialog } from "./DocumentUploadDialog";
-
-interface Partner {
-  id: string;
-  name?: string;
-  first_name?: string;
-  last_name?: string;
-  nationality?: string;
-  identity_number?: string;
-  national_id?: string;
-  capital_amount?: number;
-  capital_percentage?: number;
-  ownership_percentage?: number;
-  position?: string;
-  role?: string;
-  documents?: Array<{
-    name: string;
-    url: string;
-    type: string;
-  }>;
-}
+import { Partner } from "@/types/database";
 
 export function PartnersList() {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -57,26 +37,30 @@ export function PartnersList() {
       
       if (data) {
         // Transform the data properly for display
-        const partnersData: Partner[] = data.map((item) => ({
+        const partnersData: Partner[] = data.map((item: any) => ({
           id: item.id || crypto.randomUUID(),
           name: item.name,
           first_name: item.first_name || undefined,
           last_name: item.last_name || undefined,
           nationality: item.nationality || undefined,
-          identity_number: item.identity_number || undefined,
+          identity_number: item.identity_number || undefined, 
           national_id: item.national_id || undefined,
           capital_amount: item.capital_amount || item.share_value || 0,
           capital_percentage: item.capital_percentage || item.ownership_percentage || 0,
           ownership_percentage: item.ownership_percentage || 0,
+          share_value: item.share_value || 0,
           position: item.position || undefined,
           role: item.role || undefined,
+          partner_type: item.partner_type || 'individual',
+          contact_info: item.contact_info || {},
           documents: Array.isArray(item.documents) 
             ? item.documents.map((doc: any) => ({
                 name: doc.name || "",
                 url: doc.url || "",
                 type: doc.type || ""
               }))
-            : []
+            : [],
+          created_at: item.created_at
         }));
         
         setPartners(partnersData);

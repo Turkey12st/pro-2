@@ -1,8 +1,7 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import type { JournalEntry } from "@/types/database";
+import { JournalEntry } from "@/types/database";
 
 export const useJournalEntries = () => {
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
@@ -21,7 +20,17 @@ export const useJournalEntries = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setJournalEntries(data || []);
+      
+      if (data) {
+        const typedEntries: JournalEntry[] = data.map((entry: any) => ({
+          ...entry,
+          recurrence_pattern: entry.recurrence_pattern ? 
+            (typeof entry.recurrence_pattern === 'string' ? 
+              JSON.parse(entry.recurrence_pattern) : entry.recurrence_pattern) : 
+            undefined
+        }));
+        setJournalEntries(typedEntries);
+      }
     } catch (err) {
       console.error("خطأ في جلب القيود:", err);
       setError(err instanceof Error ? err : new Error('حدث خطأ غير معروف'));
@@ -58,7 +67,6 @@ export const useJournalEntries = () => {
 
   const addJournalEntry = async (entry: Partial<JournalEntry>) => {
     try {
-      // تأكد من وجود الحقول المطلوبة
       if (!entry.description || !entry.entry_date) {
         throw new Error("الوصف والتاريخ مطلوبان");
       }
@@ -100,7 +108,6 @@ export const useJournalEntries = () => {
 
   const updateJournalEntry = async (id: string, updates: Partial<JournalEntry>) => {
     try {
-      // تأكد من أن التحديثات تحتوي على الحقول المطلوبة إذا كانت متضمنة
       if (updates.description === "") {
         throw new Error("لا يمكن أن يكون الوصف فارغًا");
       }
@@ -109,7 +116,6 @@ export const useJournalEntries = () => {
         throw new Error("التاريخ مطلوب");
       }
       
-      // إنشاء كائن التحديث مع فقط الحقول المتوفرة
       const updateData: Record<string, any> = {};
       
       if (updates.description !== undefined) updateData.description = updates.description;

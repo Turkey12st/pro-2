@@ -60,7 +60,8 @@ export function useDocumentUpload(partnerId: string | null, onSuccess?: () => vo
       if (fetchError) throw fetchError;
       
       // تحديث مصفوفة المستندات
-      const existingDocs = partnerData.documents || [];
+      const existingDocs = Array.isArray(partnerData.documents) ? partnerData.documents : [];
+      
       const updatedDocs = [
         ...existingDocs,
         {

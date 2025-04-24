@@ -1,9 +1,16 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+
+interface Client {
+  name: string;
+  email: string | null;
+  phone: string | null;
+}
 
 interface Project {
   id: string;
@@ -16,11 +23,7 @@ interface Project {
   progress: number;
   estimated_hours: number;
   actual_hours: number;
-  client: {
-    name: string;
-    email: string | null;
-    phone: string | null;
-  } | null;
+  client: Client | null;
 }
 
 interface ProjectOverviewProps {
@@ -45,7 +48,14 @@ export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
         .single();
 
       if (error) throw error;
-      return data;
+      
+      // Ensure client data is properly formatted
+      const clientData = data.client || null;
+      
+      return {
+        ...data,
+        client: clientData
+      } as Project;
     },
   });
 
