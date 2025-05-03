@@ -1,104 +1,74 @@
 
-import { z } from "zod";
-import { Partner } from "@/types/database";
+import { Partner } from "./types";
 
-// Schema for partner form validation
-export const partnerFormSchema = z.object({
-  first_name: z.string().min(1, "الاسم الأول مطلوب"),
-  last_name: z.string().min(1, "الاسم الأخير مطلوب"),
-  email: z.string().email("البريد الإلكتروني غير صحيح"),
-  ownership_percentage: z
-    .number()
-    .min(0, "يجب أن تكون النسبة أكبر من أو تساوي 0")
-    .max(100, "يجب أن تكون النسبة أقل من أو تساوي 100"),
-  contact_phone: z.string().optional(),
-  national_id: z.string().optional(),
-  role: z.string().optional(),
-  status: z.enum(["active", "inactive"]).default("active"),
-});
+export const formatCapitalAmount = (amount?: number): string => {
+  if (amount === undefined || amount === null) return "0 ريال";
+  return new Intl.NumberFormat('ar-SA', {
+    style: 'currency',
+    currency: 'SAR',
+    maximumFractionDigits: 0
+  }).format(amount);
+};
 
-// Type for form values derived from schema
-export type PartnerFormValues = z.infer<typeof partnerFormSchema>;
+export const formatPercentage = (percentage?: number): string => {
+  if (percentage === undefined || percentage === null) return "0%";
+  return new Intl.NumberFormat('ar-SA', {
+    style: 'percent',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(percentage / 100);
+};
 
-// Function to convert form values to a Partner object
-export const formValuesToPartner = (
-  values: PartnerFormValues,
-  id?: string
-): Partial<Partner> => {
+export const createEmptyPartner = (): Partial<Partner> => {
   return {
-    id: id || crypto.randomUUID(),
-    first_name: values.first_name,
-    last_name: values.last_name,
-    name: `${values.first_name} ${values.last_name}`,
-    ownership_percentage: values.ownership_percentage,
-    capital_percentage: values.ownership_percentage, // For compatibility
-    share_value: values.ownership_percentage, // Using ownership_percentage as share_value
-    national_id: values.national_id,
-    role: values.role,
+    name: '',
+    first_name: '',
+    last_name: '',
+    nationality: 'سعودي',
+    identity_number: '',
     partner_type: 'individual',
+    ownership_percentage: 0,
+    share_value: 0,
+    position: '',
     contact_info: {
-      email: values.email,
-      phone: values.contact_phone
+      email: '',
+      phone: '',
+      address: ''
     },
-    documents: [],
+    documents: []
   };
 };
 
-// Function to convert a Partner object to form values
-export const partnerToFormValues = (partner: Partner): PartnerFormValues => {
+export const formatPartnerForDisplay = (partner: Partner) => {
   return {
+    ...partner,
+    formattedCapital: formatCapitalAmount(partner.capital_amount || partner.share_value),
+    formattedPercentage: formatPercentage(partner.ownership_percentage || partner.capital_percentage),
+    email: partner.contact_info?.email || '',
+    phone: partner.contact_info?.phone || '',
+    type: partner.partner_type === 'company' ? 'شركة' : 'فرد',
+    status: partner.status || 'نشط'
+  };
+};
+
+export const formatPartnerForSubmission = (partner: Partial<Partner>) => {
+  // تحويل البيانات للتخزين
+  const submissionData = {
+    name: partner.name || '',
     first_name: partner.first_name || '',
     last_name: partner.last_name || '',
-    email: partner.contact_info?.email || '',
-    ownership_percentage: partner.ownership_percentage,
-    contact_phone: partner.contact_info?.phone || '',
-    national_id: partner.national_id || '',
-    role: partner.role || '',
-    status: 'active', // Default status
-  };
-};
-
-// Function to get the full name of a partner
-export const getPartnerFullName = (partner: Partner): string => {
-  return `${partner.first_name || ''} ${partner.last_name || ''}`;
-};
-
-// Function to calculate total ownership percentage
-export const calculateTotalOwnership = (partners: Partner[]): number => {
-  return partners.reduce((sum, partner) => sum + partner.ownership_percentage, 0);
-};
-
-// Function to check if total ownership is valid (equal to 100%)
-export const isValidTotalOwnership = (partners: Partner[]): boolean => {
-  const total = calculateTotalOwnership(partners);
-  return Math.abs(total - 100) < 0.01; // Allow for tiny floating-point errors
-};
-
-// Function to transform partner data from the database
-export const transformPartnerData = (data: any): Partner => {
-  return {
-    id: data.id || "",
-    first_name: data.first_name || "",
-    last_name: data.last_name || "",
-    name: data.name || `${data.first_name || ""} ${data.last_name || ""}`,
-    ownership_percentage: data.ownership_percentage || 0,
-    capital_percentage: data.ownership_percentage || 0,
-    capital_amount: data.share_value || 0,
-    share_value: data.share_value || 0,
-    national_id: data.national_id || "",
-    identity_number: data.national_id || "",
-    nationality: data.contact_info?.nationality || "",
-    position: data.contact_info?.position || "",
-    role: data.partner_type || "",
+    nationality: partner.nationality || '',
+    identity_number: partner.identity_number || '',
+    partner_type: partner.partner_type || 'individual',
+    ownership_percentage: parseFloat(partner.ownership_percentage?.toString() || '0'),
+    share_value: parseFloat(partner.share_value?.toString() || '0'),
+    position: partner.position || '',
     contact_info: {
-      email: data.contact_info?.email || "",
-      phone: data.contact_info?.phone || "",
-      nationality: data.contact_info?.nationality || "",
-      position: data.contact_info?.position || ""
-    },
-    partner_type: data.partner_type || "individual",
-    documents: data.documents || [],
-    created_at: data.created_at,
-    updated_at: data.updated_at
+      email: partner.contact_info?.email || '',
+      phone: partner.contact_info?.phone || '',
+      address: partner.contact_info?.address || ''
+    }
   };
+
+  return submissionData;
 };

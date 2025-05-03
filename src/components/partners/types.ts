@@ -1,35 +1,30 @@
 
-import { Partner } from "@/types/database";
-
-export interface PartnerFormProps {
-  onSuccess?: () => void;
-  partner?: Partner; // For future edit functionality
-}
-
-export interface PartnerData {
+export interface Partner {
+  id: string;
   name: string;
+  first_name?: string;
+  last_name?: string;
   nationality?: string;
   identity_number?: string;
-  partner_type: string;
+  national_id?: string;
+  capital_amount?: number;
+  capital_percentage?: number;
   ownership_percentage: number;
-  share_value: number;
+  share_value?: number;
   position?: string;
-  contact_info: {
+  role?: string;
+  partner_type?: 'individual' | 'company';
+  contact_info?: {
     email?: string;
     phone?: string;
+    address?: string;
   };
+  documents?: {
+    name: string;
+    url: string;
+    type: string;
+    uploadedAt?: string;
+  }[];
+  created_at?: string;
+  status?: string;
 }
-
-export const initialPartnerData: PartnerData = {
-  name: '',
-  nationality: '',
-  identity_number: '',
-  partner_type: 'individual',
-  ownership_percentage: 0,
-  share_value: 0,
-  position: '',
-  contact_info: {
-    email: '',
-    phone: '',
-  },
-};

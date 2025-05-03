@@ -62,7 +62,7 @@ export function useDocumentUpload(partnerId: string | null, onSuccess?: () => vo
       // تحديث مصفوفة المستندات
       const existingDocs = Array.isArray(partnerData.documents) ? partnerData.documents : [];
       
-      // Using a simple array to avoid deep type instantiation
+      // Using a simple object instead of complex nested type
       const newDoc = {
         name: documentName,
         url: documentUrl,

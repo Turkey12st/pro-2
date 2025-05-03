@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +16,7 @@ interface Project {
   id: string;
   title: string;
   description?: string;
-  client?: Client;
+  client?: Client | null;
   start_date: string;
   end_date?: string;
   budget?: number;
@@ -65,11 +64,11 @@ export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
     id: projectData.id,
     title: projectData.title,
     description: projectData.description,
-    client: projectData.client && !('error' in projectData.client) ? {
+    client: projectData.client && typeof projectData.client === 'object' ? {
       name: projectData.client.name || "غير محدد",
       email: projectData.client.email || "",
       phone: projectData.client.phone || ""
-    } : undefined,
+    } : null,
     start_date: projectData.start_date,
     end_date: projectData.end_date,
     budget: projectData.budget,
@@ -176,7 +175,7 @@ export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
                 <div>
                   <p className="text-sm text-muted-foreground">البريد الإلكتروني</p>
                   <p className="font-medium">
-                    {project.client?.email || "غير محدد"}
+                    {project.client?.email || "غير مح��د"}
                   </p>
                 </div>
                 <div>

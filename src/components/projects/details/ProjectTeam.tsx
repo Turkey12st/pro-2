@@ -21,6 +21,8 @@ export default function ProjectTeam({ projectId }: ProjectTeamProps) {
   const { data: project } = useQuery({
     queryKey: ["project-team", projectId],
     queryFn: async () => {
+      if (!projectId) return null;
+      
       const { data, error } = await supabase
         .from("projects")
         .select("team_members")
@@ -30,6 +32,7 @@ export default function ProjectTeam({ projectId }: ProjectTeamProps) {
       if (error) throw error;
       return data;
     },
+    enabled: !!projectId
   });
 
   // Parse team members safely, ensuring we have an array of the correct type
