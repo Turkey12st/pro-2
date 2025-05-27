@@ -8,7 +8,7 @@ import { PartnerData } from './types';
 interface BasicInfoFieldsProps {
   partnerData: PartnerData;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handlePartnerTypeChange: (value: string) => void;
+  handlePartnerTypeChange: (value: 'individual' | 'company') => void;
 }
 
 const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
@@ -66,7 +66,6 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
           <SelectContent>
             <SelectItem value="individual">فرد</SelectItem>
             <SelectItem value="company">شركة</SelectItem>
-            <SelectItem value="organization">مؤسسة</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -41,7 +41,7 @@ export const usePartnerForm = (onSuccess?: () => void) => {
     }
   };
 
-  const handlePartnerTypeChange = (value: string) => {
+  const handlePartnerTypeChange = (value: 'individual' | 'company') => {
     setPartnerData(prev => ({
       ...prev,
       partner_type: value

@@ -9,6 +9,7 @@ interface DocumentMetadata {
   url: string;
   type: string;
   uploaded_at: string;
+  [key: string]: string; // إضافة index signature لجعلها متوافقة مع Json
 }
 
 export function useDocumentUpload(partnerId: string | null, onSuccess?: () => void) {
@@ -74,9 +75,11 @@ export function useDocumentUpload(partnerId: string | null, onSuccess?: () => vo
         uploaded_at: new Date().toISOString()
       };
 
+      const updatedDocs = [...existingDocs, newDoc];
+
       const { error: updateError } = await supabase
         .from('company_partners')
-        .update({ documents: [...existingDocs, newDoc] })
+        .update({ documents: updatedDocs })
         .eq('id', partnerId);
       
       if (updateError) throw updateError;

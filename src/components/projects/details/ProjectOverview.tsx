@@ -54,14 +54,14 @@ export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl">{projectData.name}</CardTitle>
+            <CardTitle className="text-2xl">{projectData.title || "مشروع بدون عنوان"}</CardTitle>
             <Badge variant={projectData.status === 'active' ? 'default' : 'secondary'}>
               {projectData.status === 'active' ? 'نشط' : 'مكتمل'}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-muted-foreground">{projectData.description}</p>
+          <p className="text-muted-foreground">{projectData.description || "لا يوجد وصف"}</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -86,7 +86,7 @@ export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">الموقع:</span>
-                <span className="text-sm">{projectData.location || "غير محدد"}</span>
+                <span className="text-sm">{"غير محدد"}</span>
               </div>
             </div>
           </div>

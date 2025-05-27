@@ -23,9 +23,10 @@ export interface Partner {
     name: string;
     url: string;
     type: string;
-    uploadedAt?: string;
+    uploaded_at?: string;
   }[];
   created_at?: string;
+  updated_at?: string;
   status?: string;
 }
 
@@ -48,7 +49,7 @@ export interface PartnerData {
     name: string;
     url: string;
     type: string;
-    uploadedAt?: string;
+    uploaded_at?: string;
   }[];
 }
 
