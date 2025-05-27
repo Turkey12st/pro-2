@@ -47,8 +47,8 @@ export function DashboardTabs({
       <TabNavigation />
       
       <TabsContent value="financial" className="space-y-4">
-        <FinancialSummary data={financialData} />
         <div className="grid gap-4 md:grid-cols-2">
+          <FinancialSummary data={financialData} />
           <CashFlowChart />
         </div>
       </TabsContent>

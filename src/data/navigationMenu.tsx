@@ -9,7 +9,6 @@ import {
   ListChecks,
   Store,
   Link,
-  Scale,
   Building2,
 } from "lucide-react";
 import { MenuItem } from "@/types/navigation";
@@ -63,12 +62,6 @@ export function getNavigationMenu(): MenuItem[] {
       href: "/partners",
       icon: Link,
       group: "إدارة النظام"
-    },
-    {
-      name: "الزكاة والضرائب",
-      href: "/zakat",
-      icon: Scale,
-      group: "المالية"
     },
     {
       name: "معلومات الشركة",

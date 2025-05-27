@@ -78,7 +78,7 @@ export function useDocumentUpload(partnerId: string | null, onSuccess?: () => vo
 
       const { error: updateError } = await supabase
         .from('company_partners')
-        .update({ documents: updatedDocs as any })
+        .update({ documents: JSON.parse(JSON.stringify(updatedDocs)) })
         .eq('id', partnerId);
       
       if (updateError) throw updateError;

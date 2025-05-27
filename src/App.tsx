@@ -1,3 +1,4 @@
+
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainPage from "./pages/MainPage";
@@ -12,7 +13,6 @@ import CompanyPage from "./pages/company/Index";
 import PartnersPage from "./pages/partners/Index";
 import SettingsPage from "./pages/settings/Index";
 import NotFound from "./pages/NotFound";
-import ZakatPage from "./pages/zakat/Index";
 import CapitalManagementPage from "./pages/capital/Index";
 import CalendarPage from "./pages/calendar/Index";
 import FinancialPage from "./pages/financial/Index";
@@ -36,7 +36,6 @@ function App() {
         <Route path="/company" element={<CompanyPage />} />
         <Route path="/partners" element={<PartnersPage />} />
         <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/zakat" element={<ZakatPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
