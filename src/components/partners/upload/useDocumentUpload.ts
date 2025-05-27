@@ -4,6 +4,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useFileHandler } from "./useFileHandler";
 import { supabase } from "@/integrations/supabase/client"; 
 
+interface DocumentMetadata {
+  name: string;
+  url: string;
+  type: string;
+  uploaded_at: string;
+}
+
 export function useDocumentUpload(partnerId: string | null, onSuccess?: () => void) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -50,7 +57,6 @@ export function useDocumentUpload(partnerId: string | null, onSuccess?: () => vo
     if (!partnerId) return;
 
     try {
-      // الحصول على المستندات الحالية للشريك
       const { data: partnerData, error: fetchError } = await supabase
         .from('company_partners')
         .select('documents')
@@ -59,18 +65,15 @@ export function useDocumentUpload(partnerId: string | null, onSuccess?: () => vo
       
       if (fetchError) throw fetchError;
       
-      // تحديث مصفوفة المستندات
       const existingDocs = Array.isArray(partnerData.documents) ? partnerData.documents : [];
       
-      // Using a simple object instead of complex nested type
-      const newDoc = {
+      const newDoc: DocumentMetadata = {
         name: documentName,
         url: documentUrl,
         type: file.type,
         uploaded_at: new Date().toISOString()
       };
 
-      // تحديث بيانات الشريك
       const { error: updateError } = await supabase
         .from('company_partners')
         .update({ documents: [...existingDocs, newDoc] })

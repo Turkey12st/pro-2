@@ -1,75 +1,169 @@
 
 import React, { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { LayoutDashboard, ArrowRight, FileText, Users, Receipt, Building2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  LayoutDashboard, 
+  ArrowRight, 
+  FileText, 
+  Users, 
+  Receipt, 
+  Building2,
+  TrendingUp,
+  Calendar,
+  AlertCircle
+} from "lucide-react";
 
 export default function MainPage() {
   const navigate = useNavigate();
   
-  // تم تعديل مهلة التوجيه لنعطي المستخدم وقتًا أطول لاستكشاف الصفحة الرئيسية
   useEffect(() => {
     const timer = setTimeout(() => {
       navigate("/dashboard");
-    }, 10000); // تم زيادة المهلة إلى 10 ثوانٍ
+    }, 15000);
     
     return () => clearTimeout(timer);
   }, [navigate]);
 
-  // قائمة الروابط السريعة للصفحات
-  const quickLinks = [
-    { name: "لوحة المعلومات", href: "/dashboard", icon: LayoutDashboard, color: "bg-blue-100 text-blue-700" },
-    { name: "المحاسبة", href: "/accounting", icon: Receipt, color: "bg-green-100 text-green-700" },
-    { name: "الموظفين", href: "/hr", icon: Users, color: "bg-purple-100 text-purple-700" },
-    { name: "المستندات", href: "/documents", icon: FileText, color: "bg-amber-100 text-amber-700" },
-    { name: "معلومات الشركة", href: "/company", icon: Building2, color: "bg-indigo-100 text-indigo-700" }
+  const systemStats = [
+    { 
+      title: "إجمالي المشاريع", 
+      value: "12", 
+      description: "مشروع نشط",
+      icon: LayoutDashboard,
+      color: "text-blue-600" 
+    },
+    { 
+      title: "عدد الموظفين", 
+      value: "24", 
+      description: "موظف مسجل",
+      icon: Users,
+      color: "text-green-600" 
+    },
+    { 
+      title: "المستندات", 
+      value: "156", 
+      description: "مستند محفوظ",
+      icon: FileText,
+      color: "text-purple-600" 
+    },
+    { 
+      title: "رأس المال", 
+      value: "1.2M", 
+      description: "ريال سعودي",
+      icon: TrendingUp,
+      color: "text-amber-600" 
+    }
+  ];
+
+  const recentActivities = [
+    { title: "تم إضافة مشروع جديد", time: "منذ ساعتين", type: "project" },
+    { title: "تحديث بيانات موظف", time: "منذ 4 ساعات", type: "hr" },
+    { title: "رفع مستند جديد", time: "أمس", type: "document" },
+    { title: "دفع راتب شهري", time: "منذ يومين", type: "finance" }
   ];
 
   return (
     <AppLayout>
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
-        <div className="text-center space-y-6 max-w-2xl w-full">
+      <div className="space-y-8">
+        {/* Header Section */}
+        <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold">مرحباً بك في نظام إدارة الأعمال</h1>
-          <p className="text-muted-foreground">
-            سيتم توجيهك إلى لوحة المعلومات قريبًا، أو يمكنك النقر على الزر أدناه للانتقال مباشرة.
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            إدارة شاملة لجميع احتياجات شركتك من مكان واحد. سيتم توجيهك إلى لوحة المعلومات قريباً.
           </p>
           
           <div className="flex justify-center">
             <Button 
-              variant="default" 
-              size="lg" 
               onClick={() => navigate("/dashboard")}
-              className="mt-4 flex items-center gap-2"
+              size="lg" 
+              className="text-lg px-8 py-3"
             >
-              <LayoutDashboard className="h-4 w-4" />
-              <span>الذهاب للوحة المعلومات</span>
-              <ArrowRight className="h-4 w-4 mr-1" />
+              <LayoutDashboard className="h-5 w-5 ml-2" />
+              الذهاب للوحة المعلومات
+              <ArrowRight className="h-5 w-5 mr-2" />
             </Button>
           </div>
+        </div>
 
-          {/* قسم الوصول السريع */}
-          <div className="mt-10">
-            <h2 className="text-xl font-semibold mb-4">الوصول السريع للصفحات</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {quickLinks.map((link) => (
-                <Card key={link.href} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <Link 
-                      to={link.href} 
-                      className="flex items-center gap-3 no-underline text-foreground"
-                    >
-                      <div className={`p-2 rounded-full ${link.color}`}>
-                        <link.icon className="h-5 w-5" />
-                      </div>
-                      <span className="font-medium">{link.name}</span>
-                    </Link>
-                  </CardContent>
-                </Card>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {systemStats.map((stat) => (
+            <Card key={stat.title} className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {stat.title}
+                </CardTitle>
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground">{stat.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Recent Activities */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                الأنشطة الأخيرة
+              </CardTitle>
+              <CardDescription>
+                آخر التحديثات والأنشطة في النظام
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {recentActivities.map((activity, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{activity.title}</p>
+                    <p className="text-xs text-muted-foreground">{activity.time}</p>
+                  </div>
+                </div>
               ))}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+
+          {/* System Health */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                حالة النظام
+              </CardTitle>
+              <CardDescription>
+                المؤشرات العامة لحالة النظام
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">قاعدة البيانات</span>
+                  <span className="text-sm text-green-600 font-medium">متصلة ✓</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">التخزين السحابي</span>
+                  <span className="text-sm text-green-600 font-medium">متاح ✓</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">النسخ الاحتياطي</span>
+                  <span className="text-sm text-green-600 font-medium">محدث ✓</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">الأمان</span>
+                  <span className="text-sm text-green-600 font-medium">آمن ✓</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </AppLayout>
