@@ -10,6 +10,8 @@ import {
   Store,
   Link,
   Building2,
+  TrendingUp,
+  Home,
 } from "lucide-react";
 import { MenuItem } from "@/types/navigation";
 
@@ -22,9 +24,21 @@ export function getNavigationMenu(): MenuItem[] {
       group: "إدارة النظام"
     },
     {
+      name: "الصفحة الرئيسية",
+      href: "/main",
+      icon: Home,
+      group: "إدارة النظام"
+    },
+    {
       name: "المحاسبة",
       href: "/accounting",
       icon: Receipt,
+      group: "المالية"
+    },
+    {
+      name: "التقارير المالية",
+      href: "/financial",
+      icon: TrendingUp,
       group: "المالية"
     },
     {

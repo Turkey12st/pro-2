@@ -8,18 +8,20 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ProjectOverviewProps {
-  projectId: string;
+  projectId?: string;
 }
 
 export function ProjectOverview({ projectId }: ProjectOverviewProps) {
   const { data: project, isLoading } = useQuery({
     queryKey: ["project", projectId],
     queryFn: async () => {
+      if (!projectId) return null;
+      
       const { data, error } = await supabase
         .from("projects")
         .select(`
           *,
-          clients (
+          clients!inner (
             id,
             name,
             email,
@@ -33,6 +35,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
       if (error) throw error;
       return data;
     },
+    enabled: !!projectId,
   });
 
   if (isLoading) {
@@ -82,7 +85,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <h3 className="font-semibold text-lg">{project.name}</h3>
+            <h3 className="font-semibold text-lg">{project.title}</h3>
             <p className="text-muted-foreground">{project.description}</p>
           </div>
 
@@ -141,7 +144,7 @@ export function ProjectOverview({ projectId }: ProjectOverviewProps) {
           {clientData?.address && (
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              <span className="text-sm">{clientData.address}</span>
+              <span className="text-sm">{typeof clientData.address === 'string' ? clientData.address : JSON.stringify(clientData.address)}</span>
             </div>
           )}
         </CardContent>

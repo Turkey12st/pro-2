@@ -2,7 +2,7 @@
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ProjectOverview from "@/components/projects/details/ProjectOverview";
+import { ProjectOverview } from "@/components/projects/details/ProjectOverview";
 import ProjectTasks from "@/components/projects/details/ProjectTasks";
 import ProjectTeam from "@/components/projects/details/ProjectTeam";
 import ProjectMilestones from "@/components/projects/details/ProjectMilestones";

@@ -15,18 +15,29 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
 
   const saveData = useCallback(async (tableName: string, data: any, id?: string): Promise<boolean> => {
     try {
+      // Define valid table names to prevent type errors
+      const validTables = [
+        'capital_management', 'employees', 'projects', 'clients', 
+        'company_partners', 'journal_entries', 'salary_records'
+      ];
+      
+      if (!validTables.includes(tableName)) {
+        console.warn(`Table ${tableName} not in valid tables list`);
+        return false;
+      }
+
       let result;
       
       if (id) {
         // Update existing record
         result = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .update(data)
           .eq('id', id);
       } else {
         // Insert new record
         result = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .insert(data);
       }
 

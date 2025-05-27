@@ -1,227 +1,121 @@
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, Calendar, Users, DollarSign } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { SalarySummary as SalarySummaryType } from "@/types/database";
-import { format, addMonths, differenceInDays, isAfter, isBefore, endOfMonth } from "date-fns";
+import { Progress } from "@/components/ui/progress";
 import { SalaryAlerts } from "./SalaryAlerts";
+import { Wallet, Users, Calendar, AlertTriangle } from "lucide-react";
+import { formatNumber } from "@/utils/formatters";
+import { differenceInDays } from "date-fns";
 
 interface EnhancedSalarySummaryProps {
-  data?: SalarySummaryType;
-  isLoading?: boolean;
+  data: {
+    total_salaries: number;
+    payment_date: string;
+    days_remaining: number;
+    employees_count: number;
+    status: "upcoming" | "overdue" | "paid";
+  };
 }
 
-export function EnhancedSalarySummary({ data, isLoading }: EnhancedSalarySummaryProps) {
-  const [currentSummary, setCurrentSummary] = useState<SalarySummaryType | undefined>(data);
-
-  const { data: salaryData, isLoading: isSalaryLoading } = useQuery({
-    queryKey: ['salary_summary'],
-    queryFn: async () => {
-      try {
-        const today = new Date();
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
-        
-        const paymentDate = new Date(currentYear, currentMonth, 27);
-        
-        if (isAfter(today, paymentDate)) {
-          paymentDate.setMonth(paymentDate.getMonth() + 1);
-        }
-        
-        const daysRemaining = differenceInDays(paymentDate, today);
-        
-        const { data: employees, error: employeesError } = await supabase
-          .from('employees')
-          .select('id, salary');
-        
-        if (employeesError) throw employeesError;
-        
-        const totalSalaries = employees?.reduce((sum, emp) => sum + (emp.salary || 0), 0) || 0;
-        
-        let status: 'upcoming' | 'due' | 'overdue' | 'paid' = 'upcoming';
-        if (daysRemaining <= 0) {
-          status = 'due';
-        } else if (daysRemaining <= 5) {
-          status = 'upcoming';
-        }
-        
-        const { data: paidRecords, error: paidError } = await supabase
-          .from('salary_records')
-          .select('*')
-          .eq('status', 'paid')
-          .gte('payment_date', format(new Date(currentYear, currentMonth, 1), 'yyyy-MM-dd'))
-          .lte('payment_date', format(endOfMonth(new Date(currentYear, currentMonth, 1)), 'yyyy-MM-dd'));
-        
-        if (paidError) throw paidError;
-        
-        if (paidRecords && paidRecords.length > 0) {
-          status = 'paid';
-        }
-        
-        return {
-          total_salaries: totalSalaries,
-          payment_date: format(paymentDate, 'yyyy-MM-dd'),
-          days_remaining: daysRemaining,
-          employees_count: employees?.length || 0,
-          status: status
-        } as SalarySummaryType;
-      } catch (error) {
-        console.error('Error calculating salary summary:', error);
-        return {
-          total_salaries: 0,
-          payment_date: format(new Date(), 'yyyy-MM-dd'),
-          days_remaining: 0,
-          employees_count: 0,
-          status: 'upcoming'
-        } as SalarySummaryType;
-      }
-    },
-    refetchInterval: 60000 // Refresh every minute for real-time updates
-  });
-
-  useEffect(() => {
-    if (salaryData) {
-      setCurrentSummary(salaryData);
-    }
-  }, [salaryData]);
-
-  if (isLoading || isSalaryLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-primary flex items-center gap-2 text-lg">
-            <DollarSign className="h-5 w-5" />
-            ملخص الرواتب
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">جاري تحميل البيانات...</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!currentSummary) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-primary flex items-center gap-2 text-lg">
-            <DollarSign className="h-5 w-5" />
-            ملخص الرواتب
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-            <p>لا توجد بيانات رواتب متاحة</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const { total_salaries, payment_date, days_remaining, employees_count, status } = currentSummary;
-
-  const progressPercentage = Math.max(0, Math.min(100, ((30 - days_remaining) / 30) * 100));
-
-  const statusInfo = {
-    due: { label: 'مستحق الدفع', variant: 'destructive', color: 'text-red-600' },
-    upcoming: { label: 'قادم', variant: 'warning', color: 'text-amber-600' },
-    overdue: { label: 'متأخر', variant: 'destructive', color: 'text-red-600' },
-    paid: { label: 'مدفوع', variant: 'success', color: 'text-green-600' }
+export function EnhancedSalarySummary({ data }: EnhancedSalarySummaryProps) {
+  const { total_salaries, payment_date, days_remaining, employees_count, status } = data;
+  
+  const getStatusColor = () => {
+    if (days_remaining <= 1) return "text-red-600 dark:text-red-400";
+    if (days_remaining <= 3) return "text-orange-600 dark:text-orange-400";
+    if (days_remaining <= 5) return "text-yellow-600 dark:text-yellow-400";
+    if (days_remaining <= 10) return "text-blue-600 dark:text-blue-400";
+    return "text-green-600 dark:text-green-400";
   };
 
-  const getSalaryTextColor = () => {
-    if (days_remaining <= 1) return 'text-red-600 font-bold animate-pulse';
-    if (days_remaining <= 3) return 'text-orange-600 font-semibold';
-    if (days_remaining <= 5) return 'text-yellow-600 font-medium';
-    if (days_remaining <= 10) return 'text-blue-600';
-    return '';
+  const getProgressColor = () => {
+    if (days_remaining <= 1) return "bg-red-500";
+    if (days_remaining <= 3) return "bg-orange-500";
+    if (days_remaining <= 5) return "bg-yellow-500";
+    if (days_remaining <= 10) return "bg-blue-500";
+    return "bg-green-500";
   };
+
+  const progressValue = Math.max(0, Math.min(100, (30 - days_remaining) / 30 * 100));
 
   return (
     <div className="space-y-4">
-      {days_remaining <= 10 && status !== 'paid' && (
-        <SalaryAlerts 
-          paymentDate={payment_date} 
-          totalSalaries={total_salaries}
-        />
-      )}
+      <SalaryAlerts 
+        paymentDate={payment_date} 
+        totalSalaries={total_salaries} 
+      />
       
       <Card>
         <CardHeader>
-          <CardTitle className="text-primary flex items-center justify-between text-lg">
-            <span className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              ملخص الرواتب
-            </span>
-            <Badge 
-              variant={
-                status === 'paid' ? 'outline' : 
-                status === 'upcoming' ? 'destructive' : 
-                'outline'
-              }
-              className={
-                status === 'paid' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 
-                status === 'upcoming' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 
-                'bg-red-100 text-red-800 hover:bg-red-200'
-              }
-            >
-              {statusInfo[status].label}
-            </Badge>
+          <CardTitle className="text-primary flex items-center gap-2">
+            <Wallet className="h-5 w-5" />
+            ملخص الرواتب
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-8">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col items-center p-4 bg-muted rounded-lg">
-              <DollarSign className="h-8 w-8 mb-2 text-primary" />
-              <span className="text-sm text-muted-foreground">إجمالي الرواتب</span>
-              <span className={`text-xl font-bold mt-1 dir-ltr ${getSalaryTextColor()}`}>
-                {new Intl.NumberFormat('en-US').format(total_salaries)} ريال
-              </span>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-purple-500" />
+                <span className="text-sm font-medium">إجمالي الرواتب</span>
+              </div>
+              <p className={`text-2xl font-bold dir-ltr text-right ${getStatusColor()}`}>
+                {formatNumber(total_salaries)} ريال
+              </p>
             </div>
-            <div className="flex flex-col items-center p-4 bg-muted rounded-lg">
-              <Users className="h-8 w-8 mb-2 text-primary" />
-              <span className="text-sm text-muted-foreground">عدد الموظفين</span>
-              <span className="text-xl font-bold mt-1">{employees_count}</span>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-blue-500" />
+                <span className="text-sm font-medium">عدد الموظفين</span>
+              </div>
+              <p className="text-2xl font-bold">{employees_count}</p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-orange-500" />
+                <span className="text-sm font-medium">موعد الدفع</span>
+              </div>
+              <p className="text-lg font-semibold">
+                {new Date(payment_date).toLocaleDateString('ar-SA')}
+              </p>
             </div>
           </div>
 
-          <div>
-            <div className="flex justify-between mb-2">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                <span className="text-sm font-medium">تاريخ السداد:</span>
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">الأيام المتبقية</span>
+              <div className="flex items-center gap-2">
+                {days_remaining <= 3 && <AlertTriangle className="h-4 w-4 text-orange-500" />}
+                <span className={`font-bold ${getStatusColor()}`}>
+                  {days_remaining} يوم
+                </span>
               </div>
-              <span className="text-sm">{format(new Date(payment_date), 'yyyy/MM/dd')}</span>
             </div>
             
-            {status !== 'paid' && (
-              <>
-                <Progress value={progressPercentage} className="h-2 mb-2" />
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">الشهر الحالي</span>
-                  <span className={`text-sm font-medium ${statusInfo[status].color} ${getSalaryTextColor()}`}>
-                    {days_remaining > 0 ? `${days_remaining} يوم متبقي` : 'مستحق اليوم'}
-                  </span>
-                </div>
-              </>
-            )}
+            <div className="space-y-2">
+              <Progress 
+                value={progressValue} 
+                className="w-full"
+                style={{
+                  '--progress-background': getProgressColor()
+                } as React.CSSProperties}
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>بداية الشهر</span>
+                <span>موعد الدفع</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex justify-center">
+            <Badge variant={days_remaining <= 3 ? "destructive" : "secondary"}>
+              {status === "upcoming" ? "قادم" : status === "overdue" ? "متأخر" : "مدفوع"}
+            </Badge>
           </div>
         </CardContent>
-        
-        {status !== 'paid' && (
-          <CardFooter>
-            <Button className="w-full" variant={status === 'upcoming' ? 'default' : 'outline'}>
-              إدارة الرواتب
-            </Button>
-          </CardFooter>
-        )}
       </Card>
     </div>
   );
