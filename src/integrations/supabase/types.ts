@@ -9,6 +9,105 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      accounting_transactions: {
+        Row: {
+          account_id: string | null
+          auto_generated: boolean | null
+          created_at: string
+          credit_amount: number | null
+          debit_amount: number | null
+          description: string | null
+          id: string
+          journal_entry_id: string | null
+          reference_id: string
+          reference_type: string
+          status: string | null
+          transaction_date: string
+        }
+        Insert: {
+          account_id?: string | null
+          auto_generated?: boolean | null
+          created_at?: string
+          credit_amount?: number | null
+          debit_amount?: number | null
+          description?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          reference_id: string
+          reference_type: string
+          status?: string | null
+          transaction_date: string
+        }
+        Update: {
+          account_id?: string | null
+          auto_generated?: boolean | null
+          created_at?: string
+          credit_amount?: number | null
+          debit_amount?: number | null
+          description?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          reference_id?: string
+          reference_type?: string
+          status?: string | null
+          transaction_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_transactions_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_logs: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          message: string
+          reference_id: string
+          reference_type: string
+          scheduled_for: string | null
+          sent_at: string | null
+          sent_via: string[] | null
+          status: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          message: string
+          reference_id: string
+          reference_type: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_via?: string[] | null
+          status?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          message?: string
+          reference_id?: string
+          reference_type?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+          sent_via?: string[] | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       allowance_types: {
         Row: {
           created_at: string
@@ -48,6 +147,42 @@ export type Database = {
           form_type?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      bank_integration: {
+        Row: {
+          account_number: string
+          api_credentials_encrypted: string | null
+          bank_name: string
+          created_at: string
+          iban: string
+          id: string
+          last_sync: string | null
+          status: string | null
+          sync_settings: Json | null
+        }
+        Insert: {
+          account_number: string
+          api_credentials_encrypted?: string | null
+          bank_name: string
+          created_at?: string
+          iban: string
+          id?: string
+          last_sync?: string | null
+          status?: string | null
+          sync_settings?: Json | null
+        }
+        Update: {
+          account_number?: string
+          api_credentials_encrypted?: string | null
+          bank_name?: string
+          created_at?: string
+          iban?: string
+          id?: string
+          last_sync?: string | null
+          status?: string | null
+          sync_settings?: Json | null
         }
         Relationships: []
       }
@@ -427,6 +562,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_settings: {
+        Row: {
+          configuration: Json | null
+          created_at: string
+          email_address: string
+          email_type: string
+          id: string
+          is_active: boolean | null
+          smtp_password_encrypted: string | null
+          smtp_port: number | null
+          smtp_server: string | null
+          smtp_username: string | null
+        }
+        Insert: {
+          configuration?: Json | null
+          created_at?: string
+          email_address: string
+          email_type: string
+          id?: string
+          is_active?: boolean | null
+          smtp_password_encrypted?: string | null
+          smtp_port?: number | null
+          smtp_server?: string | null
+          smtp_username?: string | null
+        }
+        Update: {
+          configuration?: Json | null
+          created_at?: string
+          email_address?: string
+          email_type?: string
+          id?: string
+          is_active?: boolean | null
+          smtp_password_encrypted?: string | null
+          smtp_port?: number | null
+          smtp_server?: string | null
+          smtp_username?: string | null
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           base_salary: number | null
@@ -628,6 +802,48 @@ export type Database = {
           id?: string
           status?: string | null
           type?: string
+        }
+        Relationships: []
+      }
+      government_integration: {
+        Row: {
+          api_endpoint: string
+          api_key_encrypted: string | null
+          configuration: Json | null
+          created_at: string
+          error_log: Json | null
+          id: string
+          last_sync: string | null
+          status: string
+          sync_frequency: string | null
+          system_type: string
+          updated_at: string
+        }
+        Insert: {
+          api_endpoint: string
+          api_key_encrypted?: string | null
+          configuration?: Json | null
+          created_at?: string
+          error_log?: Json | null
+          id?: string
+          last_sync?: string | null
+          status?: string
+          sync_frequency?: string | null
+          system_type: string
+          updated_at?: string
+        }
+        Update: {
+          api_endpoint?: string
+          api_key_encrypted?: string | null
+          configuration?: Json | null
+          created_at?: string
+          error_log?: Json | null
+          id?: string
+          last_sync?: string | null
+          status?: string
+          sync_frequency?: string | null
+          system_type?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1212,6 +1428,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_cash_flow: {
+        Args: { start_date: string; end_date: string }
+        Returns: {
+          total_inflow: number
+          total_outflow: number
+          net_flow: number
+          flow_ratio: number
+        }[]
+      }
       count_journal_entries: {
         Args: Record<PropertyKey, never>
         Returns: number

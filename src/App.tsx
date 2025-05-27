@@ -22,10 +22,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Default route redirects to Dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        {/* Default route redirects to Main page */}
+        <Route path="/" element={<Navigate to="/main" replace />} />
         <Route path="/main" element={<MainPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/accounting" element={<AccountingPage />} />
         <Route path="/financial" element={<FinancialPage />} />
         <Route path="/capital" element={<CapitalManagementPage />} />
