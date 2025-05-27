@@ -1,29 +1,30 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, DollarSign, MapPin, Mail, Phone, User } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { CalendarIcon, User, MapPin, Phone, Mail } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProjectOverviewProps {
-  projectId?: string;
+  projectId: string;
 }
 
-export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
-  const { data: projectData, isLoading } = useQuery({
-    queryKey: ["project-overview", projectId],
+export function ProjectOverview({ projectId }: ProjectOverviewProps) {
+  const { data: project, isLoading } = useQuery({
+    queryKey: ["project", projectId],
     queryFn: async () => {
-      if (!projectId) return null;
-      
       const { data, error } = await supabase
         .from("projects")
         .select(`
           *,
-          client:client_id (
+          clients (
+            id,
             name,
             email,
-            phone
+            phone,
+            address
           )
         `)
         .eq("id", projectId)
@@ -32,90 +33,117 @@ export default function ProjectOverview({ projectId }: ProjectOverviewProps) {
       if (error) throw error;
       return data;
     },
-    enabled: !!projectId
   });
 
   if (isLoading) {
-    return <div className="text-center py-6">جاري التحميل...</div>;
+    return <div>جاري التحميل...</div>;
   }
 
-  if (!projectData) {
-    return <div className="text-center py-6">لم يتم العثور على بيانات المشروع</div>;
+  if (!project) {
+    return <div>لم يتم العثور على المشروع</div>;
   }
 
-  // التحقق من وجود بيانات العميل بشكل آمن
-  const clientData = projectData.client && typeof projectData.client === 'object' ? projectData.client : null;
+  const clientData = project.clients;
   const clientName = clientData?.name || "غير محدد";
   const clientEmail = clientData?.email || "غير محدد";
   const clientPhone = clientData?.phone || "غير محدد";
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "bg-green-100 text-green-800";
+      case "in_progress":
+        return "bg-blue-100 text-blue-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "مكتمل";
+      case "in_progress":
+        return "قيد التنفيذ";
+      case "pending":
+        return "في الانتظار";
+      default:
+        return status;
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="grid gap-6 md:grid-cols-2">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl">{projectData.title || "مشروع بدون عنوان"}</CardTitle>
-            <Badge variant={projectData.status === 'active' ? 'default' : 'secondary'}>
-              {projectData.status === 'active' ? 'نشط' : 'مكتمل'}
-            </Badge>
-          </div>
+          <CardTitle>معلومات المشروع</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-muted-foreground">{projectData.description || "لا يوجد وصف"}</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">تاريخ البداية:</span>
-                <span className="text-sm">{projectData.start_date || "غير محدد"}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">تاريخ النهاية:</span>
-                <span className="text-sm">{projectData.end_date || "غير محدد"}</span>
-              </div>
+          <div>
+            <h3 className="font-semibold text-lg">{project.name}</h3>
+            <p className="text-muted-foreground">{project.description}</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Badge className={getStatusColor(project.status)}>
+              {getStatusText(project.status)}
+            </Badge>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm">
+              <CalendarIcon className="h-4 w-4" />
+              <span>تاريخ البداية: {new Date(project.start_date).toLocaleDateString('ar-SA')}</span>
             </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">الميزانية:</span>
-                <span className="text-sm">{projectData.budget ? `${projectData.budget} ريال` : "غير محددة"}</span>
+            {project.end_date && (
+              <div className="flex items-center gap-2 text-sm">
+                <CalendarIcon className="h-4 w-4" />
+                <span>تاريخ الانتهاء: {new Date(project.end_date).toLocaleDateString('ar-SA')}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">الموقع:</span>
-                <span className="text-sm">{"غير محدد"}</span>
-              </div>
-            </div>
+            )}
+          </div>
+
+          <div>
+            <p className="text-sm font-medium mb-2">نسبة الإنجاز</p>
+            <Progress value={project.progress || 0} className="w-full" />
+            <p className="text-sm text-muted-foreground mt-1">{project.progress || 0}%</p>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium">الميزانية</p>
+            <p className="text-lg font-semibold">{project.budget?.toLocaleString()} ريال</p>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            معلومات العميل
-          </CardTitle>
+          <CardTitle>معلومات العميل</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">الاسم:</span>
-            <span className="text-sm">{clientName}</span>
+            <User className="h-4 w-4" />
+            <span className="font-medium">{clientName}</span>
           </div>
+
           <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">البريد الإلكتروني:</span>
+            <Mail className="h-4 w-4" />
             <span className="text-sm">{clientEmail}</span>
           </div>
+
           <div className="flex items-center gap-2">
-            <Phone className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">الهاتف:</span>
+            <Phone className="h-4 w-4" />
             <span className="text-sm">{clientPhone}</span>
           </div>
+
+          {clientData?.address && (
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              <span className="text-sm">{clientData.address}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

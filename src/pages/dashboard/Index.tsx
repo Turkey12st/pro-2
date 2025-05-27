@@ -4,6 +4,8 @@ import { Container } from "@/components/ui/container";
 import { CompanyInfoCard } from "@/components/dashboard/CompanyInfoCard";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
+import { QuickNavMenu } from "@/components/dashboard/QuickNavMenu";
+import { AutoSaveProvider } from "@/components/dashboard/AutoSaveProvider";
 import { 
   Users, 
   FileText, 
@@ -126,23 +128,30 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 md:p-8">
-      <DashboardStats stats={stats} />
-
-      <div className="grid gap-4 md:grid-cols-12">
-        <div className="md:col-span-3">
-          <CompanyInfoCard />
+    <AutoSaveProvider>
+      <div className="space-y-6 p-4 sm:p-6 md:p-8">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">لوحة المعلومات</h1>
+          <QuickNavMenu />
         </div>
-        
-        <div className="md:col-span-9">
-          <DashboardTabs 
-            financialData={financialData}
-            salarySummary={salarySummary}
-            notifications={notifications}
-            expiringDocuments={expiringDocuments}
-          />
+
+        <DashboardStats stats={stats} />
+
+        <div className="grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-3">
+            <CompanyInfoCard />
+          </div>
+          
+          <div className="md:col-span-9">
+            <DashboardTabs 
+              financialData={financialData}
+              salarySummary={salarySummary}
+              notifications={notifications}
+              expiringDocuments={expiringDocuments}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </AutoSaveProvider>
   );
 }

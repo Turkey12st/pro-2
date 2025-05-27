@@ -1,6 +1,6 @@
 
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainPage from "./pages/MainPage";
 import DashboardPage from "./pages/dashboard/Index";
 import AccountingPage from "./pages/accounting/Index";
@@ -22,6 +22,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Default route redirects to MainPage */}
         <Route path="/" element={<MainPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/accounting" element={<AccountingPage />} />

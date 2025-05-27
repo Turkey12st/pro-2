@@ -4,7 +4,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { NotificationsList } from "@/components/dashboard/NotificationsList";
-import { SalarySummary } from "@/components/dashboard/SalarySummary";
+import { EnhancedSalarySummary } from "@/components/dashboard/EnhancedSalarySummary";
 import { DocumentExpiryNotifications } from "@/components/dashboard/DocumentExpiryNotifications";
 import { TabNavigation } from "./tabs/TabNavigation";
 import { PerformanceMetrics } from "./tabs/PerformanceMetrics";
@@ -58,7 +58,7 @@ export function DashboardTabs({
       </TabsContent>
       
       <TabsContent value="salaries">
-        <SalarySummary data={salarySummary} />
+        <EnhancedSalarySummary data={salarySummary} />
       </TabsContent>
       
       <TabsContent value="performance" className="space-y-4">
