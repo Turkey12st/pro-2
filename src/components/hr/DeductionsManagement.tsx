@@ -13,19 +13,17 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { supabase } from '@/integrations/supabase/client';
 import { formatSalary } from '@/utils/formatters';
 import { format } from 'date-fns';
-import { Plus, Edit, Check, X, Minus } from 'lucide-react';
+import { Plus, Check, X, Minus } from 'lucide-react';
 
 interface Deduction {
   id: string;
   employee_id: string;
   employee_name: string;
-  type: 'absence' | 'late' | 'violation' | 'loan' | 'insurance' | 'tax' | 'other';
   amount: number;
   reason: string;
   date: string;
-  status: 'pending' | 'approved' | 'applied';
+  status: string;
   auto_generated: boolean;
-  approved_by: string | null;
   created_at: string;
 }
 
@@ -43,7 +41,6 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
 
   const [newDeduction, setNewDeduction] = useState({
     employee_id: employeeId || '',
-    type: 'violation' as const,
     amount: 0,
     reason: '',
     date: new Date().toISOString().split('T')[0]
@@ -56,27 +53,39 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
   const loadDeductions = async () => {
     try {
       setIsLoading(true);
+      
       let query = supabase
         .from('salary_deductions')
-        .select(`
-          *,
-          employees!inner(name)
-        `);
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (employeeId) {
         query = query.eq('employee_id', employeeId);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query;
 
       if (error) throw error;
 
-      const formattedDeductions = data?.map(deduction => ({
-        ...deduction,
-        employee_name: deduction.employees?.name || 'غير معروف'
-      })) || [];
+      // جلب أسماء الموظفين
+      if (data && data.length > 0) {
+        const employeeIds = [...new Set(data.map(deduction => deduction.employee_id))];
+        const { data: employees } = await supabase
+          .from('employees')
+          .select('id, name')
+          .in('id', employeeIds);
 
-      setDeductions(formattedDeductions);
+        const employeeMap = new Map(employees?.map(emp => [emp.id, emp.name]) || []);
+
+        const formattedDeductions = data.map(deduction => ({
+          ...deduction,
+          employee_name: employeeMap.get(deduction.employee_id) || 'غير معروف'
+        }));
+
+        setDeductions(formattedDeductions);
+      } else {
+        setDeductions([]);
+      }
     } catch (error) {
       console.error('Error loading deductions:', error);
       toast({
@@ -106,10 +115,13 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
       const { error } = await supabase
         .from('salary_deductions')
         .insert([{
-          ...newDeduction,
-          created_by: user.id,
+          employee_id: newDeduction.employee_id,
+          amount: newDeduction.amount,
+          reason: newDeduction.reason,
+          date: newDeduction.date,
           auto_generated: false,
-          status: 'pending'
+          status: 'pending',
+          created_by: user.id
         }]);
 
       if (error) throw error;
@@ -122,7 +134,6 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
       setIsDialogOpen(false);
       setNewDeduction({
         employee_id: employeeId || '',
-        type: 'violation',
         amount: 0,
         reason: '',
         date: new Date().toISOString().split('T')[0]
@@ -139,23 +150,17 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
     }
   };
 
-  const handleApproveDeduction = async (deductionId: string, approved: boolean) => {
+  const updateDeductionStatus = async (deductionId: string, status: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('المستخدم غير مسجل الدخول');
-
       const { error } = await supabase
         .from('salary_deductions')
-        .update({
-          status: approved ? 'approved' : 'rejected',
-          approved_by: user.id
-        })
+        .update({ status })
         .eq('id', deductionId);
 
       if (error) throw error;
 
       toast({
-        title: approved ? 'تم اعتماد الخصم' : 'تم رفض الخصم',
+        title: status === 'approved' ? 'تم اعتماد الخصم' : 'تم رفض الخصم',
         description: 'تم تحديث حالة الخصم بنجاح'
       });
 
@@ -170,27 +175,14 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
     }
   };
 
-  const getDeductionTypeText = (type: string) => {
-    const typeMap = {
-      absence: 'غياب',
-      late: 'تأخير',
-      violation: 'مخالفة',
-      loan: 'سلفة',
-      insurance: 'تأمين',
-      tax: 'ضريبة',
-      other: 'أخرى'
-    };
-    return typeMap[type as keyof typeof typeMap] || type;
-  };
-
   const getStatusBadge = (status: string, autoGenerated: boolean) => {
-    const statusMap = {
+    const statusMap: Record<string, { text: string; class: string }> = {
       pending: { text: 'في الانتظار', class: 'bg-yellow-100 text-yellow-800' },
       approved: { text: 'معتمد', class: 'bg-green-100 text-green-800' },
       applied: { text: 'مطبق', class: 'bg-blue-100 text-blue-800' },
       rejected: { text: 'مرفوض', class: 'bg-red-100 text-red-800' }
     };
-    const statusInfo = statusMap[status as keyof typeof statusMap] || { text: status, class: 'bg-gray-100 text-gray-800' };
+    const statusInfo = statusMap[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
     
     return (
       <div className="flex items-center gap-2">
@@ -230,7 +222,6 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
                 <TableRow>
                   <TableHead>التاريخ</TableHead>
                   {!employeeId && <TableHead>اسم الموظف</TableHead>}
-                  <TableHead>النوع</TableHead>
                   <TableHead>المبلغ</TableHead>
                   <TableHead>السبب</TableHead>
                   <TableHead>الحالة</TableHead>
@@ -246,7 +237,6 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
                     {!employeeId && (
                       <TableCell>{deduction.employee_name}</TableCell>
                     )}
-                    <TableCell>{getDeductionTypeText(deduction.type)}</TableCell>
                     <TableCell>{formatSalary(deduction.amount)}</TableCell>
                     <TableCell>{deduction.reason}</TableCell>
                     <TableCell>{getStatusBadge(deduction.status, deduction.auto_generated)}</TableCell>
@@ -256,7 +246,7 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleApproveDeduction(deduction.id, true)}
+                            onClick={() => updateDeductionStatus(deduction.id, 'approved')}
                             className="text-green-600 hover:text-green-700"
                           >
                             <Check className="h-4 w-4" />
@@ -264,7 +254,7 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleApproveDeduction(deduction.id, false)}
+                            onClick={() => updateDeductionStatus(deduction.id, 'rejected')}
                             className="text-red-600 hover:text-red-700"
                           >
                             <X className="h-4 w-4" />
@@ -290,27 +280,6 @@ export function DeductionsManagement({ employeeId }: DeductionsManagementProps) 
             <DialogTitle>إضافة خصم جديد</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="type">نوع الخصم</Label>
-              <Select
-                value={newDeduction.type}
-                onValueChange={(value) => setNewDeduction(prev => ({ ...prev, type: value as any }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="absence">غياب</SelectItem>
-                  <SelectItem value="late">تأخير</SelectItem>
-                  <SelectItem value="violation">مخالفة</SelectItem>
-                  <SelectItem value="loan">سلفة</SelectItem>
-                  <SelectItem value="insurance">تأمين</SelectItem>
-                  <SelectItem value="tax">ضريبة</SelectItem>
-                  <SelectItem value="other">أخرى</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="amount">المبلغ (ريال)</Label>
               <Input

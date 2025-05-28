@@ -126,6 +126,59 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance_records: {
+        Row: {
+          approved_by: string | null
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          created_by: string | null
+          date: string
+          employee_id: string | null
+          id: string
+          late_minutes: number | null
+          notes: string | null
+          overtime_minutes: number | null
+          status: string
+        }
+        Insert: {
+          approved_by?: string | null
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          employee_id?: string | null
+          id?: string
+          late_minutes?: number | null
+          notes?: string | null
+          overtime_minutes?: number | null
+          status?: string
+        }
+        Update: {
+          approved_by?: string | null
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          employee_id?: string | null
+          id?: string
+          late_minutes?: number | null
+          notes?: string | null
+          overtime_minutes?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auto_saves: {
         Row: {
           created_at: string
@@ -601,6 +654,100 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_benefits: {
+        Row: {
+          amount: number
+          benefit_type: string
+          created_at: string
+          created_by: string | null
+          date: string
+          employee_id: string | null
+          id: string
+          notes: string | null
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          benefit_type: string
+          created_at?: string
+          created_by?: string | null
+          date: string
+          employee_id?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          benefit_type?: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          employee_id?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_benefits_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_violations: {
+        Row: {
+          action_taken: string | null
+          auto_generated: boolean | null
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string
+          employee_id: string | null
+          id: string
+          severity: string | null
+          status: string | null
+          type: string
+        }
+        Insert: {
+          action_taken?: string | null
+          auto_generated?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          description: string
+          employee_id?: string | null
+          id?: string
+          severity?: string | null
+          status?: string | null
+          type: string
+        }
+        Update: {
+          action_taken?: string | null
+          auto_generated?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string
+          employee_id?: string | null
+          id?: string
+          severity?: string | null
+          status?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_violations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           base_salary: number | null
@@ -844,6 +991,42 @@ export type Database = {
           sync_frequency?: string | null
           system_type?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      hr_regulations: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          last_updated: string | null
+          rules: Json | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          rules?: Json | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          rules?: Json | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -1301,6 +1484,50 @@ export type Database = {
           },
         ]
       }
+      salary_deductions: {
+        Row: {
+          amount: number
+          auto_generated: boolean | null
+          created_at: string
+          created_by: string | null
+          date: string
+          employee_id: string | null
+          id: string
+          reason: string
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          auto_generated?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          employee_id?: string | null
+          id?: string
+          reason: string
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          auto_generated?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          employee_id?: string | null
+          id?: string
+          reason?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_deductions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salary_records: {
         Row: {
           base_salary: number
@@ -1375,6 +1602,33 @@ export type Database = {
           fee_amount?: number
           id?: string
           transfer_count?: number
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          permissions: Json | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          permissions?: Json | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          permissions?: Json | null
+          role?: string
+          user_id?: string
         }
         Relationships: []
       }

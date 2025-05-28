@@ -1,72 +1,49 @@
 
-import React from "react";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
-import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
-import { NotificationsList } from "@/components/dashboard/NotificationsList";
-import { EnhancedSalarySummary } from "@/components/dashboard/EnhancedSalarySummary";
-import { DocumentExpiryNotifications } from "@/components/dashboard/DocumentExpiryNotifications";
-import { TabNavigation } from "./tabs/TabNavigation";
-import { PerformanceMetrics } from "./tabs/PerformanceMetrics";
-import { FinancialSummaryType } from "@/types/database";
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import FinancialSummary from './FinancialSummary';
+import CashFlowChart from './CashFlowChart';
+import { CompanyInfoCard } from './CompanyInfoCard';
+import { SalarySummary } from './SalarySummary';
+import { CapitalSummary } from './CapitalSummary';
+import { ZakatCalculator } from './ZakatCalculator';
+import { PerformanceMetrics } from './tabs/PerformanceMetrics';
 
-interface DashboardTabsProps {
-  financialData: FinancialSummaryType;
-  salarySummary: {
-    total_salaries: number;
-    payment_date: string;
-    days_remaining: number;
-    employees_count: number;
-    status: "upcoming" | "overdue" | "paid";
-  };
-  notifications: Array<{
-    id: string;
-    title: string;
-    message: string;
-    type: string;
-    date: string;
-  }>;
-  expiringDocuments: Array<{
-    id: string;
-    title: string;
-    type: string;
-    expiry_date: string;
-    days_remaining: number;
-    status: string;
-  }>;
-}
-
-export function DashboardTabs({ 
-  financialData, 
-  salarySummary, 
-  notifications, 
-  expiringDocuments 
-}: DashboardTabsProps) {
+export default function DashboardTabs() {
   return (
-    <Tabs defaultValue="financial" className="w-full">
-      <TabNavigation />
-      
-      <TabsContent value="financial" className="space-y-4">
+    <Tabs defaultValue="overview" className="space-y-4">
+      <TabsList className="grid w-full grid-cols-4">
+        <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+        <TabsTrigger value="financial">المالية</TabsTrigger>
+        <TabsTrigger value="hr">الموارد البشرية</TabsTrigger>
+        <TabsTrigger value="performance">الأداء</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="overview" className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <CompanyInfoCard />
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <FinancialSummary data={financialData} />
+          <FinancialSummary />
           <CashFlowChart />
         </div>
       </TabsContent>
-      
-      <TabsContent value="documents">
-        <DocumentExpiryNotifications />
+
+      <TabsContent value="financial" className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <CapitalSummary />
+          <ZakatCalculator />
+        </div>
+        <CashFlowChart />
       </TabsContent>
-      
-      <TabsContent value="salaries">
-        <EnhancedSalarySummary data={salarySummary} />
+
+      <TabsContent value="hr" className="space-y-4">
+        <SalarySummary />
       </TabsContent>
-      
+
       <TabsContent value="performance" className="space-y-4">
-        <PerformanceMetrics financialData={financialData} />
-      </TabsContent>
-      
-      <TabsContent value="notifications">
-        <NotificationsList />
+        <PerformanceMetrics />
       </TabsContent>
     </Tabs>
   );

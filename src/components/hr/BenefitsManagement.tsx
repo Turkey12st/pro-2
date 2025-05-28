@@ -13,19 +13,17 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { supabase } from '@/integrations/supabase/client';
 import { formatSalary } from '@/utils/formatters';
 import { format } from 'date-fns';
-import { Plus, Edit, Check, X } from 'lucide-react';
+import { Plus, Check, X, Gift } from 'lucide-react';
 
 interface Benefit {
   id: string;
   employee_id: string;
   employee_name: string;
-  type: 'bonus' | 'allowance' | 'commission' | 'overtime' | 'other';
+  benefit_type: string;
   amount: number;
-  description: string;
   date: string;
-  status: 'pending' | 'approved' | 'rejected';
-  approved_by: string | null;
-  approved_at: string | null;
+  status: string;
+  notes: string;
   created_at: string;
 }
 
@@ -43,9 +41,9 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
 
   const [newBenefit, setNewBenefit] = useState({
     employee_id: employeeId || '',
-    type: 'bonus' as const,
+    benefit_type: 'bonus',
     amount: 0,
-    description: '',
+    notes: '',
     date: new Date().toISOString().split('T')[0]
   });
 
@@ -56,27 +54,39 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
   const loadBenefits = async () => {
     try {
       setIsLoading(true);
+      
       let query = supabase
         .from('employee_benefits')
-        .select(`
-          *,
-          employees!inner(name)
-        `);
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (employeeId) {
         query = query.eq('employee_id', employeeId);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query;
 
       if (error) throw error;
 
-      const formattedBenefits = data?.map(benefit => ({
-        ...benefit,
-        employee_name: benefit.employees?.name || 'غير معروف'
-      })) || [];
+      // جلب أسماء الموظفين
+      if (data && data.length > 0) {
+        const employeeIds = [...new Set(data.map(benefit => benefit.employee_id))];
+        const { data: employees } = await supabase
+          .from('employees')
+          .select('id, name')
+          .in('id', employeeIds);
 
-      setBenefits(formattedBenefits);
+        const employeeMap = new Map(employees?.map(emp => [emp.id, emp.name]) || []);
+
+        const formattedBenefits = data.map(benefit => ({
+          ...benefit,
+          employee_name: employeeMap.get(benefit.employee_id) || 'غير معروف'
+        }));
+
+        setBenefits(formattedBenefits);
+      } else {
+        setBenefits([]);
+      }
     } catch (error) {
       console.error('Error loading benefits:', error);
       toast({
@@ -106,11 +116,13 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
       const { error } = await supabase
         .from('employee_benefits')
         .insert([{
-          ...newBenefit,
-          created_by: user.id,
+          employee_id: newBenefit.employee_id,
+          benefit_type: newBenefit.benefit_type,
+          amount: newBenefit.amount,
+          date: newBenefit.date,
+          notes: newBenefit.notes,
           status: hasPermission('approve_benefits') ? 'approved' : 'pending',
-          approved_by: hasPermission('approve_benefits') ? user.id : null,
-          approved_at: hasPermission('approve_benefits') ? new Date().toISOString() : null
+          created_by: user.id
         }]);
 
       if (error) throw error;
@@ -123,9 +135,9 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
       setIsDialogOpen(false);
       setNewBenefit({
         employee_id: employeeId || '',
-        type: 'bonus',
+        benefit_type: 'bonus',
         amount: 0,
-        description: '',
+        notes: '',
         date: new Date().toISOString().split('T')[0]
       });
       
@@ -140,33 +152,17 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
     }
   };
 
-  const handleApproveBenefit = async (benefitId: string, approved: boolean) => {
-    if (!hasPermission('approve_benefits')) {
-      toast({
-        title: 'غير مسموح',
-        description: 'ليس لديك صلاحية لاعتماد الاستحقاقات',
-        variant: 'destructive'
-      });
-      return;
-    }
-
+  const updateBenefitStatus = async (benefitId: string, status: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('المستخدم غير مسجل الدخول');
-
       const { error } = await supabase
         .from('employee_benefits')
-        .update({
-          status: approved ? 'approved' : 'rejected',
-          approved_by: user.id,
-          approved_at: new Date().toISOString()
-        })
+        .update({ status })
         .eq('id', benefitId);
 
       if (error) throw error;
 
       toast({
-        title: approved ? 'تم اعتماد الاستحقاق' : 'تم رفض الاستحقاق',
+        title: status === 'approved' ? 'تم اعتماد الاستحقاق' : 'تم رفض الاستحقاق',
         description: 'تم تحديث حالة الاستحقاق بنجاح'
       });
 
@@ -182,23 +178,23 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
   };
 
   const getBenefitTypeText = (type: string) => {
-    const typeMap = {
+    const typeMap: Record<string, string> = {
       bonus: 'مكافأة',
       allowance: 'بدل',
       commission: 'عمولة',
       overtime: 'عمل إضافي',
       other: 'أخرى'
     };
-    return typeMap[type as keyof typeof typeMap] || type;
+    return typeMap[type] || type;
   };
 
   const getStatusBadge = (status: string) => {
-    const statusMap = {
+    const statusMap: Record<string, { text: string; class: string }> = {
       pending: { text: 'في الانتظار', class: 'bg-yellow-100 text-yellow-800' },
       approved: { text: 'معتمد', class: 'bg-green-100 text-green-800' },
       rejected: { text: 'مرفوض', class: 'bg-red-100 text-red-800' }
     };
-    const statusInfo = statusMap[status as keyof typeof statusMap] || { text: status, class: 'bg-gray-100 text-gray-800' };
+    const statusInfo = statusMap[status] || { text: status, class: 'bg-gray-100 text-gray-800' };
     
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.class}`}>
@@ -211,7 +207,10 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>إدارة الاستحقاقات والمكافآت</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Gift className="h-5 w-5" />
+            إدارة الاستحقاقات والمكافآت
+          </CardTitle>
           {hasPermission('manage_benefits') && (
             <Button onClick={() => setIsDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
@@ -230,7 +229,7 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
                   {!employeeId && <TableHead>اسم الموظف</TableHead>}
                   <TableHead>النوع</TableHead>
                   <TableHead>المبلغ</TableHead>
-                  <TableHead>الوصف</TableHead>
+                  <TableHead>الملاحظات</TableHead>
                   <TableHead>الحالة</TableHead>
                   {hasPermission('approve_benefits') && <TableHead>الإجراءات</TableHead>}
                 </TableRow>
@@ -244,9 +243,9 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
                     {!employeeId && (
                       <TableCell>{benefit.employee_name}</TableCell>
                     )}
-                    <TableCell>{getBenefitTypeText(benefit.type)}</TableCell>
+                    <TableCell>{getBenefitTypeText(benefit.benefit_type)}</TableCell>
                     <TableCell>{formatSalary(benefit.amount)}</TableCell>
-                    <TableCell>{benefit.description}</TableCell>
+                    <TableCell>{benefit.notes}</TableCell>
                     <TableCell>{getStatusBadge(benefit.status)}</TableCell>
                     {hasPermission('approve_benefits') && benefit.status === 'pending' && (
                       <TableCell>
@@ -254,7 +253,7 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleApproveBenefit(benefit.id, true)}
+                            onClick={() => updateBenefitStatus(benefit.id, 'approved')}
                             className="text-green-600 hover:text-green-700"
                           >
                             <Check className="h-4 w-4" />
@@ -262,7 +261,7 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleApproveBenefit(benefit.id, false)}
+                            onClick={() => updateBenefitStatus(benefit.id, 'rejected')}
                             className="text-red-600 hover:text-red-700"
                           >
                             <X className="h-4 w-4" />
@@ -289,10 +288,10 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="type">نوع الاستحقاق</Label>
+              <Label htmlFor="benefit_type">نوع الاستحقاق</Label>
               <Select
-                value={newBenefit.type}
-                onValueChange={(value) => setNewBenefit(prev => ({ ...prev, type: value as any }))}
+                value={newBenefit.benefit_type}
+                onValueChange={(value) => setNewBenefit(prev => ({ ...prev, benefit_type: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -329,11 +328,11 @@ export function BenefitsManagement({ employeeId }: BenefitsManagementProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">الوصف</Label>
+              <Label htmlFor="notes">الملاحظات</Label>
               <Textarea
-                id="description"
-                value={newBenefit.description}
-                onChange={(e) => setNewBenefit(prev => ({ ...prev, description: e.target.value }))}
+                id="notes"
+                value={newBenefit.notes}
+                onChange={(e) => setNewBenefit(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="وصف الاستحقاق وسبب منحه"
               />
             </div>
