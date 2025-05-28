@@ -1,189 +1,356 @@
-
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-import { formatDate, formatSalary } from '@/utils/formatters';
-import { Edit, Mail, Phone, MapPin, Calendar, DollarSign, FileText } from 'lucide-react';
-import { AttendanceManagement } from '@/components/hr/AttendanceManagement';
-import { BenefitsManagement } from '@/components/hr/BenefitsManagement';
-import { DeductionsManagement } from '@/components/hr/DeductionsManagement';
-import { ViolationsManagement } from '@/components/hr/ViolationsManagement';
-import AppLayout from '@/components/AppLayout';
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Employee, mapDbEmployeeToEmployee } from "@/types/hr";
+import AppLayout from "@/components/AppLayout";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ChevronRight, ArrowLeft, UserRound, FileText, Calendar, Clock, BellIcon, AlertCircle, BadgeCheck, Settings } from "lucide-react";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { formatSalary } from "@/utils/formatters";
+import { EmployeeDocuments } from "@/components/hr/EmployeeDocuments";
+import { EmployeeSalaries } from "@/components/hr/EmployeeSalaries";
+import { EmployeeDeductions } from "@/components/hr/EmployeeDeductions";
+import { EmployeeBenefits } from "@/components/hr/EmployeeBenefits";
+import { EmployeeVacations } from "@/components/hr/EmployeeVacations";
+import { EmployeeAttendance } from "@/components/hr/EmployeeAttendance";
+import { EmployeeViolations } from "@/components/hr/EmployeeViolations";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("info");
 
   const { data: employee, isLoading, error } = useQuery({
-    queryKey: ['employee', id],
+    queryKey: ["employee", id],
     queryFn: async () => {
-      if (!id) throw new Error('معرف الموظف مطلوب');
+      if (!id) throw new Error("No employee ID provided");
       
       const { data, error } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('id', id)
+        .from("employees")
+        .select("*")
+        .eq("id", id)
         .single();
-
+      
       if (error) throw error;
-      return data;
+      if (!data) throw new Error("Employee not found");
+      
+      return mapDbEmployeeToEmployee(data);
     },
-    enabled: !!id,
   });
 
-  if (isLoading) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">جاري تحميل بيانات الموظف...</p>
-          </div>
-        </div>
-      </AppLayout>
-    );
+  if (error) {
+    toast({
+      title: "خطأ في تحميل بيانات الموظف",
+      description: "حدث خطأ أثناء محاولة تحميل بيانات الموظف",
+      variant: "destructive",
+    });
   }
-
-  if (error || !employee) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-destructive mb-2">خطأ في تحميل البيانات</h2>
-            <p className="text-muted-foreground">لم يتم العثور على بيانات الموظف</p>
-          </div>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  const getEmployeeTypeBadge = (type: string) => {
-    switch (type) {
-      case 'saudi':
-        return <Badge className="bg-green-100 text-green-800">سعودي</Badge>;
-      case 'expat':
-        return <Badge className="bg-blue-100 text-blue-800">وافد</Badge>;
-      default:
-        return <Badge variant="outline">{type || "غير محدد"}</Badge>;
-    }
-  };
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-6 space-y-6">
-        {/* Header Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex items-start space-x-4 space-x-reverse">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={employee.photo_url || ''} alt={employee.name} />
-                  <AvatarFallback className="text-lg">
-                    {employee.name?.charAt(0) || 'م'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-2xl font-bold">{employee.name}</h1>
-                    {getEmployeeTypeBadge(employee.employee_type)}
-                  </div>
-                  <p className="text-muted-foreground text-lg">{employee.position}</p>
-                  <p className="text-sm text-muted-foreground">{employee.department}</p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4 ml-2" />
-                تعديل البيانات
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{employee.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{employee.phone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">رقم الهوية: {employee.identity_number}</span>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">تاريخ الالتحاق: {formatDate(employee.joining_date)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">الراتب: {formatSalary(employee.salary)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">الجنسية: {employee.nationality}</span>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <span className="text-sm font-medium">نوع العقد:</span>
-                  <span className="text-sm mr-2">{
-                    employee.contract_type === 'full-time' ? 'دوام كامل' :
-                    employee.contract_type === 'part-time' ? 'دوام جزئي' :
-                    employee.contract_type === 'contract' ? 'عقد' : employee.contract_type
-                  }</span>
-                </div>
-                {employee.branch && (
-                  <div>
-                    <span className="text-sm font-medium">الفرع:</span>
-                    <span className="text-sm mr-2">{employee.branch}</span>
-                  </div>
-                )}
-                {employee.employment_number && (
-                  <div>
-                    <span className="text-sm font-medium">رقم الموظف:</span>
-                    <span className="text-sm mr-2">{employee.employment_number}</span>
-                  </div>
-                )}
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate("/hr")}
+              className="flex items-center"
+            >
+              <ArrowLeft className="h-4 w-4 ml-2" />
+              <span>العودة</span>
+            </Button>
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold tracking-tight">
+                {isLoading ? <Skeleton className="h-8 w-40" /> : employee?.name || "بيانات الموظف"}
+              </h1>
+              <div className="flex items-center text-sm text-muted-foreground">
+                <span>الموارد البشرية</span>
+                <ChevronRight className="h-4 w-4 mx-1" />
+                <span>الموظفين</span>
+                <ChevronRight className="h-4 w-4 mx-1" />
+                <span>{isLoading ? <Skeleton className="h-4 w-20" /> : employee?.name}</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="flex space-x-2 space-x-reverse">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(`/hr/employees/edit/${id}`)}
+            >
+              تعديل البيانات
+            </Button>
+          </div>
+        </div>
 
-        {/* Tabs Section */}
-        <Tabs defaultValue="attendance" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="attendance">الحضور والانصراف</TabsTrigger>
-            <TabsTrigger value="benefits">الاستحقاقات</TabsTrigger>
-            <TabsTrigger value="deductions">الخصومات</TabsTrigger>
-            <TabsTrigger value="violations">المخالفات</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="attendance">
-            <AttendanceManagement employeeId={id} />
-          </TabsContent>
-
-          <TabsContent value="benefits">
-            <BenefitsManagement employeeId={id} />
-          </TabsContent>
-
-          <TabsContent value="deductions">
-            <DeductionsManagement employeeId={id} />
-          </TabsContent>
-
-          <TabsContent value="violations">
-            <ViolationsManagement employeeId={id} />
-          </TabsContent>
-        </Tabs>
+        {isLoading ? (
+          <div className="grid gap-6">
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-96 w-full" />
+          </div>
+        ) : (
+          <>
+            <EmployeeHeaderCard employee={employee} />
+            
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+              <TabsList className="overflow-x-auto flex-nowrap mb-4">
+                <TabsTrigger value="info" className="flex items-center gap-2">
+                  <UserRound className="h-4 w-4" />
+                  <span>المعلومات الشخصية</span>
+                </TabsTrigger>
+                <TabsTrigger value="documents" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span>المستندات</span>
+                </TabsTrigger>
+                <TabsTrigger value="hr-management" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  <span>إدارة الموارد البشرية</span>
+                </TabsTrigger>
+                <TabsTrigger value="salaries" className="flex items-center gap-2">
+                  <BadgeCheck className="h-4 w-4" />
+                  <span>الرواتب</span>
+                </TabsTrigger>
+                <TabsTrigger value="vacations" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>الإجازات</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="info" className="space-y-4">
+                <EmployeeDetailsCards employee={employee} />
+              </TabsContent>
+              
+              <TabsContent value="documents">
+                <EmployeeDocuments employeeId={id} documents={employee?.documents || []} />
+              </TabsContent>
+              
+              <TabsContent value="hr-management">
+                <EmployeeHRManagement 
+                  employeeId={id!} 
+                  employeeName={employee?.name || ''} 
+                />
+              </TabsContent>
+              
+              <TabsContent value="salaries">
+                <EmployeeSalaries employeeId={id} employee={employee} />
+              </TabsContent>
+              
+              <TabsContent value="vacations">
+                <EmployeeVacations employeeId={id} />
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
       </div>
     </AppLayout>
+  );
+}
+
+interface EmployeeHeaderCardProps {
+  employee?: Employee;
+}
+
+function EmployeeHeaderCard({ employee }: EmployeeHeaderCardProps) {
+  if (!employee) return null;
+
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+          <div className="flex-shrink-0">
+            {employee.photoUrl ? (
+              <img 
+                src={employee.photoUrl} 
+                alt={employee.name} 
+                className="h-32 w-32 rounded-full object-cover border-4 border-background" 
+              />
+            ) : (
+              <div className="h-32 w-32 rounded-full bg-muted flex items-center justify-center border-4 border-background">
+                <UserRound className="h-16 w-16 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1 text-center md:text-right">
+            <h2 className="text-2xl font-bold">{employee.name}</h2>
+            <p className="text-muted-foreground">{employee.position || "غير محدد"}</p>
+            <p className="text-muted-foreground">{employee.department || "غير محدد"}</p>
+            
+            <div className="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
+              <Badge variant="outline">{employee.nationality || "غير محدد"}</Badge>
+              <Badge variant="outline">{employee.contractType || "غير محدد"}</Badge>
+            </div>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-6 md:mr-auto">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">الراتب الشهري</p>
+              <p className="text-2xl font-semibold">{formatSalary(employee.salary || 0)}</p>
+            </div>
+            
+            <Separator orientation="vertical" className="hidden md:block h-auto" />
+            
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">تاريخ التعيين</p>
+              <p className="text-lg font-semibold">
+                {employee.joiningDate ? format(new Date(employee.joiningDate), "yyyy/MM/dd") : "غير محدد"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface EmployeeDetailsCardsProps {
+  employee: Employee;
+}
+
+function EmployeeDetailsCards({ employee }: EmployeeDetailsCardsProps) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">المعلومات الشخصية</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">الاسم</p>
+              <p>{employee.name || "غير محدد"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">رقم الهوية</p>
+              <p>{employee.identityNumber || "غير محدد"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">تاريخ الميلاد</p>
+              <p>{employee.birthDate ? format(new Date(employee.birthDate), "yyyy/MM/dd") : "غير محدد"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">الجنسية</p>
+              <p>{employee.nationality || "غير محدد"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">البريد الإلكتروني</p>
+              <p dir="ltr" className="text-right">{employee.email || "غير محدد"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">رقم الهاتف</p>
+              <p dir="ltr" className="text-right">{employee.phone || "غير محدد"}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">معلومات الوظيفة</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">المسمى الوظيفي</p>
+              <p>{employee.position || "غير محدد"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">القسم</p>
+              <p>{employee.department || "غير محدد"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">الفرع</p>
+              <p>{employee.branch || "غير محدد"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">نوع العقد</p>
+              <p>{employee.contractType === "full-time" ? "دوام كامل" : 
+                  employee.contractType === "part-time" ? "دوام جزئي" : 
+                  employee.contractType === "contract" ? "عقد" : "غير محدد"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">الرقم الوظيفي</p>
+              <p>{employee.employmentNumber || "غير محدد"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">تاريخ التعيين</p>
+              <p>{employee.joiningDate ? format(new Date(employee.joiningDate), "yyyy/MM/dd") : "غير محدد"}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">التفاصيل المالية</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">الراتب الأساسي</p>
+              <p>{formatSalary(employee.baseSalary || 0)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">بدل السكن</p>
+              <p>{formatSalary(employee.housingAllowance || 0)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">بدل المواصلات</p>
+              <p>{formatSalary(employee.transportationAllowance || 0)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">إجمالي الراتب</p>
+              <p className="font-semibold">{formatSalary(employee.salary || 0)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">اشتراك التأمينات</p>
+              <p>{formatSalary(employee.gosiSubscription || 0)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">مساهمة الموظف في التأمينات</p>
+              <p>{formatSalary(employee.employeeGosiContribution || 0)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">التكاليف الإضافية</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">مساهمة الشركة في التأمينات</p>
+              <p>{formatSalary(employee.companyGosiContribution || 0)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">تكلفة التأمين الطبي</p>
+              <p>{formatSalary(employee.medicalInsuranceCost || 0)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">رسوم التأشيرة</p>
+              <p>{formatSalary(employee.visaFees || 0)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">رسوم النقل</p>
+              <p>{formatSalary(employee.transferFees || 0)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">رسوم العمل</p>
+              <p>{formatSalary(employee.laborFees || 0)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
