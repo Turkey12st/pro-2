@@ -13,8 +13,38 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { usePermissions } from '@/hooks/usePermissions';
 import { supabase } from '@/integrations/supabase/client';
-import { HRRegulation, AttendanceRule } from '@/types/permissions';
 import { Plus, Edit, Settings, FileText, Save } from 'lucide-react';
+
+interface AttendanceRule {
+  id: string;
+  type: string;
+  threshold: number;
+  action: string;
+  amount?: number;
+  autoApply: boolean;
+  description: string;
+}
+
+interface DatabaseRegulation {
+  id: string;
+  category: string;
+  rules: any;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  updated_by: string | null;
+  last_updated: string | null;
+  description: string | null;
+}
+
+interface HRRegulation {
+  id: string;
+  category: 'attendance' | 'salary' | 'benefits' | 'disciplinary';
+  rules: AttendanceRule[];
+  isActive: boolean;
+  lastUpdated: string;
+  updatedBy: string;
+}
 
 interface HRRegulationsManagerProps {
   employeeId?: string;
@@ -54,7 +84,18 @@ export function HRRegulationsManager({ employeeId }: HRRegulationsManagerProps) 
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRegulations(data || []);
+
+      // تحويل البيانات من قاعدة البيانات إلى الصيغة المطلوبة
+      const formattedRegulations: HRRegulation[] = (data || []).map((reg: DatabaseRegulation) => ({
+        id: reg.id,
+        category: reg.category as HRRegulation['category'],
+        rules: Array.isArray(reg.rules) ? reg.rules : [],
+        isActive: reg.is_active,
+        lastUpdated: reg.last_updated || reg.updated_at,
+        updatedBy: reg.updated_by || 'system'
+      }));
+
+      setRegulations(formattedRegulations);
     } catch (error) {
       console.error('Error loading HR regulations:', error);
       toast({
@@ -73,12 +114,14 @@ export function HRRegulationsManager({ employeeId }: HRRegulationsManagerProps) 
       if (!user) throw new Error('المستخدم غير مسجل الدخول');
 
       const regulationData = {
-        ...regulation,
+        category: regulation.category,
+        rules: regulation.rules as any,
+        is_active: regulation.isActive,
         last_updated: new Date().toISOString(),
         updated_by: user.id
       };
 
-      if (regulation.id) {
+      if (regulation.id && regulation.id !== '') {
         const { error } = await supabase
           .from('hr_regulations')
           .update(regulationData)
@@ -87,10 +130,7 @@ export function HRRegulationsManager({ employeeId }: HRRegulationsManagerProps) 
       } else {
         const { error } = await supabase
           .from('hr_regulations')
-          .insert([{
-            ...regulationData,
-            id: crypto.randomUUID()
-          }]);
+          .insert([regulationData]);
         if (error) throw error;
       }
 
@@ -356,7 +396,7 @@ export function HRRegulationsManager({ employeeId }: HRRegulationsManagerProps) 
                   <Label htmlFor="ruleType">نوع القاعدة</Label>
                   <Select
                     value={newRule.type}
-                    onValueChange={(value) => setNewRule(prev => ({ ...prev, type: value as any }))}
+                    onValueChange={(value) => setNewRule(prev => ({ ...prev, type: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -383,7 +423,7 @@ export function HRRegulationsManager({ employeeId }: HRRegulationsManagerProps) 
                   <Label htmlFor="action">الإجراء</Label>
                   <Select
                     value={newRule.action}
-                    onValueChange={(value) => setNewRule(prev => ({ ...prev, action: value as any }))}
+                    onValueChange={(value) => setNewRule(prev => ({ ...prev, action: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -433,7 +473,6 @@ export function HRRegulationsManager({ employeeId }: HRRegulationsManagerProps) 
               إلغاء
             </Button>
             <Button onClick={() => {
-              // حفظ القاعدة الجديدة
               console.log('Saving new rule:', newRule);
               setIsDialogOpen(false);
             }}>

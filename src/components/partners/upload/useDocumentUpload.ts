@@ -1,84 +1,129 @@
 
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-interface DocumentMetadata {
+export interface DocumentMetadata {
+  id: string;
   name: string;
+  url: string;
   type: string;
   size: number;
-  uploadDate: string;
-  [key: string]: any;
+  uploadedAt: string;
 }
 
-export function useDocumentUpload() {
-  const [isUploading, setIsUploading] = useState(false);
+export function useDocumentUpload(partnerId: string, onSuccess?: () => void) {
+  const [loading, setLoading] = useState(false);
+  const [documentName, setDocumentName] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const { toast } = useToast();
 
-  const uploadDocument = async (file: File, partnerId: string) => {
-    setIsUploading(true);
+  const handleFileChange = (selectedFile: File | null) => {
+    setFile(selectedFile);
+    if (selectedFile && !documentName) {
+      setDocumentName(selectedFile.name.split('.')[0]);
+    }
+  };
+
+  const uploadDocument = async (uploadFile: File, partnerIdParam: string): Promise<DocumentMetadata> => {
+    if (!uploadFile) {
+      throw new Error('لم يتم اختيار ملف');
+    }
+
+    setLoading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${partnerId}/${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('partner-documents')
-        .upload(fileName, file);
+      const fileExt = uploadFile.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `partners/${partnerIdParam}/${fileName}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, uploadFile);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('partner-documents')
-        .getPublicUrl(fileName);
+        .from('documents')
+        .getPublicUrl(filePath);
 
       const documentMetadata: DocumentMetadata = {
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        uploadDate: new Date().toISOString(),
-        url: publicUrl
+        id: uploadData.path,
+        name: documentName || uploadFile.name,
+        url: publicUrl,
+        type: uploadFile.type,
+        size: uploadFile.size,
+        uploadedAt: new Date().toISOString()
       };
 
-      // تحديث جدول الشركاء بالمستند الجديد
-      const { data: partner, error: fetchError } = await supabase
-        .from('company_partners')
-        .select('documents')
-        .eq('name', partnerId)
-        .single();
+      // حفظ معلومات المستند في قاعدة البيانات
+      const { error: dbError } = await supabase
+        .from('company_documents')
+        .insert([{
+          title: documentMetadata.name,
+          type: 'partner_document',
+          document_url: documentMetadata.url,
+          issue_date: new Date().toISOString().split('T')[0],
+          expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // سنة من الآن
+          metadata: {
+            partner_id: partnerIdParam,
+            file_size: documentMetadata.size,
+            file_type: documentMetadata.type
+          }
+        }]);
 
-      if (fetchError) throw fetchError;
-
-      const existingDocuments = Array.isArray(partner.documents) ? partner.documents : [];
-      const updatedDocuments = [...existingDocuments, documentMetadata];
-
-      const { error: updateError } = await supabase
-        .from('company_partners')
-        .update({ documents: updatedDocuments })
-        .eq('name', partnerId);
-
-      if (updateError) throw updateError;
+      if (dbError) throw dbError;
 
       toast({
-        title: "تم رفع المستند بنجاح",
-        description: "تم إضافة المستند إلى ملف الشريك",
+        title: 'تم رفع المستند بنجاح',
+        description: `تم رفع ${documentMetadata.name} بنجاح`
       });
+
+      if (onSuccess) onSuccess();
+      
+      // إعادة تعيين الحالة
+      setDocumentName('');
+      setFile(null);
 
       return documentMetadata;
     } catch (error) {
-      console.error("Error uploading document:", error);
+      console.error('Error uploading document:', error);
       toast({
-        title: "خطأ في رفع المستند",
-        description: "حدث خطأ أثناء محاولة رفع المستند",
-        variant: "destructive",
+        title: 'خطأ في رفع المستند',
+        description: error instanceof Error ? error.message : 'حدث خطأ غير متوقع',
+        variant: 'destructive'
       });
       throw error;
     } finally {
-      setIsUploading(false);
+      setLoading(false);
+    }
+  };
+
+  const handleUpload = async (): Promise<boolean> => {
+    if (!file) {
+      toast({
+        title: 'خطأ',
+        description: 'يرجى اختيار ملف أولاً',
+        variant: 'destructive'
+      });
+      return false;
+    }
+
+    try {
+      await uploadDocument(file, partnerId);
+      return true;
+    } catch (error) {
+      return false;
     }
   };
 
   return {
     uploadDocument,
-    isUploading
+    isUploading: loading,
+    loading,
+    documentName,
+    setDocumentName,
+    file,
+    handleFileChange,
+    handleUpload
   };
 }

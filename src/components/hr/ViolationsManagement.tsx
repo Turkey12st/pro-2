@@ -60,10 +60,7 @@ export function ViolationsManagement({ employeeId }: ViolationsManagementProps) 
       setIsLoading(true);
       let query = supabase
         .from('employee_violations')
-        .select(`
-          *,
-          employees!inner(name)
-        `);
+        .select('*');
 
       if (employeeId) {
         query = query.eq('employee_id', employeeId);
@@ -73,12 +70,26 @@ export function ViolationsManagement({ employeeId }: ViolationsManagementProps) 
 
       if (error) throw error;
 
-      const formattedViolations = data?.map(violation => ({
-        ...violation,
-        employee_name: violation.employees?.name || 'غير معروف'
-      })) || [];
+      if (data && data.length > 0) {
+        // جلب أسماء الموظفين
+        const employeeIds = [...new Set(data.map(violation => violation.employee_id).filter(Boolean))];
+        const { data: employees } = await supabase
+          .from('employees')
+          .select('id, name')
+          .in('id', employeeIds);
 
-      setViolations(formattedViolations);
+        const employeeMap = new Map(employees?.map(emp => [emp.id, emp.name]) || []);
+
+        const formattedViolations: Violation[] = data.map(violation => ({
+          ...violation,
+          employee_name: employeeMap.get(violation.employee_id || '') || 'غير معروف',
+          reported_by: violation.created_by || 'غير محدد'
+        }));
+
+        setViolations(formattedViolations);
+      } else {
+        setViolations([]);
+      }
     } catch (error) {
       console.error('Error loading violations:', error);
       toast({
@@ -109,7 +120,7 @@ export function ViolationsManagement({ employeeId }: ViolationsManagementProps) 
         .from('employee_violations')
         .insert([{
           ...newViolation,
-          reported_by: user.id,
+          created_by: user.id,
           status: 'active'
         }]);
 
@@ -164,7 +175,6 @@ export function ViolationsManagement({ employeeId }: ViolationsManagementProps) 
           .from('salary_deductions')
           .insert([{
             employee_id: violation.employee_id,
-            type: 'violation',
             amount: deductionAmount,
             reason: `خصم مخالفة: ${violation.description}`,
             date: violation.date,

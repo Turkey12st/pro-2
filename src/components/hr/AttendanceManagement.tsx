@@ -16,7 +16,7 @@ import { Plus, Edit, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-rea
 
 interface AttendanceRecord {
   id: string;
-  employee_id: string;
+  employee_id: string | null;
   employee_name: string;
   date: string;
   check_in: string | null;
@@ -24,7 +24,7 @@ interface AttendanceRecord {
   status: 'present' | 'absent' | 'late' | 'early_leave' | 'sick_leave' | 'vacation';
   late_minutes: number;
   overtime_minutes: number;
-  notes: string;
+  notes: string | null;
   approved_by: string | null;
   created_at: string;
 }
@@ -63,27 +63,25 @@ export function AttendanceManagement({ employeeId }: AttendanceManagementProps) 
       setIsLoading(true);
       console.log('Loading attendance records...');
       
-      // استخدام raw SQL للتجنب مشاكل TypeScript
-      const { data, error } = await supabase.rpc('get_attendance_with_employees', {
-        start_date: `${selectedMonth}-01`,
-        end_date: `${selectedMonth}-31`,
-        emp_id: employeeId || null
-      });
+      // استخدام استعلام مباشر بدلاً من RPC
+      let query = supabase
+        .from('attendance_records')
+        .select('*')
+        .gte('date', `${selectedMonth}-01`)
+        .lt('date', `${selectedMonth}-32`)
+        .order('date', { ascending: false });
 
-      if (error) {
-        console.error('Error loading attendance:', error);
-        // في حالة عدم وجود الدالة، نستخدم استعلام بسيط
-        const { data: attendanceData, error: directError } = await supabase
-          .from('attendance_records')
-          .select('*')
-          .gte('date', `${selectedMonth}-01`)
-          .lt('date', `${selectedMonth}-32`)
-          .order('date', { ascending: false });
+      if (employeeId) {
+        query = query.eq('employee_id', employeeId);
+      }
 
-        if (directError) throw directError;
+      const { data: attendanceData, error } = await query;
 
-        // جلب أسماء الموظفين بشكل منفصل
-        const employeeIds = attendanceData?.map(record => record.employee_id) || [];
+      if (error) throw error;
+
+      // جلب أسماء الموظفين بشكل منفصل
+      if (attendanceData && attendanceData.length > 0) {
+        const employeeIds = [...new Set(attendanceData.map(record => record.employee_id).filter(Boolean))];
         const { data: employees } = await supabase
           .from('employees')
           .select('id, name')
@@ -91,14 +89,15 @@ export function AttendanceManagement({ employeeId }: AttendanceManagementProps) 
 
         const employeeMap = new Map(employees?.map(emp => [emp.id, emp.name]) || []);
 
-        const formattedRecords = attendanceData?.map(record => ({
+        const formattedRecords: AttendanceRecord[] = attendanceData.map(record => ({
           ...record,
-          employee_name: employeeMap.get(record.employee_id) || 'غير معروف'
-        })) || [];
+          employee_name: employeeMap.get(record.employee_id || '') || 'غير معروف',
+          status: record.status as AttendanceRecord['status']
+        }));
 
         setRecords(formattedRecords);
       } else {
-        setRecords(data || []);
+        setRecords([]);
       }
     } catch (error) {
       console.error('Error loading attendance records:', error);
@@ -107,6 +106,7 @@ export function AttendanceManagement({ employeeId }: AttendanceManagementProps) 
         description: 'حدث خطأ أثناء تحميل سجلات الحضور',
         variant: 'destructive'
       });
+      setRecords([]);
     } finally {
       setIsLoading(false);
     }
