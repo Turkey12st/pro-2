@@ -1,32 +1,22 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useFileHandler } from "./useFileHandler";
-import { supabase } from "@/integrations/supabase/client"; 
+import { supabase } from "@/integrations/supabase/client";
 
 interface DocumentMetadata {
   name: string;
-  url: string;
   type: string;
-  uploaded_at: string;
+  size: number;
+  uploadDate: string;
+  [key: string]: any;
 }
 
-export function useDocumentUpload(partnerId: string | null, onSuccess?: () => void) {
-  const [loading, setLoading] = useState(false);
+export function useDocumentUpload() {
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
-  
-  const {
-    file,
-    documentName,
-    setDocumentName,
-    handleFileChange,
-    validateFileInput,
-    resetForm
-  } = useFileHandler();
 
-  const uploadDocument = async (file: File, documentName: string) => {
-    if (!file || !partnerId) return null;
-    
+  const uploadDocument = async (file: File, partnerId: string) => {
+    setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${partnerId}/${Date.now()}.${fileExt}`;
@@ -34,14 +24,46 @@ export function useDocumentUpload(partnerId: string | null, onSuccess?: () => vo
       const { error: uploadError } = await supabase.storage
         .from('partner-documents')
         .upload(fileName, file);
-      
+
       if (uploadError) throw uploadError;
-      
+
       const { data: { publicUrl } } = supabase.storage
         .from('partner-documents')
         .getPublicUrl(fileName);
-      
-      return publicUrl;
+
+      const documentMetadata: DocumentMetadata = {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        uploadDate: new Date().toISOString(),
+        url: publicUrl
+      };
+
+      // تحديث جدول الشركاء بالمستند الجديد
+      const { data: partner, error: fetchError } = await supabase
+        .from('company_partners')
+        .select('documents')
+        .eq('name', partnerId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const existingDocuments = Array.isArray(partner.documents) ? partner.documents : [];
+      const updatedDocuments = [...existingDocuments, documentMetadata];
+
+      const { error: updateError } = await supabase
+        .from('company_partners')
+        .update({ documents: updatedDocuments })
+        .eq('name', partnerId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "تم رفع المستند بنجاح",
+        description: "تم إضافة المستند إلى ملف الشريك",
+      });
+
+      return documentMetadata;
     } catch (error) {
       console.error("Error uploading document:", error);
       toast({
@@ -49,85 +71,14 @@ export function useDocumentUpload(partnerId: string | null, onSuccess?: () => vo
         description: "حدث خطأ أثناء محاولة رفع المستند",
         variant: "destructive",
       });
-      return null;
-    }
-  };
-
-  const saveDocumentMetadata = async (documentUrl: string, documentName: string, file: File) => {
-    if (!partnerId) return;
-
-    try {
-      const { data: partnerData, error: fetchError } = await supabase
-        .from('company_partners')
-        .select('documents')
-        .eq('id', partnerId)
-        .single();
-      
-      if (fetchError) throw fetchError;
-      
-      const existingDocs = Array.isArray(partnerData.documents) ? partnerData.documents : [];
-      
-      const newDoc: DocumentMetadata = {
-        name: documentName,
-        url: documentUrl,
-        type: file.type,
-        uploaded_at: new Date().toISOString()
-      };
-
-      const updatedDocs = [...existingDocs, newDoc];
-
-      const { error: updateError } = await supabase
-        .from('company_partners')
-        .update({ documents: updatedDocs })
-        .eq('id', partnerId);
-      
-      if (updateError) throw updateError;
-      
-    } catch (error) {
-      console.error("Error saving document metadata:", error);
       throw error;
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!validateFileInput(file, documentName) || !partnerId || !file) {
-      return false;
-    }
-
-    setLoading(true);
-    try {
-      const documentUrl = await uploadDocument(file, documentName);
-      if (!documentUrl) throw new Error("Failed to upload document");
-
-      await saveDocumentMetadata(documentUrl, documentName, file);
-
-      toast({
-        title: "تم الرفع بنجاح",
-        description: "تم رفع المستند بنجاح",
-      });
-
-      resetForm();
-      if (onSuccess) onSuccess();
-      return true;
-    } catch (error) {
-      console.error("Error uploading document:", error);
-      toast({
-        title: "خطأ في رفع المستند",
-        description: "حدث خطأ أثناء رفع المستند",
-        variant: "destructive",
-      });
-      return false;
     } finally {
-      setLoading(false);
+      setIsUploading(false);
     }
   };
 
   return {
-    loading,
-    documentName,
-    setDocumentName,
-    file,
-    handleFileChange,
-    handleUpload
+    uploadDocument,
+    isUploading
   };
 }

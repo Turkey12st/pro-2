@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ChevronRight, ArrowLeft, UserRound, FileText, Calendar, Clock, BellIcon, AlertCircle, BadgeCheck } from "lucide-react";
+import { ChevronRight, ArrowLeft, UserRound, FileText, Calendar, Clock, BellIcon, AlertCircle, BadgeCheck, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { formatSalary } from "@/utils/formatters";
@@ -111,29 +110,17 @@ export default function EmployeeProfile() {
                   <FileText className="h-4 w-4" />
                   <span>المستندات</span>
                 </TabsTrigger>
+                <TabsTrigger value="hr-management" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  <span>إدارة الموارد البشرية</span>
+                </TabsTrigger>
                 <TabsTrigger value="salaries" className="flex items-center gap-2">
                   <BadgeCheck className="h-4 w-4" />
                   <span>الرواتب</span>
                 </TabsTrigger>
-                <TabsTrigger value="deductions" className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
-                  <span>الخصومات</span>
-                </TabsTrigger>
-                <TabsTrigger value="benefits" className="flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4" />
-                  <span>الاستحقاقات</span>
-                </TabsTrigger>
                 <TabsTrigger value="vacations" className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   <span>الإجازات</span>
-                </TabsTrigger>
-                <TabsTrigger value="attendance" className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  <span>الحضور والانصراف</span>
-                </TabsTrigger>
-                <TabsTrigger value="violations" className="flex items-center gap-2">
-                  <BellIcon className="h-4 w-4" />
-                  <span>المخالفات</span>
                 </TabsTrigger>
               </TabsList>
               
@@ -145,28 +132,19 @@ export default function EmployeeProfile() {
                 <EmployeeDocuments employeeId={id} documents={employee?.documents || []} />
               </TabsContent>
               
+              <TabsContent value="hr-management">
+                <EmployeeHRManagement 
+                  employeeId={id!} 
+                  employeeName={employee?.name || ''} 
+                />
+              </TabsContent>
+              
               <TabsContent value="salaries">
                 <EmployeeSalaries employeeId={id} employee={employee} />
               </TabsContent>
               
-              <TabsContent value="deductions">
-                <EmployeeDeductions employeeId={id} />
-              </TabsContent>
-              
-              <TabsContent value="benefits">
-                <EmployeeBenefits employeeId={id} />
-              </TabsContent>
-              
               <TabsContent value="vacations">
                 <EmployeeVacations employeeId={id} />
-              </TabsContent>
-              
-              <TabsContent value="attendance">
-                <EmployeeAttendance employeeId={id} />
-              </TabsContent>
-              
-              <TabsContent value="violations">
-                <EmployeeViolations employeeId={id} />
               </TabsContent>
             </Tabs>
           </>

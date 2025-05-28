@@ -1,287 +1,333 @@
 
-import { useParams } from "react-router-dom";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
 import { 
   Calendar, 
-  User, 
   DollarSign, 
-  Target, 
-  Clock,
+  Users, 
+  Clock, 
+  Target,
   MapPin,
-  Mail,
-  Phone,
+  User,
   Building
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
-interface ProjectOverviewProps {
-  projectId?: string;
+interface Project {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  start_date: string;
+  end_date?: string;
+  budget?: number;
+  progress?: number;
+  manager_id?: string;
+  client_id?: string;
+  team_members?: any[];
+  stakeholders?: any[];
+  estimated_hours?: number;
+  actual_hours?: number;
+  estimated_cost?: number;
+  actual_cost?: number;
+  revenue?: number;
+  profit?: number;
+  tags?: string[];
+  notes?: string;
+  created_at: string;
 }
 
-export function ProjectOverview({ projectId }: ProjectOverviewProps) {
-  const { id } = useParams();
-  const currentProjectId = projectId || id;
+interface Client {
+  id: string;
+  name: string;
+  type: string;
+  contact_person?: string;
+  email?: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    country?: string;
+  };
+}
 
-  const { data: project, isLoading } = useQuery({
-    queryKey: ['project', currentProjectId],
-    queryFn: async () => {
-      if (!currentProjectId) return null;
-      
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('id', currentProjectId)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!currentProjectId
-  });
+interface ProjectOverviewProps {
+  project: Project;
+  client?: Client;
+}
 
-  const { data: client } = useQuery({
-    queryKey: ['client', project?.client_id],
-    queryFn: async () => {
-      if (!project?.client_id) return null;
-      
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', project.client_id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching client:', error);
-        return null;
-      }
-      return data;
-    },
-    enabled: !!project?.client_id
-  });
-
-  if (isLoading) {
-    return <div className="text-center">جاري التحميل...</div>;
-  }
-
-  if (!project) {
-    return <div className="text-center">لم يتم العثور على المشروع</div>;
-  }
-
-  const statusColors = {
-    planned: "bg-blue-100 text-blue-800",
-    active: "bg-green-100 text-green-800",
-    paused: "bg-yellow-100 text-yellow-800",
-    completed: "bg-green-100 text-green-800",
-    cancelled: "bg-red-100 text-red-800"
+export function ProjectOverview({ project, client }: ProjectOverviewProps) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'in-progress':
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+      case 'on-hold':
+        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    }
   };
 
-  const priorityColors = {
-    low: "bg-gray-100 text-gray-800",
-    medium: "bg-yellow-100 text-yellow-800",
-    high: "bg-red-100 text-red-800"
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+      case 'low':
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ar-SA', {
+      style: 'currency',
+      currency: 'SAR'
+    }).format(amount);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Project Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
+    <div className="grid gap-6">
+      {/* معلومات المشروع الأساسية */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              تفاصيل المشروع
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
-              <CardTitle className="text-2xl mb-2">{project.title}</CardTitle>
-              <p className="text-muted-foreground">{project.description}</p>
+              <p className="text-sm text-muted-foreground">اسم المشروع</p>
+              <p className="font-medium">{project.title}</p>
             </div>
+            {project.description && (
+              <div>
+                <p className="text-sm text-muted-foreground">الوصف</p>
+                <p className="text-sm">{project.description}</p>
+              </div>
+            )}
             <div className="flex gap-2">
-              <Badge className={statusColors[project.status as keyof typeof statusColors]}>
-                {project.status === 'planned' && 'مخطط'}
-                {project.status === 'active' && 'نشط'}
-                {project.status === 'paused' && 'متوقف'}
-                {project.status === 'completed' && 'مكتمل'}
-                {project.status === 'cancelled' && 'ملغى'}
+              <Badge className={getStatusColor(project.status)}>
+                {project.status === 'completed' ? 'مكتمل' :
+                 project.status === 'in-progress' ? 'جاري' :
+                 project.status === 'on-hold' ? 'متوقف' :
+                 project.status === 'cancelled' ? 'ملغي' : 'مخطط'}
               </Badge>
-              <Badge className={priorityColors[project.priority as keyof typeof priorityColors]}>
-                {project.priority === 'low' && 'منخفض'}
-                {project.priority === 'medium' && 'متوسط'}
-                {project.priority === 'high' && 'عالي'}
+              <Badge className={getPriorityColor(project.priority)}>
+                {project.priority === 'high' ? 'عالية' :
+                 project.priority === 'medium' ? 'متوسطة' : 'منخفضة'}
               </Badge>
             </div>
-          </div>
-        </CardHeader>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Project Details Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Timeline & Progress */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              الجدول الزمني والتقدم
+              الجدول الزمني
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>تاريخ البدء:</span>
-                <span>{new Date(project.start_date).toLocaleDateString('ar-SA')}</span>
-              </div>
-              {project.end_date && (
-                <div className="flex justify-between text-sm">
-                  <span>تاريخ الانتهاء:</span>
-                  <span>{new Date(project.end_date).toLocaleDateString('ar-SA')}</span>
-                </div>
-              )}
+            <div>
+              <p className="text-sm text-muted-foreground">تاريخ البداية</p>
+              <p className="font-medium">
+                {format(new Date(project.start_date), 'PPP', { locale: ar })}
+              </p>
             </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>التقدم:</span>
-                <span>{project.progress || 0}%</span>
+            {project.end_date && (
+              <div>
+                <p className="text-sm text-muted-foreground">تاريخ النهاية</p>
+                <p className="font-medium">
+                  {format(new Date(project.end_date), 'PPP', { locale: ar })}
+                </p>
               </div>
+            )}
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">التقدم</p>
               <Progress value={project.progress || 0} className="w-full" />
+              <p className="text-sm text-center mt-1">{project.progress || 0}%</p>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">المهام المكتملة:</span>
-                <p className="font-medium">{project.completed_tasks || 0}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">إجمالي المهام:</span>
-                <p className="font-medium">{project.total_tasks || 0}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Financial Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              المعلومات المالية
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {project.budget && (
-              <div className="flex justify-between text-sm">
-                <span>الميزانية:</span>
-                <span className="font-medium">{project.budget.toLocaleString()} ريال</span>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">التكلفة المقدرة:</span>
-                <p className="font-medium">{project.estimated_cost?.toLocaleString() || 0} ريال</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">التكلفة الفعلية:</span>
-                <p className="font-medium">{project.actual_cost?.toLocaleString() || 0} ريال</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">الإيرادات:</span>
-                <p className="font-medium">{project.revenue?.toLocaleString() || 0} ريال</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">الربح:</span>
-                <p className="font-medium">{project.profit?.toLocaleString() || 0} ريال</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Client Information */}
-        {client && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                معلومات العميل
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="text-lg font-medium">{client.name}</div>
-              
-              <div className="space-y-2 text-sm">
-                {client.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span>{client.email}</span>
-                  </div>
-                )}
-                
-                {client.phone && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{client.phone}</span>
-                  </div>
-                )}
-                
-                {client.address && typeof client.address === 'object' && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      {[
-                        client.address.street,
-                        client.address.city,
-                        client.address.country
-                      ].filter(Boolean).join(', ')}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Time Tracking */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              تتبع الوقت
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">الساعات المقدرة:</span>
-                <p className="font-medium">{project.estimated_hours || 0} ساعة</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">الساعات الفعلية:</span>
-                <p className="font-medium">{project.actual_hours || 0} ساعة</p>
-              </div>
-            </div>
-
-            {project.estimated_hours && project.actual_hours && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>كفاءة الوقت:</span>
-                  <span>{((project.estimated_hours / project.actual_hours) * 100).toFixed(1)}%</span>
-                </div>
-                <Progress 
-                  value={(project.actual_hours / project.estimated_hours) * 100} 
-                  className="w-full" 
-                />
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Additional Notes */}
-      {project.notes && (
+      {/* المعلومات المالية */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            المعلومات المالية
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">الميزانية</p>
+              <p className="text-lg font-semibold">
+                {project.budget ? formatCurrency(project.budget) : 'غير محدد'}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">التكلفة المقدرة</p>
+              <p className="text-lg font-semibold">
+                {project.estimated_cost ? formatCurrency(project.estimated_cost) : 'غير محدد'}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">التكلفة الفعلية</p>
+              <p className="text-lg font-semibold">
+                {project.actual_cost ? formatCurrency(project.actual_cost) : 'غير محدد'}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">الربح</p>
+              <p className="text-lg font-semibold">
+                {project.profit ? formatCurrency(project.profit) : 'غير محدد'}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* معلومات العميل */}
+      {client && (
         <Card>
           <CardHeader>
-            <CardTitle>ملاحظات إضافية</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              معلومات العميل
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">{project.notes}</p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">اسم العميل</p>
+                <p className="font-medium">{client.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">نوع العميل</p>
+                <p className="font-medium">{client.type}</p>
+              </div>
+              {client.contact_person && (
+                <div>
+                  <p className="text-sm text-muted-foreground">الشخص المسؤول</p>
+                  <p className="font-medium">{client.contact_person}</p>
+                </div>
+              )}
+              {client.email && (
+                <div>
+                  <p className="text-sm text-muted-foreground">البريد الإلكتروني</p>
+                  <p className="font-medium" dir="ltr">{client.email}</p>
+                </div>
+              )}
+              {client.phone && (
+                <div>
+                  <p className="text-sm text-muted-foreground">رقم الهاتف</p>
+                  <p className="font-medium" dir="ltr">{client.phone}</p>
+                </div>
+              )}
+              {client.address && typeof client.address === 'object' && !Array.isArray(client.address) && (
+                <div className="md:col-span-2">
+                  <p className="text-sm text-muted-foreground">العنوان</p>
+                  <p className="font-medium">
+                    {client.address.street && `${client.address.street}, `}
+                    {client.address.city && `${client.address.city}, `}
+                    {client.address.country && client.address.country}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ساعات العمل */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            ساعات العمل
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">الساعات المقدرة</p>
+              <p className="text-lg font-semibold">
+                {project.estimated_hours || 0} ساعة
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">الساعات الفعلية</p>
+              <p className="text-lg font-semibold">
+                {project.actual_hours || 0} ساعة
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* فريق العمل */}
+      {project.team_members && project.team_members.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              فريق العمل
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {project.team_members.map((member: any, index: number) => (
+                <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <User className="h-8 w-8 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">{member.name || `عضو ${index + 1}`}</p>
+                    <p className="text-sm text-muted-foreground">{member.role || 'غير محدد'}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* العلامات والملاحظات */}
+      {(project.tags?.length || project.notes) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>معلومات إضافية</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {project.tags && project.tags.length > 0 && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">العلامات</p>
+                <div className="flex flex-wrap gap-2">
+                  {project.tags.map((tag, index) => (
+                    <Badge key={index} variant="outline">{tag}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            {project.notes && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">الملاحظات</p>
+                <p className="text-sm bg-muted p-3 rounded-lg">{project.notes}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
