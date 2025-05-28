@@ -9,25 +9,91 @@ import { SalarySummary } from './SalarySummary';
 import { CapitalSummary } from './CapitalSummary';
 import { ZakatCalculator } from './ZakatCalculator';
 import { PerformanceMetrics } from './tabs/PerformanceMetrics';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function DashboardTabs() {
-  // بيانات وهمية للاختبار
-  const mockFinancialData = {
-    total_income: 150000,
-    total_expenses: 80000,
-    net_profit: 70000,
-    profit_margin: 46.7
-  };
+  // جلب بيانات الموظفين الحقيقية من قاعدة البيانات
+  const { data: employeesData } = useQuery({
+    queryKey: ['dashboard_employees'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*');
+      
+      if (error) {
+        console.error('Error fetching employees for dashboard:', error);
+        return [];
+      }
+      
+      return data || [];
+    },
+  });
 
-  const mockCapitalData = {
-    total_capital: 500000,
-    available_capital: 300000,
-    reserved_capital: 200000,
-    turnover_rate: 2.5
-  };
+  // جلب بيانات رأس المال الحقيقية
+  const { data: capitalData } = useQuery({
+    queryKey: ['dashboard_capital'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('capital_management')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching capital data:', error);
+        return null;
+      }
+      
+      return data;
+    },
+  });
 
+  // حساب البيانات المالية الحقيقية من بيانات الموظفين
+  const mockFinancialData = React.useMemo(() => {
+    if (!employeesData) return { total_income: 0, total_expenses: 0, net_profit: 0, profit_margin: 0 };
+    
+    const totalSalaries = employeesData.reduce((sum, emp) => sum + (emp.salary || 0), 0);
+    const estimatedIncome = totalSalaries * 1.5; // تقدير الدخل كـ 1.5 ضعف إجمالي الرواتب
+    const netProfit = estimatedIncome - totalSalaries;
+    const profitMargin = estimatedIncome > 0 ? (netProfit / estimatedIncome) * 100 : 0;
+    
+    return {
+      total_income: estimatedIncome,
+      total_expenses: totalSalaries,
+      net_profit: netProfit,
+      profit_margin: profitMargin
+    };
+  }, [employeesData]);
+
+  // إعداد بيانات رأس المال مع القيم الافتراضية
+  const mockCapitalData = React.useMemo(() => {
+    if (!capitalData) {
+      return {
+        total_capital: 500000,
+        available_capital: 300000,
+        reserved_capital: 200000,
+        turnover_rate: 2.5,
+        fiscal_year: new Date().getFullYear(),
+        last_updated: new Date().toISOString()
+      };
+    }
+    
+    return {
+      total_capital: capitalData.total_capital,
+      available_capital: capitalData.available_capital,
+      reserved_capital: capitalData.reserved_capital,
+      turnover_rate: capitalData.turnover_rate || 2.5,
+      fiscal_year: capitalData.fiscal_year,
+      last_updated: capitalData.last_updated
+    };
+  }, [capitalData]);
+
+  // بيانات الشركة مع التوافق مع النوع المطلوب
   const mockCompanyInfo = {
     id: '1',
+    name: 'شركة المثال المحدودة',
     company_name: 'شركة المثال المحدودة',
     commercial_registration: '1234567890',
     tax_number: '300123456789003',
