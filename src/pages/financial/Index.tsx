@@ -8,12 +8,12 @@ import CashFlowChart from "@/components/dashboard/CashFlowChart";
 export default function FinancialPage() {
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Mock data for components
+  // Mock data for components with correct structure
   const mockFinancialData = {
-    totalRevenue: 0,
-    totalExpenses: 0,
-    netProfit: 0,
-    cashFlow: 0
+    total_income: 0,
+    total_expenses: 0,
+    net_profit: 0,
+    profit_margin: 0
   };
 
   return (

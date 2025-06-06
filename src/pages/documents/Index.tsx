@@ -28,7 +28,7 @@ export default function DocumentsPage() {
             <CardTitle>إضافة وثيقة جديدة</CardTitle>
           </CardHeader>
           <CardContent>
-            <DocumentForm onCancel={() => setShowForm(false)} />
+            <DocumentForm />
           </CardContent>
         </Card>
       )}

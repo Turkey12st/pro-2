@@ -28,7 +28,7 @@ export default function ProjectsPage() {
             <CardTitle>إضافة مشروع جديد</CardTitle>
           </CardHeader>
           <CardContent>
-            <ProjectForm onCancel={() => setShowForm(false)} />
+            <ProjectForm onSuccess={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}

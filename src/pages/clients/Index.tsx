@@ -28,7 +28,7 @@ export default function ClientsPage() {
             <CardTitle>إضافة عميل جديد</CardTitle>
           </CardHeader>
           <CardContent>
-            <ClientForm onCancel={() => setShowForm(false)} />
+            <ClientForm onSuccess={() => setShowForm(false)} />
           </CardContent>
         </Card>
       )}

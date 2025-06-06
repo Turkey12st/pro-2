@@ -8,33 +8,33 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Users, DollarSign, FileText, Activity, CheckSquare, Paperclip } from "lucide-react";
 
 import { ProjectOverview } from "@/components/projects/details/ProjectOverview";
-import { ProjectTasks } from "@/components/projects/details/ProjectTasks";
-import { ProjectTeam } from "@/components/projects/details/ProjectTeam";
-import { ProjectExpenses } from "@/components/projects/details/ProjectExpenses";
-import { ProjectFiles } from "@/components/projects/details/ProjectFiles";
-import { ProjectActivities } from "@/components/projects/details/ProjectActivities";
-import { ProjectMilestones } from "@/components/projects/details/ProjectMilestones";
-import { ProjectInvoices } from "@/components/projects/details/ProjectInvoices";
+import ProjectTasks from "@/components/projects/details/ProjectTasks";
+import ProjectTeam from "@/components/projects/details/ProjectTeam";
+import ProjectExpenses from "@/components/projects/details/ProjectExpenses";
+import ProjectFiles from "@/components/projects/details/ProjectFiles";
+import ProjectActivities from "@/components/projects/details/ProjectActivities";
+import ProjectMilestones from "@/components/projects/details/ProjectMilestones";
+import ProjectInvoices from "@/components/projects/details/ProjectInvoices";
 
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Mock project data - replace with actual data fetching
+  // Mock project data - properly structured for ProjectOverview component
   const project = {
     id: id || "1",
-    name: "مشروع تطوير موقع الشركة",
+    title: "مشروع تطوير موقع الشركة",
     description: "تطوير موقع إلكتروني متطور للشركة مع نظام إدارة المحتوى",
-    status: "in_progress" as const,
+    status: "in-progress" as const,
     priority: "high" as const,
-    startDate: "2024-01-15",
-    endDate: "2024-06-15",
+    start_date: "2024-01-15",
+    end_date: "2024-06-15",
     budget: 150000,
-    spent: 45000,
     progress: 35,
-    client: "شركة التقنية المتقدمة",
-    manager: "أحمد محمد",
-    team: [
+    created_at: "2024-01-01T00:00:00Z",
+    client_id: "client-1",
+    manager_id: "manager-1",
+    team_members: [
       { id: "1", name: "سارة أحمد", role: "مطور أمامي", avatar: "" },
       { id: "2", name: "محمد علي", role: "مطور خلفي", avatar: "" },
       { id: "3", name: "فاطمة حسن", role: "مصمم UI/UX", avatar: "" }
@@ -51,13 +51,13 @@ export default function ProjectDetails() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">{project.name}</h1>
+              <h1 className="text-2xl font-bold">{project.title}</h1>
               <p className="text-muted-foreground">{project.description}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={project.status === "completed" ? "default" : "secondary"}>
-              {project.status === "in_progress" ? "قيد التنفيذ" : "مكتمل"}
+              {project.status === "in-progress" ? "قيد التنفيذ" : "مكتمل"}
             </Badge>
             <Badge variant={project.priority === "high" ? "destructive" : "outline"}>
               {project.priority === "high" ? "أولوية عالية" : "أولوية متوسطة"}
@@ -73,7 +73,7 @@ export default function ProjectDetails() {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">تاريخ الانتهاء</p>
-                  <p className="font-medium">{project.endDate}</p>
+                  <p className="font-medium">{project.end_date}</p>
                 </div>
               </div>
             </CardContent>
@@ -84,7 +84,7 @@ export default function ProjectDetails() {
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">أعضاء الفريق</p>
-                  <p className="font-medium">{project.team.length}</p>
+                  <p className="font-medium">{project.team_members?.length || 0}</p>
                 </div>
               </div>
             </CardContent>
@@ -95,7 +95,7 @@ export default function ProjectDetails() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">الميزانية</p>
-                  <p className="font-medium">{project.budget.toLocaleString()} ر.س</p>
+                  <p className="font-medium">{project.budget?.toLocaleString() || 0} ر.س</p>
                 </div>
               </div>
             </CardContent>
@@ -106,7 +106,7 @@ export default function ProjectDetails() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">التقدم</p>
-                  <p className="font-medium">{project.progress}%</p>
+                  <p className="font-medium">{project.progress || 0}%</p>
                 </div>
               </div>
             </CardContent>
@@ -159,7 +159,7 @@ export default function ProjectDetails() {
           </TabsContent>
 
           <TabsContent value="team">
-            <ProjectTeam projectId={project.id} team={project.team} />
+            <ProjectTeam projectId={project.id} />
           </TabsContent>
 
           <TabsContent value="expenses">
