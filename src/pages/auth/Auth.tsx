@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { Eye, EyeOff, Lock, Mail, User, Shield } from 'lucide-react';
 
 export default function AuthPage() {
@@ -22,7 +22,6 @@ export default function AuthPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // فحص ما إذا كان المستخدم مسجل الدخول بالفعل
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -32,7 +31,6 @@ export default function AuthPage() {
 
     checkUser();
 
-    // مراقبة تغيير حالة المصادقة
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         navigate('/dashboard');
@@ -48,13 +46,10 @@ export default function AuthPage() {
     setError('');
 
     try {
-      const redirectUrl = `${window.location.origin}/dashboard`;
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
           }
@@ -71,7 +66,6 @@ export default function AuthPage() {
       }
 
       if (data.user) {
-        // إنشاء دور للمستخدم الجديد
         await createUserRole(data.user.id, fullName);
         
         toast({
@@ -123,13 +117,11 @@ export default function AuthPage() {
 
   const createUserRole = async (userId: string, userName: string) => {
     try {
-      // فحص ما إذا كان هناك مستخدم إدمن موجود بالفعل
       const { data: existingAdmins } = await supabase
         .from('user_roles')
         .select('*')
         .eq('role', 'admin');
 
-      // إذا لم يوجد إدمن، اجعل هذا المستخدم الإدمن الرئيسي
       const isFirstAdmin = !existingAdmins || existingAdmins.length === 0;
       const role = isFirstAdmin ? 'admin' : 'employee';
 

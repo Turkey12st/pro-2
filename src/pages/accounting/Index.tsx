@@ -1,86 +1,68 @@
-import { useState } from "react";
+
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppLayout } from "@/components/AppLayout";
-import JournalEntryTable from "./components/JournalEntryTable";
-import JournalEntryDialog from "./components/JournalEntryDialog";
-import JournalEntryImportExport from "./components/JournalEntryImportExport";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChartOfAccountsManager } from "@/components/accounting/ChartOfAccountsManager";
+import { JournalEntryForm } from "@/components/accounting/JournalEntryForm";
+import { JournalEntryTable } from "./components/JournalEntryTable";
 import { useJournalEntries } from "./hooks/useJournalEntries";
-import type { JournalEntry } from "@/types/database";
-import FinancialReports from "./components/FinancialReports";
+import { FinancialReports } from "./components/FinancialReports";
+import { JournalEntryImportExport } from "./components/JournalEntryImportExport";
 
 export default function AccountingPage() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
-  const [currentTab, setCurrentTab] = useState("journal-entries");
-  const { journalEntries, isLoading, fetchJournalEntries, handleDeleteEntry } = useJournalEntries();
-
-  const handleEditEntry = (entry: JournalEntry) => {
-    setEditingEntry(entry);
-    setIsOpen(true);
-  };
-
-  const handleAddEntry = () => {
-    setEditingEntry(null);
-    setIsOpen(true);
-  };
+  const [activeTab, setActiveTab] = useState("journal");
+  const { journalEntries, isLoading, refetch } = useJournalEntries();
 
   return (
-    <AppLayout>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            النظام المحاسبي
-            {currentTab === "journal-entries" && (
-              <JournalEntryImportExport 
-                journalEntries={journalEntries} 
-                onImportSuccess={fetchJournalEntries} 
-              />
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={currentTab} onValueChange={setCurrentTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="journal-entries">القيود المحاسبية</TabsTrigger>
-              <TabsTrigger value="chart-of-accounts">شجرة الحسابات</TabsTrigger>
-              <TabsTrigger value="reports">التقارير المالية</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="journal-entries">
-              <Button className="mb-4" onClick={handleAddEntry}>
-                <Plus className="mr-2" /> إضافة قيد محاسبي
-              </Button>
-              
-              <JournalEntryTable 
-                entries={journalEntries} 
-                isLoading={isLoading} 
-                onEdit={handleEditEntry}
-                onDelete={handleDeleteEntry}
-              />
-              
-              {/* Dialog for adding/editing journal entries */}
-              <JournalEntryDialog 
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
-                editingEntry={editingEntry}
-                onSuccess={fetchJournalEntries}
-              />
-            </TabsContent>
-            
-            <TabsContent value="chart-of-accounts">
-              <ChartOfAccountsManager />
-            </TabsContent>
-            
-            <TabsContent value="reports">
-              <FinancialReports />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </AppLayout>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold">نظام المحاسبة</h1>
+        <p className="text-muted-foreground">إدارة الحسابات والقيود اليومية والتقارير المالية</p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="journal">القيود اليومية</TabsTrigger>
+          <TabsTrigger value="chart">دليل الحسابات</TabsTrigger>
+          <TabsTrigger value="reports">التقارير المالية</TabsTrigger>
+          <TabsTrigger value="import-export">استيراد/تصدير</TabsTrigger>
+          <TabsTrigger value="settings">الإعدادات</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="journal" className="space-y-4">
+          <JournalEntryForm onSuccess={refetch} />
+          <JournalEntryTable 
+            entries={journalEntries} 
+            isLoading={isLoading}
+            onUpdate={refetch}
+          />
+        </TabsContent>
+
+        <TabsContent value="chart">
+          <ChartOfAccountsManager />
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <FinancialReports />
+        </TabsContent>
+
+        <TabsContent value="import-export">
+          <JournalEntryImportExport onImportSuccess={refetch} />
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>إعدادات المحاسبة</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>إعدادات النظام المحاسبي ستكون متاحة قريباً</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

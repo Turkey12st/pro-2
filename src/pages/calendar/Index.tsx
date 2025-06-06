@@ -1,234 +1,289 @@
-import React, { useState } from "react";
-import { AppLayout } from "@/components/AppLayout";
-import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { DatePicker } from "@/components/ui/date-picker-fixed";
-import { ar } from "date-fns/locale";
-import { Plus, Calendar as CalendarIcon } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: Date;
-  category: "meeting" | "task" | "reminder";
-}
+import React, { useState } from "react";
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { ar } from "date-fns/locale";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { AppLayout } from "@/components/AppLayout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Clock, Users, MapPin } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+
+const locales = {
+  'ar': ar,
+};
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  locales,
+});
+
+const messages = {
+  allDay: 'طوال اليوم',
+  previous: 'السابق',
+  next: 'التالي',
+  today: 'اليوم',
+  month: 'شهر',
+  week: 'أسبوع',
+  day: 'يوم',
+  agenda: 'جدول الأعمال',
+  date: 'التاريخ',
+  time: 'الوقت',
+  event: 'حدث',
+  noEventsInRange: 'لا توجد أحداث في هذا النطاق.',
+  showMore: (total: number) => `+ ${total} المزيد`,
+};
 
 export default function CalendarPage() {
-  const [date, setDate] = useState<Date>(new Date());
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState<Partial<Event>>({
-    title: "",
-    description: "",
-    date: new Date(),
-    category: "meeting"
-  });
   const { toast } = useToast();
+  const [events, setEvents] = useState([
+    {
+      id: 1,
+      title: 'اجتماع فريق التطوير',
+      start: new Date(2024, 2, 15, 10, 0),
+      end: new Date(2024, 2, 15, 11, 0),
+      type: 'meeting',
+    },
+    {
+      id: 2,
+      title: 'مراجعة المشروع',
+      start: new Date(2024, 2, 20, 14, 0),
+      end: new Date(2024, 2, 20, 15, 30),
+      type: 'review',
+    },
+  ]);
 
-  // تحويل التاريخ إلى مفتاح لتجميع الأحداث حسب اليوم
-  const getDayKey = (date: Date) => {
-    return date.toISOString().split("T")[0];
-  };
-
-  // تجميع الأحداث حسب التاريخ
-  const eventsByDay = events.reduce((acc: Record<string, Event[]>, event) => {
-    const dayKey = getDayKey(event.date);
-    if (!acc[dayKey]) {
-      acc[dayKey] = [];
-    }
-    acc[dayKey].push(event);
-    return acc;
-  }, {});
-
-  // الأحداث في اليوم المحدد
-  const selectedDayEvents = eventsByDay[getDayKey(date)] || [];
+  const [isOpen, setIsOpen] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    description: '',
+    start: '',
+    end: '',
+    type: 'meeting',
+    location: '',
+    attendees: '',
+  });
 
   const handleAddEvent = () => {
-    if (!newEvent.title) {
+    if (!newEvent.title || !newEvent.start || !newEvent.end) {
       toast({
         title: "خطأ",
-        description: "يرجى إدخال عنوان الحدث",
+        description: "يرجى ملء جميع الحقول المطلوبة",
         variant: "destructive",
       });
       return;
     }
 
-    const event: Event = {
-      id: crypto.randomUUID(),
-      title: newEvent.title || "",
-      description: newEvent.description || "",
-      date: newEvent.date || new Date(),
-      category: newEvent.category as "meeting" | "task" | "reminder"
+    const event = {
+      id: events.length + 1,
+      title: newEvent.title,
+      start: new Date(newEvent.start),
+      end: new Date(newEvent.end),
+      type: newEvent.type,
+      description: newEvent.description,
+      location: newEvent.location,
+      attendees: newEvent.attendees,
     };
 
     setEvents([...events, event]);
+    setNewEvent({
+      title: '',
+      description: '',
+      start: '',
+      end: '',
+      type: 'meeting',
+      location: '',
+      attendees: '',
+    });
+    setIsOpen(false);
+
     toast({
-      title: "تمت الإضافة",
+      title: "تم بنجاح",
       description: "تم إضافة الحدث بنجاح",
     });
-
-    // إعادة ضبط نموذج الإدخال
-    setNewEvent({
-      title: "",
-      description: "",
-      date: new Date(),
-      category: "meeting"
-    });
-    setIsDialogOpen(false);
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "meeting":
-        return "bg-blue-100 text-blue-800";
-      case "task":
-        return "bg-green-100 text-green-800";
-      case "reminder":
-        return "bg-amber-100 text-amber-800";
+  const eventStyleGetter = (event: any) => {
+    let backgroundColor = '#3174ad';
+    
+    switch (event.type) {
+      case 'meeting':
+        backgroundColor = '#3174ad';
+        break;
+      case 'review':
+        backgroundColor = '#f39c12';
+        break;
+      case 'deadline':
+        backgroundColor = '#e74c3c';
+        break;
       default:
-        return "bg-gray-100 text-gray-800";
+        backgroundColor = '#3174ad';
     }
-  };
 
-  const getCategoryName = (category: string) => {
-    switch (category) {
-      case "meeting":
-        return "اجتماع";
-      case "task":
-        return "مهمة";
-      case "reminder":
-        return "تذكير";
-      default:
-        return category;
-    }
+    return {
+      style: {
+        backgroundColor,
+        borderRadius: '5px',
+        opacity: 0.8,
+        color: 'white',
+        border: '0px',
+        display: 'block',
+      },
+    };
   };
 
   return (
-    <AppLayout>
-      <div className="container mx-auto p-4 space-y-6">
-        <header className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">التقويم</h1>
-          <Button onClick={() => setIsDialogOpen(true)} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            <span>إضافة حدث</span>
-          </Button>
-        </header>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="md:col-span-1">
-            <CardHeader>
-              <CardTitle className="text-center">التقويم</CardTitle>
-            </CardHeader>
-            <CardContent className="flex justify-center">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(date) => date && setDate(date)}
-                locale={ar}
-                className="rounded-md border shadow"
-              />
-            </CardContent>
-          </Card>
-          
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5" />
-                <span>أحداث اليوم: {date.toLocaleDateString("ar-SA")}</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {selectedDayEvents.length > 0 ? (
-                <div className="space-y-4">
-                  {selectedDayEvents.map((event) => (
-                    <div key={event.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-medium text-lg">{event.title}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs ${getCategoryColor(event.category)}`}>
-                          {getCategoryName(event.category)}
-                        </span>
-                      </div>
-                      <p className="text-muted-foreground mt-2">{event.description}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>لا توجد أحداث لهذا اليوم</p>
-                  <Button 
-                    variant="link" 
-                    onClick={() => setIsDialogOpen(true)}
-                    className="mt-2"
-                  >
-                    إضافة حدث جديد
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">التقويم وإدارة المواعيد</h1>
+          <p className="text-muted-foreground">تنظيم المواعيد والأحداث المهمة</p>
         </div>
+        
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              إضافة حدث جديد
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>إضافة حدث جديد</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="title">عنوان الحدث</Label>
+                <Input
+                  id="title"
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                  placeholder="اكتب عنوان الحدث"
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="type">نوع الحدث</Label>
+                <Select value={newEvent.type} onValueChange={(value) => setNewEvent({...newEvent, type: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="meeting">اجتماع</SelectItem>
+                    <SelectItem value="review">مراجعة</SelectItem>
+                    <SelectItem value="deadline">موعد نهائي</SelectItem>
+                    <SelectItem value="event">حدث</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="start">تاريخ البداية</Label>
+                  <Input
+                    id="start"
+                    type="datetime-local"
+                    value={newEvent.start}
+                    onChange={(e) => setNewEvent({...newEvent, start: e.target.value})}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="end">تاريخ النهاية</Label>
+                  <Input
+                    id="end"
+                    type="datetime-local"
+                    value={newEvent.end}
+                    onChange={(e) => setNewEvent({...newEvent, end: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="description">الوصف</Label>
+                <Textarea
+                  id="description"
+                  value={newEvent.description}
+                  onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                  placeholder="وصف تفصيلي للحدث"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="location">المكان</Label>
+                <Input
+                  id="location"
+                  value={newEvent.location}
+                  onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                  placeholder="مكان انعقاد الحدث"
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="attendees">الحضور</Label>
+                <Input
+                  id="attendees"
+                  value={newEvent.attendees}
+                  onChange={(e) => setNewEvent({...newEvent, attendees: e.target.value})}
+                  placeholder="أسماء الحضور (مفصولة بفواصل)"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button onClick={handleAddEvent} className="flex-1">
+                إضافة الحدث
+              </Button>
+              <Button variant="outline" onClick={() => setIsOpen(false)}>
+                إلغاء
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>إضافة حدث جديد</DialogTitle>
-            <DialogDescription>
-              أدخل تفاصيل الحدث الذي تريد إضافته إلى التقويم.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">العنوان</Label>
-              <Input
-                id="title"
-                value={newEvent.title || ""}
-                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                placeholder="أدخل عنوان الحدث"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="category">النوع</Label>
-              <select
-                id="category"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={newEvent.category}
-                onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value as any })}
-              >
-                <option value="meeting">اجتماع</option>
-                <option value="task">مهمة</option>
-                <option value="reminder">تذكير</option>
-              </select>
-            </div>
-            <div className="grid gap-2">
-              <Label>التاريخ</Label>
-              <DatePicker
-                date={newEvent.date}
-                setDate={(date) => setNewEvent({ ...newEvent, date })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">الوصف</Label>
-              <Textarea
-                id="description"
-                value={newEvent.description || ""}
-                onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                placeholder="أدخل وصف الحدث"
-              />
-            </div>
+      <Card>
+        <CardContent className="p-6">
+          <div style={{ height: '600px' }}>
+            <Calendar
+              localizer={localizer}
+              events={events}
+              startAccessor="start"
+              endAccessor="end"
+              messages={messages}
+              eventPropGetter={eventStyleGetter}
+              views={['month', 'week', 'day', 'agenda']}
+              defaultView="month"
+              popup
+              selectable
+              onSelectSlot={(slotInfo) => {
+                setNewEvent({
+                  ...newEvent,
+                  start: format(slotInfo.start, "yyyy-MM-dd'T'HH:mm"),
+                  end: format(slotInfo.end, "yyyy-MM-dd'T'HH:mm"),
+                });
+                setIsOpen(true);
+              }}
+              onSelectEvent={(event) => {
+                toast({
+                  title: event.title,
+                  description: `${format(event.start, 'PPP p', { locale: ar })} - ${format(event.end, 'PPP p', { locale: ar })}`,
+                });
+              }}
+              culture="ar"
+              rtl={true}
+            />
           </div>
-          <DialogFooter>
-            <Button onClick={handleAddEvent} type="submit">إضافة</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </AppLayout>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
