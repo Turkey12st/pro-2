@@ -1,5 +1,6 @@
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Container } from "@/components/ui/container";
 import { CompanyInfoCard } from "@/components/dashboard/CompanyInfoCard";
 import { ERPDashboard } from "@/components/dashboard/ERPDashboard";
@@ -7,11 +8,54 @@ import { QuickNavMenu } from "@/components/dashboard/QuickNavMenu";
 import { AutoSaveProvider } from "@/components/dashboard/AutoSaveProvider";
 import { IntegratedDashboardStats } from "@/components/dashboard/IntegratedDashboardStats";
 import { usePermissions } from "@/hooks/usePermissions";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, AlertTriangle, Info } from "lucide-react";
+import { Shield, AlertTriangle, Info, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardPage() {
-  const { hasPermission, isLoading, userRole, isAdmin } = usePermissions();
+  const { hasPermission, isLoading, userRole, isAdmin, user } = usePermissions();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/auth');
+      }
+    };
+
+    checkAuth();
+
+    // مراقبة تغيير حالة المصادقة
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate('/auth');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: 'تم تسجيل الخروج',
+        description: 'تم تسجيل خروجك من النظام بنجاح',
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('خطأ في تسجيل الخروج:', error);
+      toast({
+        title: 'خطأ',
+        description: 'حدث خطأ أثناء تسجيل الخروج',
+        variant: 'destructive',
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -34,9 +78,13 @@ export default function DashboardPage() {
             <p className="text-muted-foreground mb-4">
               ليس لديك صلاحية للوصول إلى لوحة التحكم
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mb-4">
               دورك الحالي: {userRole} | تحتاج إلى صلاحية "view_dashboard"
             </p>
+            <Button onClick={handleLogout} variant="outline" className="w-full">
+              <LogOut className="h-4 w-4 mr-2" />
+              تسجيل الخروج
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -56,9 +104,20 @@ export default function DashboardPage() {
               <span className="text-sm text-muted-foreground">
                 دورك: {isAdmin() ? 'الإدمن الرئيسي' : userRole}
               </span>
+              {user && (
+                <span className="text-sm text-muted-foreground">
+                  | {user.email}
+                </span>
+              )}
             </div>
           </div>
-          <QuickNavMenu />
+          <div className="flex items-center gap-2">
+            <QuickNavMenu />
+            <Button onClick={handleLogout} variant="outline" size="sm">
+              <LogOut className="h-4 w-4 mr-2" />
+              خروج
+            </Button>
+          </div>
         </div>
 
         {/* تنبيه للإدمن الرئيسي */}
