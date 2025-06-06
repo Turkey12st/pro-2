@@ -20,12 +20,12 @@ export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Mock project data - properly structured for ProjectOverview component
+  // بيانات المشروع محدثة مع الأنواع الصحيحة
   const project = {
     id: id || "1",
     title: "مشروع تطوير موقع الشركة",
     description: "تطوير موقع إلكتروني متطور للشركة مع نظام إدارة المحتوى",
-    status: "in-progress" as const,
+    status: "in_progress" as const,
     priority: "high" as const,
     start_date: "2024-01-15",
     end_date: "2024-06-15",
@@ -41,10 +41,38 @@ export default function ProjectDetails() {
     ]
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "مكتمل";
+      case "in_progress":
+        return "قيد التنفيذ";
+      case "planned":
+        return "مخطط";
+      case "on_hold":
+        return "متوقف";
+      default:
+        return "غير محدد";
+    }
+  };
+
+  const getPriorityText = (priority: string) => {
+    switch (priority) {
+      case "high":
+        return "أولوية عالية";
+      case "medium":
+        return "أولوية متوسطة";
+      case "low":
+        return "أولوية منخفضة";
+      default:
+        return "غير محدد";
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6">
       <div className="container mx-auto py-6 space-y-6">
-        {/* Header */}
+        {/* رأس الصفحة */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon">
@@ -57,15 +85,15 @@ export default function ProjectDetails() {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={project.status === "completed" ? "default" : "secondary"}>
-              {project.status === "in-progress" ? "قيد التنفيذ" : "مكتمل"}
+              {getStatusText(project.status)}
             </Badge>
             <Badge variant={project.priority === "high" ? "destructive" : "outline"}>
-              {project.priority === "high" ? "أولوية عالية" : "أولوية متوسطة"}
+              {getPriorityText(project.priority)}
             </Badge>
           </div>
         </div>
 
-        {/* Quick Stats */}
+        {/* إحصائيات سريعة */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
@@ -113,7 +141,7 @@ export default function ProjectDetails() {
           </Card>
         </div>
 
-        {/* Tabs */}
+        {/* التبويبات */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">

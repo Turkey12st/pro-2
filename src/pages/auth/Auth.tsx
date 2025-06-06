@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { Eye, EyeOff, Lock, Mail, User, Shield } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, Shield, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function AuthPage() {
   const [email, setEmail] = useState('');
@@ -18,32 +18,88 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkUser = async () => {
+    checkUserSession();
+    setupAuthStateListener();
+  }, [navigate]);
+
+  const checkUserSession = async () => {
+    try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         navigate('/dashboard');
       }
-    };
+    } catch (error) {
+      console.error('خطأ في فحص الجلسة:', error);
+    }
+  };
 
-    checkUser();
-
+  const setupAuthStateListener = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+      if (session && event === 'SIGNED_IN') {
+        toast({
+          title: 'تم تسجيل الدخول بنجاح',
+          description: 'مرحباً بك في النظام',
+        });
         navigate('/dashboard');
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  };
+
+  const calculatePasswordStrength = (password: string) => {
+    let strength = 0;
+    if (password.length >= 8) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[a-z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    return strength;
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    setPasswordStrength(calculatePasswordStrength(value));
+  };
+
+  const validateForm = (isSignUp: boolean) => {
+    if (!email || !password) {
+      setError('جميع الحقول مطلوبة');
+      return false;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('البريد الإلكتروني غير صحيح');
+      return false;
+    }
+
+    if (isSignUp) {
+      if (!fullName.trim()) {
+        setError('الاسم الكامل مطلوب');
+        return false;
+      }
+      if (password.length < 6) {
+        setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+        return false;
+      }
+    }
+
+    return true;
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm(true)) return;
+
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -68,6 +124,8 @@ export default function AuthPage() {
       if (data.user) {
         await createUserRole(data.user.id, fullName);
         
+        setSuccess('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.');
+        
         toast({
           title: 'تم إنشاء الحساب بنجاح',
           description: 'يمكنك الآن الوصول للنظام',
@@ -83,8 +141,11 @@ export default function AuthPage() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm(false)) return;
+
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -102,10 +163,7 @@ export default function AuthPage() {
       }
 
       if (data.user) {
-        toast({
-          title: 'مرحباً بك',
-          description: 'تم تسجيل الدخول بنجاح',
-        });
+        setSuccess('تم تسجيل الدخول بنجاح!');
       }
     } catch (error: any) {
       console.error('خطأ في تسجيل الدخول:', error);
@@ -160,6 +218,24 @@ export default function AuthPage() {
     }
   };
 
+  const getPasswordStrengthText = () => {
+    switch (passwordStrength) {
+      case 0:
+      case 1:
+        return { text: 'ضعيفة', color: 'text-red-500' };
+      case 2:
+      case 3:
+        return { text: 'متوسطة', color: 'text-yellow-500' };
+      case 4:
+      case 5:
+        return { text: 'قوية', color: 'text-green-500' };
+      default:
+        return { text: '', color: '' };
+    }
+  };
+
+  const strengthInfo = getPasswordStrengthText();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -168,18 +244,18 @@ export default function AuthPage() {
             <Shield className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">نظام إدارة الأعمال</h1>
-          <p className="text-gray-600">نظام ERP متكامل للشركات</p>
+          <p className="text-gray-600">نظام ERP متكامل للشركات السعودية</p>
         </div>
 
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl text-center">تسجيل الدخول للنظام</CardTitle>
+            <CardTitle className="text-2xl text-center">الوصول للنظام</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signin" className="space-y-4">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">تسجيل الدخول</TabsTrigger>
-                <TabsTrigger value="signup">إنشاء حساب</TabsTrigger>
+                <TabsTrigger value="signup">إنشاء حساب جديد</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
@@ -191,7 +267,7 @@ export default function AuthPage() {
                       <Input
                         id="signin-email"
                         type="email"
-                        placeholder="البريد الإلكتروني"
+                        placeholder="أدخل البريد الإلكتروني"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-9"
@@ -207,7 +283,7 @@ export default function AuthPage() {
                       <Input
                         id="signin-password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="كلمة المرور"
+                        placeholder="أدخل كلمة المرور"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-9 pr-9"
@@ -227,7 +303,15 @@ export default function AuthPage() {
                   
                   {error && (
                     <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
                       <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {success && (
+                    <Alert className="border-green-500 text-green-700">
+                      <CheckCircle className="h-4 w-4" />
+                      <AlertDescription>{success}</AlertDescription>
                     </Alert>
                   )}
                   
@@ -246,7 +330,7 @@ export default function AuthPage() {
                       <Input
                         id="signup-name"
                         type="text"
-                        placeholder="الاسم الكامل"
+                        placeholder="أدخل الاسم الكامل"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         className="pl-9"
@@ -261,7 +345,7 @@ export default function AuthPage() {
                       <Input
                         id="signup-email"
                         type="email"
-                        placeholder="البريد الإلكتروني"
+                        placeholder="أدخل البريد الإلكتروني"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-9"
@@ -277,9 +361,9 @@ export default function AuthPage() {
                       <Input
                         id="signup-password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="كلمة المرور (6 أحرف على الأقل)"
+                        placeholder="أدخل كلمة مرور قوية"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => handlePasswordChange(e.target.value)}
                         className="pl-9 pr-9"
                         required
                         minLength={6}
@@ -294,16 +378,40 @@ export default function AuthPage() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
+                    {password && (
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full transition-all duration-300 ${
+                              passwordStrength <= 2 ? 'bg-red-500' : 
+                              passwordStrength <= 3 ? 'bg-yellow-500' : 'bg-green-500'
+                            }`}
+                            style={{ width: `${(passwordStrength / 5) * 100}%` }}
+                          />
+                        </div>
+                        <span className={`text-xs font-medium ${strengthInfo.color}`}>
+                          {strengthInfo.text}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   
                   {error && (
                     <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
                       <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {success && (
+                    <Alert className="border-green-500 text-green-700">
+                      <CheckCircle className="h-4 w-4" />
+                      <AlertDescription>{success}</AlertDescription>
                     </Alert>
                   )}
                   
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
+                    {loading ? 'جاري إنشاء الحساب...' : 'إنشاء حساب جديد'}
                   </Button>
                   
                   <div className="text-center">
@@ -318,8 +426,10 @@ export default function AuthPage() {
         </Card>
 
         <div className="text-center mt-6 text-sm text-gray-500">
-          <p>نظام إدارة متكامل للشركات</p>
-          <p>يلتزم بأنظمة المملكة العربية السعودية</p>
+          <p>نظام إدارة متكامل للشركات السعودية</p>
+          <p>✅ يلتزم بأنظمة وزارة الموارد البشرية</p>
+          <p>✅ يلتزم بنظام التأمينات الاجتماعية</p>
+          <p>✅ يلتزم بأنظمة وزارة التجارة</p>
         </div>
       </div>
     </div>
