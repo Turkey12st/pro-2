@@ -52,7 +52,12 @@ export function usePermissions() {
 
       if (userRoleData && !roleError) {
         role = userRoleData.role as UserRole;
-        customPermissions = userRoleData.permissions || [];
+        // تأكد من أن الصلاحيات هي مصفوفة صحيحة
+        if (Array.isArray(userRoleData.permissions)) {
+          customPermissions = userRoleData.permissions as Permission[];
+        } else {
+          customPermissions = DEFAULT_ROLE_PERMISSIONS[role] || [];
+        }
       } else {
         // الرجوع للـ metadata إذا لم يوجد سجل في الجدول
         role = (user.user_metadata?.role as UserRole) || 'employee';

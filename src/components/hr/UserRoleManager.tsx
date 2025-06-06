@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -114,10 +113,15 @@ export function UserRoleManager() {
       const usersWithRoles = mockUsers.map(user => {
         const roleData = userRoles?.find(role => role.user_id === user.id);
         if (roleData) {
+          // تأكد من أن الصلاحيات هي مصفوفة صحيحة
+          const permissions = Array.isArray(roleData.permissions) 
+            ? roleData.permissions as Permission[]
+            : DEFAULT_ROLE_PERMISSIONS[roleData.role as UserRole] || [];
+          
           return {
             ...user,
             role: roleData.role as UserRole,
-            permissions: roleData.permissions || DEFAULT_ROLE_PERMISSIONS[roleData.role] || []
+            permissions
           };
         }
         return user;

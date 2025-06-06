@@ -359,7 +359,7 @@ export function IntegratedDashboardStats() {
               <span className="text-sm font-medium">مستخدم نشط: {userRole === 'admin' ? 'الإدمن الرئيسي' : userRole}</span>
             </div>
             <div className="text-xs text-muted-foreground">
-              عدد المستخدمين النشطين: {users.length || 1}
+              عدد المستخدمين النشطين: {data.totalEmployees || 1}
             </div>
           </div>
         </CardContent>
