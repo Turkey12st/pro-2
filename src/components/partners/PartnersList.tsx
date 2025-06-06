@@ -11,7 +11,7 @@ import { PartnersCapitalInfo } from "./PartnersCapitalInfo";
 import { PartnersTable } from "./PartnersTable";
 import { DocumentUploadDialog } from "./DocumentUploadDialog";
 
-interface Partner {
+interface SimplePartner {
   id: string;
   name: string;
   first_name?: string;
@@ -32,7 +32,7 @@ interface Partner {
 }
 
 export function PartnersList() {
-  const [partners, setPartners] = useState<Partner[]>([]);
+  const [partners, setPartners] = useState<SimplePartner[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCapital, setTotalCapital] = useState(0);
   const [partnerToDelete, setPartnerToDelete] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export function PartnersList() {
       
       if (data) {
         // Transform the data properly for display
-        const partnersData: Partner[] = data.map((item: any) => ({
+        const partnersData = data.map((item: any) => ({
           id: item.id || crypto.randomUUID(),
           name: item.name,
           first_name: item.first_name || undefined,
@@ -85,7 +85,7 @@ export function PartnersList() {
         
         setPartners(partnersData);
         
-        const total = partnersData.reduce((sum, partner) => sum + (partner.capital_amount || 0), 0);
+        const total = partnersData.reduce((sum: number, partner: any) => sum + (partner.capital_amount || 0), 0);
         setTotalCapital(total);
       }
     } catch (error) {

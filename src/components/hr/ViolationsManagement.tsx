@@ -134,8 +134,9 @@ export function ViolationsManagement({ employeeId }: ViolationsManagementProps) 
 
       if (error) throw error;
 
-      // إنشاء خصم تلقائي إذا كان مطلوباً
-      if (newViolation.action_taken === 'written_warning' || newViolation.action_taken === 'suspension') {
+      // إنشاء خصم تلقائي إذا كان مطلوباً - تم إصلاح المقارنة هنا
+      if (newViolation.action_taken !== 'none' && 
+          (newViolation.action_taken === 'written_warning' || newViolation.action_taken === 'suspension')) {
         await createAutomaticDeduction(newViolation);
       }
 
