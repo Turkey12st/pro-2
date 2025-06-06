@@ -1,6 +1,5 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import AppLayout from "@/components/AppLayout";
+import { AppLayout } from "@/components/AppLayout";
 import { useToast } from "@/components/ui/use-toast";
 import { FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";

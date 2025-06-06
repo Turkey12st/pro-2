@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +9,7 @@ import ProjectInvoices from "@/components/projects/details/ProjectInvoices";
 import ProjectExpenses from "@/components/projects/details/ProjectExpenses";
 import ProjectFiles from "@/components/projects/details/ProjectFiles";
 import ProjectActivities from "@/components/projects/details/ProjectActivities";
-import AppLayout from "@/components/AppLayout";
+import { AppLayout } from "@/components/AppLayout";
 
 export default function ProjectDetails() {
   const { id } = useParams();

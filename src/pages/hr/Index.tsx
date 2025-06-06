@@ -1,5 +1,4 @@
-
-import AppLayout from "@/components/AppLayout";
+import { AppLayout } from "@/components/AppLayout";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { HRPageHeader } from "./components/HRPageHeader";
 import { HRDashboardCards } from "./components/HRDashboardCards";

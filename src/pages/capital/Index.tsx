@@ -8,7 +8,7 @@ import { CapitalIncreaseDialog } from '@/components/dashboard/capital/CapitalInc
 import { Button } from '@/components/ui/button';
 import { Building2, Wallet, ArrowUpDown, LineChart, Download, Upload } from 'lucide-react';
 import { CapitalManagement } from '@/types/database';
-import AppLayout from '@/components/AppLayout';
+import { AppLayout } from '@/components/AppLayout';
 export default function CapitalManagementPage() {
   const [activeTab, setActiveTab] = React.useState('overview');
   const {

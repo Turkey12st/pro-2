@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,7 +10,7 @@ import { EmployeeVacations } from "@/components/hr/EmployeeVacations";
 import { EmployeeDocuments } from "@/components/hr/EmployeeDocuments";
 import { EmployeeBenefits } from "@/components/hr/EmployeeBenefits";
 import { EmployeeDeductions } from "@/components/hr/EmployeeDeductions";
-import AppLayout from "@/components/AppLayout";
+import { AppLayout } from "@/components/AppLayout";
 import { useEmployeeData } from "./hooks/useEmployeeProfileData";
 import { 
   User, 

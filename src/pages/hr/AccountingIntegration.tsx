@@ -1,6 +1,5 @@
-
 import React from 'react';
-import AppLayout from '@/components/AppLayout';
+import { AppLayout } from '@/components/AppLayout';
 import { EmployeeAccountingOverview } from '@/components/hr/EmployeeAccountingOverview';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, Info } from 'lucide-react';
