@@ -21,13 +21,17 @@ export function useCompanyData() {
         setCompanyInfo(data);
       }
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching company info:", error);
-      toast({
-        title: "خطأ في جلب بيانات الشركة",
-        description: "حدث خطأ أثناء محاولة جلب بيانات الشركة",
-        variant: "destructive",
-      });
+      
+      // تجاهل أخطاء "لا توجد بيانات" لتجنب الإزعاج المستمر
+      if (error?.code !== 'PGRST116') {
+        toast({
+          title: "خطأ في جلب بيانات الشركة",
+          description: "حدث خطأ أثناء محاولة جلب بيانات الشركة",
+          variant: "destructive",
+        });
+      }
       return null;
     } finally {
       setLoading(false);
