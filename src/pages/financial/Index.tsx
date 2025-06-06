@@ -1,42 +1,48 @@
+
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppLayout } from "@/components/AppLayout";
-import { useToast } from "@/components/ui/use-toast";
-import { FileText, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
+import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 
 export default function FinancialPage() {
-  const { toast } = useToast();
-
-  const handleGenerateReport = () => {
-    toast({
-      title: "جاري إنشاء التقرير",
-      description: "يتم الآن تجهيز التقرير المالي",
-    });
-  };
+  const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <AppLayout>
-      <div className="max-w-6xl mx-auto space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              التقارير المالية
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Button 
-                className="w-full flex items-center gap-2"
-                onClick={handleGenerateReport}
-              >
-                <Download className="h-4 w-4" />
-                إنشاء تقرير مالي جديد
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold">النظام المالي</h1>
+        <p className="text-muted-foreground">تتبع ومراقبة الأداء المالي للشركة</p>
       </div>
-    </AppLayout>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+          <TabsTrigger value="cashflow">التدفق النقدي</TabsTrigger>
+          <TabsTrigger value="analysis">التحليل المالي</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <FinancialSummary />
+        </TabsContent>
+
+        <TabsContent value="cashflow">
+          <CashFlowChart />
+        </TabsContent>
+
+        <TabsContent value="analysis">
+          <Card>
+            <CardHeader>
+              <CardTitle>التحليل المالي المتقدم</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                تحليل مالي مفصل ومؤشرات الأداء ستكون متاحة قريباً
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

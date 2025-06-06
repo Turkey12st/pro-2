@@ -1,19 +1,18 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppLayout } from "@/components/AppLayout";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChartOfAccountsManager } from "@/components/accounting/ChartOfAccountsManager";
-import { JournalEntryForm } from "@/components/accounting/JournalEntryForm";
-import { JournalEntryTable } from "./components/JournalEntryTable";
+import JournalEntryForm from "@/components/accounting/JournalEntryForm";
+import JournalEntryTable from "./components/JournalEntryTable";
 import { useJournalEntries } from "./hooks/useJournalEntries";
-import { FinancialReports } from "./components/FinancialReports";
-import { JournalEntryImportExport } from "./components/JournalEntryImportExport";
+import FinancialReports from "./components/FinancialReports";
+import JournalEntryImportExport from "./components/JournalEntryImportExport";
 
 export default function AccountingPage() {
   const [activeTab, setActiveTab] = useState("journal");
-  const { journalEntries, isLoading, refetch } = useJournalEntries();
+  const { journalEntries, isLoading, fetchJournalEntries } = useJournalEntries();
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
@@ -32,11 +31,11 @@ export default function AccountingPage() {
         </TabsList>
 
         <TabsContent value="journal" className="space-y-4">
-          <JournalEntryForm onSuccess={refetch} />
+          <JournalEntryForm onSuccess={fetchJournalEntries} />
           <JournalEntryTable 
             entries={journalEntries} 
             isLoading={isLoading}
-            onUpdate={refetch}
+            onUpdate={fetchJournalEntries}
           />
         </TabsContent>
 
@@ -49,7 +48,7 @@ export default function AccountingPage() {
         </TabsContent>
 
         <TabsContent value="import-export">
-          <JournalEntryImportExport onImportSuccess={refetch} />
+          <JournalEntryImportExport onImportSuccess={fetchJournalEntries} />
         </TabsContent>
 
         <TabsContent value="settings">

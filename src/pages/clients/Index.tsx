@@ -1,41 +1,39 @@
+
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AppLayout } from "@/components/AppLayout";
-import { useToast } from "@/hooks/use-toast";
-import { UserSquare2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ClientList from "@/components/clients/ClientList";
-import ClientForm from "@/components/clients/ClientForm";
+import { Plus } from "lucide-react";
+import { ClientForm } from "@/components/clients/ClientForm";
+import { ClientList } from "@/components/clients/ClientList";
 
 export default function ClientsPage() {
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("list");
+  const [showForm, setShowForm] = useState(false);
 
   return (
-    <AppLayout>
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
           <h1 className="text-2xl font-bold">إدارة العملاء</h1>
-          <Button onClick={() => setActiveTab("new")} className="gap-2">
-            <Plus className="h-4 w-4" />
-            عميل جديد
-          </Button>
+          <p className="text-muted-foreground">متابعة وإدارة قاعدة بيانات العملاء</p>
         </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="list">قائمة العملاء</TabsTrigger>
-            <TabsTrigger value="new">عميل جديد</TabsTrigger>
-          </TabsList>
-          <TabsContent value="list">
-            <ClientList />
-          </TabsContent>
-          <TabsContent value="new">
-            <ClientForm onSuccess={() => setActiveTab("list")} />
-          </TabsContent>
-        </Tabs>
+        <Button onClick={() => setShowForm(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          عميل جديد
+        </Button>
       </div>
-    </AppLayout>
+
+      {showForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>إضافة عميل جديد</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ClientForm onCancel={() => setShowForm(false)} />
+          </CardContent>
+        </Card>
+      )}
+
+      <ClientList />
+    </div>
   );
 }

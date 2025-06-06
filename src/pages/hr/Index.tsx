@@ -1,46 +1,16 @@
-import { AppLayout } from "@/components/AppLayout";
-import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { HRPageHeader } from "./components/HRPageHeader";
-import { HRDashboardCards } from "./components/HRDashboardCards";
-import { HRTabsContent } from "./components/HRTabsContent";
-import { useEmployeeData } from "./hooks/useEmployeeData";
 
-const queryClient = new QueryClient();
+import React from "react";
+import { HRManagementSystem } from "@/components/hr/HRManagementSystem";
 
 export default function HRPage() {
-  const {
-    totalEmployees,
-    totalSalaries,
-    totalGosi,
-    newEmployeesCount,
-    isDialogOpen,
-    setIsDialogOpen,
-    activeTab,
-    setActiveTab,
-    handleExportToExcel
-  } = useEmployeeData();
-
   return (
-    <AppLayout>
-      <div className="max-w-7xl mx-auto space-y-6 p-4 sm:p-6">
-        <HRPageHeader
-          isDialogOpen={isDialogOpen}
-          setIsDialogOpen={setIsDialogOpen}
-          handleExportToExcel={handleExportToExcel}
-        />
-
-        <HRDashboardCards
-          totalEmployees={totalEmployees}
-          newEmployeesCount={newEmployeesCount}
-          totalSalaries={totalSalaries}
-          totalGosi={totalGosi}
-        />
-
-        <HRTabsContent
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
+      <div className="space-y-1 mb-6">
+        <h1 className="text-2xl font-bold">نظام الموارد البشرية</h1>
+        <p className="text-muted-foreground">إدارة شاملة للموظفين والرواتب والحضور</p>
       </div>
-    </AppLayout>
+      
+      <HRManagementSystem />
+    </div>
   );
 }
