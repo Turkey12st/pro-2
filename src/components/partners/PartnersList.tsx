@@ -11,7 +11,7 @@ import { PartnersCapitalInfo } from "./PartnersCapitalInfo";
 import { PartnersTable } from "./PartnersTable";
 import { DocumentUploadDialog } from "./DocumentUploadDialog";
 
-interface SimplePartner {
+interface PartnerData {
   id: string;
   name: string;
   first_name?: string;
@@ -26,13 +26,17 @@ interface SimplePartner {
   position?: string;
   role?: string;
   partner_type: string;
-  contact_info: any;
-  documents: any[];
+  contact_info: Record<string, unknown>;
+  documents: Array<{
+    name: string;
+    url: string;
+    type: string;
+  }>;
   created_at: string;
 }
 
 export function PartnersList() {
-  const [partners, setPartners] = useState<SimplePartner[]>([]);
+  const [partners, setPartners] = useState<PartnerData[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCapital, setTotalCapital] = useState(0);
   const [partnerToDelete, setPartnerToDelete] = useState<string | null>(null);
@@ -57,35 +61,37 @@ export function PartnersList() {
       
       if (data) {
         // Transform the data properly for display
-        const partnersData = data.map((item: any) => ({
+        const partnersData: PartnerData[] = data.map((item) => ({
           id: item.id || crypto.randomUUID(),
-          name: item.name,
+          name: item.name || '',
           first_name: item.first_name || undefined,
           last_name: item.last_name || undefined,
           nationality: item.nationality || undefined,
           identity_number: item.identity_number || undefined, 
           national_id: item.national_id || undefined,
-          capital_amount: item.capital_amount || item.share_value || 0,
-          capital_percentage: item.capital_percentage || item.ownership_percentage || 0,
-          ownership_percentage: item.ownership_percentage || 0,
-          share_value: item.share_value || 0,
+          capital_amount: Number(item.capital_amount) || Number(item.share_value) || 0,
+          capital_percentage: Number(item.capital_percentage) || Number(item.ownership_percentage) || 0,
+          ownership_percentage: Number(item.ownership_percentage) || 0,
+          share_value: Number(item.share_value) || 0,
           position: item.position || undefined,
           role: item.role || undefined,
           partner_type: item.partner_type || 'individual',
-          contact_info: item.contact_info || {},
+          contact_info: (item.contact_info as Record<string, unknown>) || {},
           documents: Array.isArray(item.documents) 
             ? item.documents.map((doc: any) => ({
-                name: doc.name || "",
-                url: doc.url || "",
-                type: doc.type || ""
+                name: String(doc.name || ""),
+                url: String(doc.url || ""),
+                type: String(doc.type || "")
               }))
             : [],
-          created_at: item.created_at
+          created_at: item.created_at || new Date().toISOString()
         }));
         
         setPartners(partnersData);
         
-        const total = partnersData.reduce((sum: number, partner: any) => sum + (partner.capital_amount || 0), 0);
+        const total = partnersData.reduce((sum, partner) => {
+          return sum + (partner.capital_amount || 0);
+        }, 0);
         setTotalCapital(total);
       }
     } catch (error) {
