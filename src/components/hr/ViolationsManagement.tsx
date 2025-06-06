@@ -81,9 +81,17 @@ export function ViolationsManagement({ employeeId }: ViolationsManagementProps) 
         const employeeMap = new Map(employees?.map(emp => [emp.id, emp.name]) || []);
 
         const formattedViolations: Violation[] = data.map(violation => ({
-          ...violation,
+          id: violation.id,
+          employee_id: violation.employee_id || '',
           employee_name: employeeMap.get(violation.employee_id || '') || 'غير معروف',
-          reported_by: violation.created_by || 'غير محدد'
+          type: (violation.type as Violation['type']) || 'other',
+          severity: (violation.severity as Violation['severity']) || 'minor',
+          description: violation.description || '',
+          action_taken: (violation.action_taken as Violation['action_taken']) || 'none',
+          date: violation.date || '',
+          status: (violation.status as Violation['status']) || 'active',
+          reported_by: violation.created_by || 'غير محدد',
+          created_at: violation.created_at || ''
         }));
 
         setViolations(formattedViolations);
@@ -281,13 +289,13 @@ export function ViolationsManagement({ employeeId }: ViolationsManagementProps) 
                     {!employeeId && (
                       <TableCell>{violation.employee_name}</TableCell>
                     )}
-                    <TableCell>{getViolationTypeText(violation.type)}</TableCell>
-                    <TableCell>{getSeverityBadge(violation.severity)}</TableCell>
+                    <TableCell>{violation.type}</TableCell>
+                    <TableCell>{violation.severity}</TableCell>
                     <TableCell className="max-w-xs truncate">
                       {violation.description}
                     </TableCell>
-                    <TableCell>{getActionText(violation.action_taken)}</TableCell>
-                    <TableCell>{getStatusBadge(violation.status)}</TableCell>
+                    <TableCell>{violation.action_taken}</TableCell>
+                    <TableCell>{violation.status}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"

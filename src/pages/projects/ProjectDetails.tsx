@@ -31,7 +31,7 @@ export default function ProjectDetails() {
           </TabsList>
 
           <TabsContent value="overview">
-            <ProjectOverview projectId={id} />
+            <ProjectOverview project={id} />
           </TabsContent>
           <TabsContent value="tasks">
             <ProjectTasks projectId={id} />

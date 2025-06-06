@@ -23,11 +23,14 @@ export default function DashboardTabs() {
     total_capital: 500000,
     available_capital: 300000,
     reserved_capital: 200000,
-    turnover_rate: 2.5
+    turnover_rate: 2.5,
+    fiscal_year: new Date().getFullYear(),
+    last_updated: new Date().toISOString()
   };
 
   const mockCompanyInfo = {
     id: '1',
+    name: 'شركة المثال المحدودة',
     company_name: 'شركة المثال المحدودة',
     commercial_registration: '1234567890',
     tax_number: '300123456789003',
