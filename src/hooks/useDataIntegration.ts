@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { DataIntegrationService } from '@/services/dataIntegrationService';
+import { AdvancedDataIntegrationService } from '@/services/advancedDataIntegration';
 
 interface IntegratedData {
   employees: any[];
@@ -34,92 +34,29 @@ export function useDataIntegration() {
   const fetchIntegratedData = async () => {
     try {
       setLoading(true);
+      console.log('جاري جلب البيانات المتكاملة...');
 
-      // جلب بيانات الموظفين مع البيانات المحاسبية
-      const { data: employees, error: empError } = await supabase
-        .from('employees')
-        .select(`
-          *,
-          employee_accounts (
-            id,
-            account_number,
-            account_name,
-            account_type,
-            balance
-          ),
-          employee_performance (
-            performance_score,
-            attendance_rate,
-            kpi_metrics
-          ),
-          project_employee_assignments (
-            id,
-            project_id,
-            role_in_project,
-            total_cost,
-            projects (
-              title,
-              status
-            )
-          )
-        `);
+      // استخدام الخدمة المتقدمة لجلب البيانات
+      const dashboardMetrics = await AdvancedDataIntegrationService.getDashboardMetrics();
 
-      if (empError) throw empError;
-
-      // جلب بيانات الشركاء
-      const { data: partners, error: partError } = await supabase
-        .from('company_partners')
-        .select('*');
-
-      if (partError) throw partError;
-
-      // جلب بيانات المشاريع
-      const { data: projects, error: projError } = await supabase
-        .from('projects')
-        .select(`
-          *,
-          project_employee_assignments (
-            employee_id,
-            total_cost
-          ),
-          project_tasks (
-            id,
-            status
-          )
-        `);
-
-      if (projError) throw projError;
-
-      // جلب البيانات المالية
-      const { data: financials, error: finError } = await supabase
-        .from('journal_entries')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (finError) throw finError;
-
-      // حساب الإجماليات
-      const totalEmployees = employees?.length || 0;
-      const totalSalaries = employees?.reduce((sum, emp) => sum + (emp.salary || 0), 0) || 0;
-      const totalCapital = partners?.reduce((sum, partner) => sum + (partner.share_value || 0), 0) || 0;
-      const totalProjects = projects?.length || 0;
+      console.log('تم جلب البيانات:', dashboardMetrics);
 
       setData({
-        employees: employees || [],
-        partners: partners || [],
-        projects: projects || [],
-        financials: financials || [],
-        totalEmployees,
-        totalSalaries,
-        totalCapital,
-        totalProjects
+        employees: dashboardMetrics.employees,
+        partners: dashboardMetrics.partners,
+        projects: dashboardMetrics.projects,
+        financials: dashboardMetrics.financials,
+        totalEmployees: dashboardMetrics.summary.totalEmployees,
+        totalSalaries: dashboardMetrics.employees.reduce((sum, emp) => sum + (emp.salary || 0), 0),
+        totalCapital: dashboardMetrics.summary.totalCapital,
+        totalProjects: dashboardMetrics.summary.totalProjects
       });
 
       setHasInitialized(true);
+      console.log('تم تحديث البيانات بنجاح');
 
     } catch (error) {
-      console.error('Error fetching integrated data:', error);
+      console.error('خطأ في جلب البيانات المتكاملة:', error);
       toast({
         title: 'خطأ في جلب البيانات المتكاملة',
         description: 'حدث خطأ أثناء جلب البيانات من قاعدة البيانات',
@@ -133,7 +70,9 @@ export function useDataIntegration() {
   const refreshDataIntegrity = async () => {
     try {
       setIsInitializing(true);
-      await DataIntegrationService.ensureDataIntegrity();
+      console.log('جاري ضمان ترابط البيانات...');
+      
+      await AdvancedDataIntegrationService.ensureComprehensiveDataIntegrity();
       await fetchIntegratedData();
       
       toast({
@@ -141,7 +80,7 @@ export function useDataIntegration() {
         description: 'تم ضمان ترابط البيانات عبر جميع أقسام النظام',
       });
     } catch (error) {
-      console.error('Error refreshing data integrity:', error);
+      console.error('خطأ في تحديث الترابط:', error);
       toast({
         title: 'خطأ في تحديث الترابط',
         description: 'حدث خطأ أثناء تحديث ترابط البيانات',

@@ -5,6 +5,7 @@ import { CompanyInfoCard } from "@/components/dashboard/CompanyInfoCard";
 import { ERPDashboard } from "@/components/dashboard/ERPDashboard";
 import { QuickNavMenu } from "@/components/dashboard/QuickNavMenu";
 import { AutoSaveProvider } from "@/components/dashboard/AutoSaveProvider";
+import { IntegratedDashboardStats } from "@/components/dashboard/IntegratedDashboardStats";
 
 export default function DashboardPage() {
   return (
@@ -18,6 +19,10 @@ export default function DashboardPage() {
           <QuickNavMenu />
         </div>
 
+        {/* مؤشرات الأداء الأساسية */}
+        <IntegratedDashboardStats />
+
+        {/* لوحة التحكم الشاملة */}
         <ERPDashboard />
       </div>
     </AutoSaveProvider>
