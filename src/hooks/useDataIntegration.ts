@@ -13,6 +13,11 @@ interface IntegratedData {
   totalSalaries: number;
   totalCapital: number;
   totalProjects: number;
+  avgPerformance: number;
+  activeProjects: number;
+  completedProjects: number;
+  availableCapital: number;
+  systemHealth: 'excellent' | 'good' | 'warning' | 'critical';
 }
 
 export function useDataIntegration() {
@@ -24,22 +29,54 @@ export function useDataIntegration() {
     totalEmployees: 0,
     totalSalaries: 0,
     totalCapital: 0,
-    totalProjects: 0
+    totalProjects: 0,
+    avgPerformance: 0,
+    activeProjects: 0,
+    completedProjects: 0,
+    availableCapital: 0,
+    systemHealth: 'good'
   });
   const [loading, setLoading] = useState(true);
   const [isInitializing, setIsInitializing] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
   const { toast } = useToast();
 
   const fetchIntegratedData = async () => {
     try {
       setLoading(true);
-      console.log('جاري جلب البيانات المتكاملة...');
+      console.log('جاري جلب البيانات المتكاملة مع ضمان الترابط...');
 
-      // استخدام الخدمة المتقدمة لجلب البيانات
+      // استخدام الخدمة المتقدمة لجلب البيانات مع ضمان الترابط
       const dashboardMetrics = await AdvancedDataIntegrationService.getDashboardMetrics();
+      
+      // حساب المؤشرات المتقدمة
+      const totalSalaries = dashboardMetrics.employees.reduce((sum, emp) => sum + (emp.salary || 0), 0);
+      const avgPerformance = dashboardMetrics.employees.reduce((sum, emp) => {
+        const perf = emp.employee_performance?.[0]?.performance_score || 0;
+        return sum + perf;
+      }, 0) / (dashboardMetrics.employees.length || 1);
 
-      console.log('تم جلب البيانات:', dashboardMetrics);
+      const activeProjects = dashboardMetrics.projects.filter(p => p.status === 'in_progress').length;
+      const completedProjects = dashboardMetrics.projects.filter(p => p.status === 'completed').length;
+      
+      const totalProjectsCost = dashboardMetrics.projects.reduce((sum, project) => 
+        sum + (project.budget || 0), 0);
+      
+      const availableCapital = dashboardMetrics.summary.totalCapital - totalSalaries - totalProjectsCost;
+
+      // تقييم صحة النظام
+      let systemHealth: 'excellent' | 'good' | 'warning' | 'critical' = 'good';
+      if (avgPerformance >= 85 && availableCapital > 0) systemHealth = 'excellent';
+      else if (avgPerformance < 70 || availableCapital < 0) systemHealth = 'warning';
+      else if (avgPerformance < 50 && availableCapital < -10000) systemHealth = 'critical';
+
+      console.log('تم جلب البيانات مع الترابط:', {
+        employees: dashboardMetrics.employees.length,
+        projects: dashboardMetrics.projects.length,
+        avgPerformance,
+        systemHealth
+      });
 
       setData({
         employees: dashboardMetrics.employees,
@@ -47,13 +84,19 @@ export function useDataIntegration() {
         projects: dashboardMetrics.projects,
         financials: dashboardMetrics.financials,
         totalEmployees: dashboardMetrics.summary.totalEmployees,
-        totalSalaries: dashboardMetrics.employees.reduce((sum, emp) => sum + (emp.salary || 0), 0),
+        totalSalaries,
         totalCapital: dashboardMetrics.summary.totalCapital,
-        totalProjects: dashboardMetrics.summary.totalProjects
+        totalProjects: dashboardMetrics.summary.totalProjects,
+        avgPerformance,
+        activeProjects,
+        completedProjects,
+        availableCapital,
+        systemHealth
       });
 
       setHasInitialized(true);
-      console.log('تم تحديث البيانات بنجاح');
+      setLastSync(new Date());
+      console.log('تم تحديث البيانات بنجاح مع ضمان الترابط');
 
     } catch (error) {
       console.error('خطأ في جلب البيانات المتكاملة:', error);
@@ -70,7 +113,7 @@ export function useDataIntegration() {
   const refreshDataIntegrity = async () => {
     try {
       setIsInitializing(true);
-      console.log('جاري ضمان ترابط البيانات...');
+      console.log('جاري ضمان ترابط البيانات الشامل...');
       
       await AdvancedDataIntegrationService.ensureComprehensiveDataIntegrity();
       await fetchIntegratedData();
@@ -91,8 +134,11 @@ export function useDataIntegration() {
     }
   };
 
+  // تحديث تلقائي كل 5 دقائق
   useEffect(() => {
     fetchIntegratedData();
+    const interval = setInterval(fetchIntegratedData, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   return {
@@ -100,6 +146,7 @@ export function useDataIntegration() {
     loading,
     isInitializing,
     hasInitialized,
+    lastSync,
     refresh: fetchIntegratedData,
     refreshDataIntegrity
   };
