@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { ProjectForm } from "@/components/projects/ProjectForm";
-import { ProjectList } from "@/components/projects/ProjectList";
+import ProjectForm from "@/components/projects/ProjectForm";
+import ProjectList from "@/components/projects/ProjectList";
 
 export default function ProjectsPage() {
   const [showForm, setShowForm] = useState(false);

@@ -1,3 +1,4 @@
+
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +11,6 @@ import { EmployeeVacations } from "@/components/hr/EmployeeVacations";
 import { EmployeeDocuments } from "@/components/hr/EmployeeDocuments";
 import { EmployeeBenefits } from "@/components/hr/EmployeeBenefits";
 import { EmployeeDeductions } from "@/components/hr/EmployeeDeductions";
-import { AppLayout } from "@/components/AppLayout";
 import { useEmployeeData } from "./hooks/useEmployeeProfileData";
 import { 
   User, 
@@ -24,28 +24,28 @@ export default function EmployeeProfile() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg">جاري تحميل بيانات الموظف...</div>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   if (error || !employee) {
     return (
-      <AppLayout>
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg text-red-600">
             {error || "لم يتم العثور على بيانات الموظف"}
           </div>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
       <div className="container mx-auto py-6 space-y-6">
         {/* Employee Header */}
         <Card>
@@ -180,6 +180,6 @@ export default function EmployeeProfile() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </div>
   );
 }

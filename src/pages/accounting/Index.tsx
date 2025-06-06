@@ -31,11 +31,15 @@ export default function AccountingPage() {
         </TabsList>
 
         <TabsContent value="journal" className="space-y-4">
-          <JournalEntryForm onSuccess={fetchJournalEntries} />
+          <JournalEntryForm 
+            onSuccess={fetchJournalEntries} 
+            onClose={() => {}}
+          />
           <JournalEntryTable 
             entries={journalEntries} 
             isLoading={isLoading}
-            onUpdate={fetchJournalEntries}
+            onEdit={() => {}}
+            onDelete={() => {}}
           />
         </TabsContent>
 
@@ -48,7 +52,10 @@ export default function AccountingPage() {
         </TabsContent>
 
         <TabsContent value="import-export">
-          <JournalEntryImportExport onImportSuccess={fetchJournalEntries} />
+          <JournalEntryImportExport 
+            journalEntries={journalEntries}
+            onImportSuccess={fetchJournalEntries} 
+          />
         </TabsContent>
 
         <TabsContent value="settings">

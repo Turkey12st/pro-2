@@ -11,7 +11,7 @@ export default function AccountingIntegration() {
         <p className="text-muted-foreground">تكامل بيانات الموظفين مع النظام المحاسبي</p>
       </div>
 
-      <EmployeeAccountingDashboard />
+      <EmployeeAccountingDashboard employeeId="all" />
     </div>
   );
 }

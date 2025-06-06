@@ -3,10 +3,18 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
-import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
+import CashFlowChart from "@/components/dashboard/CashFlowChart";
 
 export default function FinancialPage() {
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Mock data for components
+  const mockFinancialData = {
+    totalRevenue: 0,
+    totalExpenses: 0,
+    netProfit: 0,
+    cashFlow: 0
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
@@ -23,7 +31,7 @@ export default function FinancialPage() {
         </TabsList>
 
         <TabsContent value="overview">
-          <FinancialSummary />
+          <FinancialSummary data={mockFinancialData} />
         </TabsContent>
 
         <TabsContent value="cashflow">

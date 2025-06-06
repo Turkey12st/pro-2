@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { ClientForm } from "@/components/clients/ClientForm";
-import { ClientList } from "@/components/clients/ClientList";
+import ClientForm from "@/components/clients/ClientForm";
+import ClientList from "@/components/clients/ClientList";
 
 export default function ClientsPage() {
   const [showForm, setShowForm] = useState(false);
