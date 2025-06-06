@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { EmployeeHRManagement } from "@/components/hr/EmployeeHRManagement";
 import { EmployeeViolations } from "@/components/hr/EmployeeViolations";
 import { EmployeeSalaries } from "@/components/hr/EmployeeSalaries";
@@ -13,21 +12,11 @@ import { EmployeeDocuments } from "@/components/hr/EmployeeDocuments";
 import { EmployeeBenefits } from "@/components/hr/EmployeeBenefits";
 import { EmployeeDeductions } from "@/components/hr/EmployeeDeductions";
 import AppLayout from "@/components/AppLayout";
-import { useEmployeeData } from "./hooks/useEmployeeData";
-import { formatNumber } from "@/utils/formatters";
+import { useEmployeeData } from "./hooks/useEmployeeProfileData";
 import { 
   User, 
   IdCard, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Calendar,
-  Building,
-  Briefcase,
-  DollarSign,
-  Clock,
-  FileText,
-  Shield
+  Phone
 } from "lucide-react";
 
 export default function EmployeeProfile() {
@@ -188,7 +177,7 @@ export default function EmployeeProfile() {
           </TabsContent>
 
           <TabsContent value="documents">
-            <EmployeeDocuments employeeId={employee.id} />
+            <EmployeeDocuments employeeId={employee.id} documents={[]} />
           </TabsContent>
         </Tabs>
       </div>

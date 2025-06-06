@@ -289,13 +289,13 @@ export function ViolationsManagement({ employeeId }: ViolationsManagementProps) 
                     {!employeeId && (
                       <TableCell>{violation.employee_name}</TableCell>
                     )}
-                    <TableCell>{violation.type}</TableCell>
-                    <TableCell>{violation.severity}</TableCell>
+                    <TableCell>{getViolationTypeText(violation.type)}</TableCell>
+                    <TableCell>{getSeverityBadge(violation.severity)}</TableCell>
                     <TableCell className="max-w-xs truncate">
                       {violation.description}
                     </TableCell>
-                    <TableCell>{violation.action_taken}</TableCell>
-                    <TableCell>{violation.status}</TableCell>
+                    <TableCell>{getActionText(violation.action_taken)}</TableCell>
+                    <TableCell>{getStatusBadge(violation.status)}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
