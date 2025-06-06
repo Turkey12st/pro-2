@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,37 +59,60 @@ export function PartnersList() {
       if (error) throw error;
       
       if (data) {
-        // Transform the data properly for display
-        const partnersData: PartnerData[] = data.map((item) => ({
-          id: item.id || crypto.randomUUID(),
-          name: item.name || '',
-          first_name: item.first_name || undefined,
-          last_name: item.last_name || undefined,
-          nationality: item.nationality || undefined,
-          identity_number: item.identity_number || undefined, 
-          national_id: item.national_id || undefined,
-          capital_amount: Number(item.capital_amount) || Number(item.share_value) || 0,
-          capital_percentage: Number(item.capital_percentage) || Number(item.ownership_percentage) || 0,
-          ownership_percentage: Number(item.ownership_percentage) || 0,
-          share_value: Number(item.share_value) || 0,
-          position: item.position || undefined,
-          role: item.role || undefined,
-          partner_type: item.partner_type || 'individual',
-          contact_info: (item.contact_info as Record<string, unknown>) || {},
-          documents: Array.isArray(item.documents) 
-            ? item.documents.map((doc: any) => ({
-                name: String(doc.name || ""),
-                url: String(doc.url || ""),
-                type: String(doc.type || "")
-              }))
-            : [],
-          created_at: item.created_at || new Date().toISOString()
-        }));
+        // Transform the data properly for display using safe property access
+        const partnersData: PartnerData[] = data.map((item: any) => {
+          // Safely extract properties with fallbacks
+          const getId = () => {
+            if (item.id) return item.id;
+            // If no id exists, create one using row number or unique identifier
+            return crypto.randomUUID();
+          };
+
+          const getCapitalAmount = () => {
+            const capital = item.capital_amount ?? item.share_value ?? 0;
+            return Number(capital) || 0;
+          };
+
+          const getCapitalPercentage = () => {
+            const percentage = item.capital_percentage ?? item.ownership_percentage ?? 0;
+            return Number(percentage) || 0;
+          };
+
+          return {
+            id: getId(),
+            name: String(item.name || ''),
+            first_name: item.first_name || undefined,
+            last_name: item.last_name || undefined,
+            nationality: item.nationality || undefined,
+            identity_number: item.identity_number || undefined, 
+            national_id: item.national_id || undefined,
+            capital_amount: getCapitalAmount(),
+            capital_percentage: getCapitalPercentage(),
+            ownership_percentage: Number(item.ownership_percentage) || 0,
+            share_value: Number(item.share_value) || 0,
+            position: item.position || undefined,
+            role: item.role || undefined,
+            partner_type: String(item.partner_type || 'individual'),
+            contact_info: (typeof item.contact_info === 'object' && item.contact_info !== null) 
+              ? item.contact_info as Record<string, unknown> 
+              : {},
+            documents: Array.isArray(item.documents) 
+              ? item.documents.map((doc: any) => ({
+                  name: String(doc?.name || ""),
+                  url: String(doc?.url || ""),
+                  type: String(doc?.type || "")
+                }))
+              : [],
+            created_at: String(item.created_at || new Date().toISOString())
+          };
+        });
         
         setPartners(partnersData);
         
+        // Calculate total capital safely
         const total = partnersData.reduce((sum, partner) => {
-          return sum + (partner.capital_amount || 0);
+          const amount = Number(partner.capital_amount) || 0;
+          return sum + amount;
         }, 0);
         setTotalCapital(total);
       }
