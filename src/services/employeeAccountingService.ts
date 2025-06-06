@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface EmployeeAccountingData {
@@ -104,6 +103,23 @@ export class EmployeeAccountingService {
 
       if (incError) throw incError;
 
+      // معالجة بيانات الأداء
+      const performanceData: EmployeePerformance = performance ? {
+        id: performance.id,
+        performance_score: performance.performance_score || 0,
+        task_completion_rate: performance.tasks_completed || 0,
+        project_success_rate: performance.projects_completed || 0,
+        attendance_rate: performance.attendance_rate || 100,
+        kpi_metrics: performance.kpi_metrics || {}
+      } : {
+        id: '',
+        performance_score: 0,
+        task_completion_rate: 0,
+        project_success_rate: 0,
+        attendance_rate: 100,
+        kpi_metrics: {}
+      };
+
       return {
         id: employee.id,
         name: employee.name,
@@ -112,14 +128,7 @@ export class EmployeeAccountingService {
         position: employee.position,
         salary: employee.salary,
         accounts: accounts || [],
-        performance: performance || {
-          id: '',
-          performance_score: 0,
-          task_completion_rate: 0,
-          project_success_rate: 0,
-          attendance_rate: 100,
-          kpi_metrics: {}
-        },
+        performance: performanceData,
         assignments: assignments?.map(a => ({
           id: a.id,
           project_id: a.project_id,

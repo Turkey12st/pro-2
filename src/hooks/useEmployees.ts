@@ -33,19 +33,61 @@ export const useEmployees = () => {
   const fetchEmployees = async () => {
     try {
       setIsLoading(true);
+      
+      // جلب الموظفين مع البيانات المرتبطة
       const { data, error } = await supabase
         .from("employees")
-        .select("*");
+        .select(`
+          *,
+          employee_accounts (
+            id,
+            account_number,
+            account_name,
+            balance
+          ),
+          employee_performance (
+            performance_score,
+            attendance_rate
+          ),
+          project_employee_assignments (
+            id,
+            project_id,
+            role_in_project,
+            projects (
+              title,
+              status
+            )
+          )
+        `);
       
       if (error) throw error;
       
-      setEmployees(data || []);
-      setFilteredEmployees(data || []);
+      // معالجة البيانات لضمان التكامل
+      const processedEmployees = data?.map(emp => ({
+        ...emp,
+        // حساب الأداء المتكامل
+        integrated_performance: {
+          score: emp.employee_performance?.[0]?.performance_score || 0,
+          attendance: emp.employee_performance?.[0]?.attendance_rate || 100,
+          projects_count: emp.project_employee_assignments?.length || 0,
+          accounts_count: emp.employee_accounts?.length || 0
+        },
+        // حساب التكاليف المحاسبية
+        financial_summary: {
+          salary: emp.salary || 0,
+          gosi_total: (emp.employee_gosi_contribution || 0) + (emp.company_gosi_contribution || 0),
+          total_cost: (emp.salary || 0) + (emp.company_gosi_contribution || 0) + (emp.medical_insurance_cost || 0)
+        }
+      })) || [];
+      
+      setEmployees(processedEmployees);
+      setFilteredEmployees(processedEmployees);
+      
     } catch (error) {
       console.error("Error fetching employees:", error);
       toast({
         title: "خطأ في جلب البيانات",
-        description: "حدث خطأ أثناء محاولة جلب بيانات الموظفين.",
+        description: "حدث خطأ أثناء محاولة جلب بيانات الموظفين المتكاملة.",
         variant: "destructive",
       });
     } finally {
@@ -57,17 +99,26 @@ export const useEmployees = () => {
     try {
       const { data, error } = await supabase
         .from("employees")
-        .insert([employeeData])
+        .insert([{
+          ...employeeData,
+          // ضمان وجود البيانات المطلوبة للربط المحاسبي
+          employment_number: employeeData.employment_number || `EMP${Date.now()}`,
+          employee_type: employeeData.employee_type || 'saudi',
+          base_salary: employeeData.base_salary || employeeData.salary || 0,
+          housing_allowance: employeeData.housing_allowance || 0,
+          transportation_allowance: employeeData.transportation_allowance || 0
+        }])
         .select();
       
       if (error) throw error;
       
       toast({
         title: "تمت الإضافة بنجاح",
-        description: "تمت إضافة الموظف بنجاح",
+        description: "تم إنشاء الموظف والحسابات المحاسبية تلقائياً",
       });
       
-      fetchEmployees();
+      // إعادة جلب البيانات لضمان التحديث المتكامل
+      await fetchEmployees();
       return data;
     } catch (error) {
       console.error("Error adding employee:", error);
@@ -92,10 +143,10 @@ export const useEmployees = () => {
       
       toast({
         title: "تم التحديث بنجاح",
-        description: "تم تحديث بيانات الموظف بنجاح",
+        description: "تم تحديث بيانات الموظف والحسابات المرتبطة",
       });
       
-      fetchEmployees();
+      await fetchEmployees();
       return data;
     } catch (error) {
       console.error("Error updating employee:", error);
@@ -110,6 +161,7 @@ export const useEmployees = () => {
 
   const deleteEmployee = async (id: string) => {
     try {
+      // حذف الموظف سيؤدي إلى حذف الحسابات المرتبطة تلقائياً بسبب CASCADE
       const { error } = await supabase
         .from("employees")
         .delete()
@@ -119,10 +171,10 @@ export const useEmployees = () => {
       
       toast({
         title: "تم الحذف بنجاح",
-        description: "تم حذف الموظف بنجاح",
+        description: "تم حذف الموظف وجميع الحسابات المرتبطة",
       });
       
-      fetchEmployees();
+      await fetchEmployees();
       return true;
     } catch (error) {
       console.error("Error deleting employee:", error);

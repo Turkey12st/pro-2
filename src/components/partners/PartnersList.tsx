@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,31 +59,37 @@ export function PartnersList() {
       if (error) throw error;
       
       if (data) {
-        const partnersData: PartnerData[] = data.map((item) => ({
-          id: item.id || crypto.randomUUID(),
-          name: item.name || '',
-          first_name: item.first_name,
-          last_name: item.last_name,
-          nationality: item.nationality,
-          identity_number: item.identity_number,
-          national_id: item.national_id,
-          capital_amount: Number(item.share_value || 0),
-          capital_percentage: Number(item.ownership_percentage || 0),
-          ownership_percentage: Number(item.ownership_percentage || 0),
-          share_value: Number(item.share_value || 0),
-          position: item.position,
-          role: item.role,
-          partner_type: item.partner_type || 'individual',
-          contact_info: item.contact_info || {},
-          documents: Array.isArray(item.documents) 
-            ? item.documents.map((doc) => ({
-                name: doc?.name || "",
-                url: doc?.url || "",
-                type: doc?.type || ""
-              }))
-            : [],
-          created_at: item.created_at || new Date().toISOString()
-        }));
+        const partnersData: PartnerData[] = data.map((item) => {
+          // معالجة المستندات بطريقة آمنة
+          let documents: Array<{ name: string; url: string; type: string }> = [];
+          if (Array.isArray(item.documents)) {
+            documents = item.documents.map((doc: any) => ({
+              name: doc?.name || "",
+              url: doc?.url || "",
+              type: doc?.type || ""
+            }));
+          }
+
+          return {
+            id: crypto.randomUUID(), // إنشاء ID مؤقت للعرض
+            name: item.name || '',
+            first_name: (item.contact_info as any)?.first_name,
+            last_name: (item.contact_info as any)?.last_name,
+            nationality: (item.contact_info as any)?.nationality,
+            identity_number: (item.contact_info as any)?.identity_number,
+            national_id: (item.contact_info as any)?.national_id,
+            capital_amount: Number(item.share_value || 0),
+            capital_percentage: Number(item.ownership_percentage || 0),
+            ownership_percentage: Number(item.ownership_percentage || 0),
+            share_value: Number(item.share_value || 0),
+            position: (item.contact_info as any)?.position,
+            role: (item.contact_info as any)?.role,
+            partner_type: item.partner_type || 'individual',
+            contact_info: item.contact_info || {},
+            documents,
+            created_at: item.created_at || new Date().toISOString()
+          };
+        });
         
         setPartners(partnersData);
         
@@ -112,7 +117,7 @@ export function PartnersList() {
       const { error } = await supabase
         .from('company_partners')
         .delete()
-        .eq('id', partnerToDelete);
+        .eq('name', partnerToDelete); // استخدام الاسم بدلاً من ID
       
       if (error) throw error;
       
