@@ -26,7 +26,7 @@ interface PartnerData {
   position?: string;
   role?: string;
   partner_type: string;
-  contact_info: Record<string, any>;
+  contact_info: any;
   documents: Array<{
     name: string;
     url: string;
@@ -60,7 +60,7 @@ export function PartnersList() {
       if (error) throw error;
       
       if (data) {
-        const partnersData: PartnerData[] = data.map((item: any) => ({
+        const partnersData: PartnerData[] = data.map((item) => ({
           id: item.id || crypto.randomUUID(),
           name: item.name || '',
           first_name: item.first_name,
@@ -68,18 +68,16 @@ export function PartnersList() {
           nationality: item.nationality,
           identity_number: item.identity_number,
           national_id: item.national_id,
-          capital_amount: Number(item.capital_amount || item.share_value || 0),
-          capital_percentage: Number(item.capital_percentage || item.ownership_percentage || 0),
+          capital_amount: Number(item.share_value || 0),
+          capital_percentage: Number(item.ownership_percentage || 0),
           ownership_percentage: Number(item.ownership_percentage || 0),
           share_value: Number(item.share_value || 0),
           position: item.position,
           role: item.role,
           partner_type: item.partner_type || 'individual',
-          contact_info: (typeof item.contact_info === 'object' && item.contact_info !== null) 
-            ? item.contact_info 
-            : {},
+          contact_info: item.contact_info || {},
           documents: Array.isArray(item.documents) 
-            ? item.documents.map((doc: any) => ({
+            ? item.documents.map((doc) => ({
                 name: doc?.name || "",
                 url: doc?.url || "",
                 type: doc?.type || ""

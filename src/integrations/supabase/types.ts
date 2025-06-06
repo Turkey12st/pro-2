@@ -654,6 +654,47 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_accounts: {
+        Row: {
+          account_name: string
+          account_number: string
+          account_type: string
+          balance: number | null
+          created_at: string | null
+          employee_id: string | null
+          id: string
+          is_active: boolean | null
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          account_type: string
+          balance?: number | null
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          is_active?: boolean | null
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          account_type?: string
+          balance?: number | null
+          created_at?: string | null
+          employee_id?: string | null
+          id?: string
+          is_active?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_accounts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_benefits: {
         Row: {
           amount: number
@@ -691,6 +732,128 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "employee_benefits_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_incentives: {
+        Row: {
+          amount: number
+          approved_by: string | null
+          award_date: string | null
+          awarded_for: string | null
+          calculation_basis: Json | null
+          created_at: string | null
+          created_by: string | null
+          employee_id: string | null
+          id: string
+          incentive_type: string
+          journal_entry_id: string | null
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          approved_by?: string | null
+          award_date?: string | null
+          awarded_for?: string | null
+          calculation_basis?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          employee_id?: string | null
+          id?: string
+          incentive_type: string
+          journal_entry_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          approved_by?: string | null
+          award_date?: string | null
+          awarded_for?: string | null
+          calculation_basis?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          employee_id?: string | null
+          id?: string
+          incentive_type?: string
+          journal_entry_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_incentives_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_incentives_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_performance: {
+        Row: {
+          attendance_rate: number | null
+          created_at: string | null
+          employee_id: string | null
+          evaluated_by: string | null
+          evaluation_date: string | null
+          evaluation_period: string
+          goals_achieved: number | null
+          id: string
+          kpi_metrics: Json | null
+          notes: string | null
+          overtime_hours: number | null
+          performance_score: number | null
+          projects_completed: number | null
+          tasks_completed: number | null
+          total_goals: number | null
+        }
+        Insert: {
+          attendance_rate?: number | null
+          created_at?: string | null
+          employee_id?: string | null
+          evaluated_by?: string | null
+          evaluation_date?: string | null
+          evaluation_period: string
+          goals_achieved?: number | null
+          id?: string
+          kpi_metrics?: Json | null
+          notes?: string | null
+          overtime_hours?: number | null
+          performance_score?: number | null
+          projects_completed?: number | null
+          tasks_completed?: number | null
+          total_goals?: number | null
+        }
+        Update: {
+          attendance_rate?: number | null
+          created_at?: string | null
+          employee_id?: string | null
+          evaluated_by?: string | null
+          evaluation_date?: string | null
+          evaluation_period?: string
+          goals_achieved?: number | null
+          id?: string
+          kpi_metrics?: Json | null
+          notes?: string | null
+          overtime_hours?: number | null
+          performance_score?: number | null
+          projects_completed?: number | null
+          tasks_completed?: number | null
+          total_goals?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_performance_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
@@ -1218,6 +1381,70 @@ export type Database = {
         }
         Relationships: []
       }
+      payroll_journal_entries: {
+        Row: {
+          created_at: string | null
+          employee_id: string | null
+          gosi_company: number | null
+          gosi_employee: number | null
+          gross_salary: number
+          id: string
+          journal_entry_id: string | null
+          net_salary: number
+          salary_record_id: string | null
+          total_allowances: number | null
+          total_deductions: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          employee_id?: string | null
+          gosi_company?: number | null
+          gosi_employee?: number | null
+          gross_salary: number
+          id?: string
+          journal_entry_id?: string | null
+          net_salary: number
+          salary_record_id?: string | null
+          total_allowances?: number | null
+          total_deductions?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          employee_id?: string | null
+          gosi_company?: number | null
+          gosi_employee?: number | null
+          gross_salary?: number
+          id?: string
+          journal_entry_id?: string | null
+          net_salary?: number
+          salary_record_id?: string | null
+          total_allowances?: number | null
+          total_deductions?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_journal_entries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_journal_entries_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_journal_entries_salary_record_id_fkey"
+            columns: ["salary_record_id"]
+            isOneToOne: false
+            referencedRelation: "salary_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       "Pro-1.1": {
         Row: {
           created_at: string
@@ -1250,6 +1477,63 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      project_employee_assignments: {
+        Row: {
+          assignment_date: string | null
+          created_at: string | null
+          employee_id: string | null
+          end_date: string | null
+          hourly_rate: number | null
+          id: string
+          is_active: boolean | null
+          project_id: string | null
+          role_in_project: string
+          total_cost: number | null
+          total_hours: number | null
+        }
+        Insert: {
+          assignment_date?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          end_date?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          project_id?: string | null
+          role_in_project: string
+          total_cost?: number | null
+          total_hours?: number | null
+        }
+        Update: {
+          assignment_date?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          end_date?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          project_id?: string | null
+          role_in_project?: string
+          total_cost?: number | null
+          total_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_employee_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_employee_assignments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_expenses: {
         Row: {
@@ -1691,9 +1975,21 @@ export type Database = {
           flow_ratio: number
         }[]
       }
+      calculate_employee_kpi: {
+        Args: { emp_id: string }
+        Returns: Json
+      }
       count_journal_entries: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      create_employee_accounts: {
+        Args: { emp_id: string; emp_name: string }
+        Returns: undefined
+      }
+      create_salary_journal_entry: {
+        Args: { emp_id: string; salary_record_id: string }
+        Returns: string
       }
       delete_journal_entry: {
         Args: { p_entry_id: string }
