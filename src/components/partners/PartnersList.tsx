@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { PartnersCapitalInfo } from "./PartnersCapitalInfo";
 import { PartnersTable } from "./PartnersTable";
 import { DocumentUploadDialog } from "./DocumentUploadDialog";
+
+interface PartnerDocument {
+  name: string;
+  url: string;
+  type: string;
+}
 
 interface SimplePartner {
   id: string;
@@ -26,12 +31,8 @@ interface SimplePartner {
   position?: string;
   role?: string;
   partner_type: string;
-  contact_info: Record<string, any>;
-  documents: Array<{
-    name: string;
-    url: string;
-    type: string;
-  }>;
+  contact_info: any;
+  documents: PartnerDocument[];
   created_at: string;
 }
 
@@ -78,7 +79,7 @@ export function PartnersList() {
           partner_type: item.partner_type || 'individual',
           contact_info: item.contact_info || {},
           documents: Array.isArray(item.documents) 
-            ? item.documents.map((doc: any) => ({
+            ? item.documents.map((doc: any): PartnerDocument => ({
                 name: doc.name || "",
                 url: doc.url || "",
                 type: doc.type || ""
