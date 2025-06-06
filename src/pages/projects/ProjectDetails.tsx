@@ -31,7 +31,15 @@ export default function ProjectDetails() {
           </TabsList>
 
           <TabsContent value="overview">
-            <ProjectOverview project={{ id: id || '', title: '', description: '', status: 'planned' }} />
+            <ProjectOverview project={{ 
+              id: id || '', 
+              title: '', 
+              description: '', 
+              status: 'planned',
+              priority: 'medium',
+              start_date: new Date().toISOString().split('T')[0],
+              created_at: new Date().toISOString()
+            }} />
           </TabsContent>
           <TabsContent value="tasks">
             <ProjectTasks projectId={id} />
