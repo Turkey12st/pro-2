@@ -86,11 +86,11 @@ export class DataIntegrationService {
   static async ensurePartnerCapitalRelations() {
     const { data: partners } = await supabase
       .from('company_partners')
-      .select('capital_amount');
+      .select('share_value');
 
     if (partners) {
       const totalCapital = partners.reduce((sum, partner) => 
-        sum + (Number(partner.capital_amount) || 0), 0);
+        sum + (Number(partner.share_value) || 0), 0);
 
       // تحديث جدول إدارة رأس المال
       await supabase
@@ -160,12 +160,9 @@ export class DataIntegrationService {
         .insert([
           {
             name: 'أحمد محمد السعودي',
-            nationality: 'سعودي',
-            identity_number: '1234567890',
             partner_type: 'individual',
             ownership_percentage: 60,
             share_value: 600000,
-            position: 'الشريك المؤسس',
             contact_info: {
               email: 'ahmed@company.com',
               phone: '+966501234567'
@@ -176,7 +173,6 @@ export class DataIntegrationService {
             partner_type: 'company',
             ownership_percentage: 40,
             share_value: 400000,
-            position: 'شريك استثماري',
             contact_info: {
               email: 'info@techinvest.com',
               phone: '+966507654321'
@@ -208,7 +204,8 @@ export class DataIntegrationService {
             birth_date: '1990-01-15',
             joining_date: '2023-01-01',
             salary: 8000,
-            employee_type: 'saudi'
+            employee_type: 'saudi',
+            created_by: '00000000-0000-0000-0000-000000000000'
           }
         ]);
     }
@@ -270,7 +267,8 @@ export class DataIntegrationService {
               budget: 500000,
               client_id: client.id,
               manager_id: employee.id,
-              progress: 25
+              progress: 25,
+              created_by: '00000000-0000-0000-0000-000000000000'
             }
           ]);
       }
