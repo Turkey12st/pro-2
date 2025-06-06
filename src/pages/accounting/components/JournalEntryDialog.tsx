@@ -5,7 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import JournalEntryForm from "@/components/accounting/JournalEntryForm";
 import JournalEntryAttachment from "@/components/accounting/JournalEntryAttachment";
 import { updateJournalEntryAttachment, deleteJournalEntryAttachment } from "@/utils/fileUploadHelpers";
-import { addAttachmentMetadata } from "@/hooks/useSupabase";
 import type { JournalEntry } from "@/types/database";
 
 interface JournalEntryDialogProps {
@@ -30,7 +29,6 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
   // إعادة تعيين الحالة عند فتح/إغلاق النافذة أو تغيير القيد المحرر
   useEffect(() => {
     if (isOpen && editingEntry) {
-      // إذا كان هناك رابط للمرفق في القيد المحرر، قم بتعيينه
       const attachmentUrl = editingEntry.attachment_url;
       if (attachmentUrl) {
         setExistingAttachmentUrl(attachmentUrl);
@@ -91,15 +89,11 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
   };
 
   const handleFormSuccess = (entry: JournalEntry) => {
-    // حفظ معرف القيد الجديد أو المحدث لاستخدامه في رفع المرفقات
     setSavedEntryId(entry.id);
     
-    // إذا تم تحديد ملف مرفق جديد، قم بتحميله بعد حفظ القيد
     if (attachment) {
       setIsUploading(true);
-      // سيتم التعامل مع رفع الملف من خلال مكون JournalEntryAttachment
     } else {
-      // إذا لم يكن هناك مرفق جديد، أغلق النافذة وأخبر المستخدم بنجاح العملية
       setIsOpen(false);
       onSuccess();
     }
@@ -107,30 +101,34 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editingEntry ? "تعديل قيد" : "إضافة قيد"}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {editingEntry ? "تعديل قيد محاسبي" : "إضافة قيد محاسبي جديد"}
+          </DialogTitle>
           <DialogDescription>
-            أدخل تفاصيل القيد. جميع الحقول المميزة بـ * مطلوبة.
+            أدخل تفاصيل القيد المحاسبي وفقاً للمعايير المحاسبية العالمية. جميع الحقول المميزة بـ * مطلوبة.
           </DialogDescription>
         </DialogHeader>
         
         <JournalEntryForm
-          initialData={editingEntry ? addAttachmentMetadata(editingEntry) : undefined}
+          initialData={editingEntry || undefined}
           onSuccess={handleFormSuccess}
           onClose={handleDialogClose}
         />
         
-        <div className="mt-4">
-          <JournalEntryAttachment 
-            entryId={savedEntryId || undefined}
-            attachment={attachment}
-            onChange={setAttachment}
-            existingUrl={existingAttachmentUrl}
-            onDelete={handleDeleteAttachment}
-            onSuccess={handleFileUploadSuccess}
-          />
-        </div>
+        {savedEntryId && (
+          <div className="mt-4 border-t pt-4">
+            <JournalEntryAttachment 
+              entryId={savedEntryId}
+              attachment={attachment}
+              onChange={setAttachment}
+              existingUrl={existingAttachmentUrl}
+              onDelete={handleDeleteAttachment}
+              onSuccess={handleFileUploadSuccess}
+            />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

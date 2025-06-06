@@ -160,12 +160,11 @@ export default function JournalEntryForm({
       return;
     }
     
-    const errors = validateJournalEntry(formData);
-    if (errors.length > 0) {
+    if (!formData.description || !formData.entry_name) {
       toast({
         variant: "destructive",
         title: "بيانات ناقصة",
-        description: errors.join(', '),
+        description: "يجب إدخال اسم القيد والوصف",
       });
       return;
     }

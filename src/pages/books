@@ -1,45 +1,87 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/components/AppLayout";
-import { Plus, Trash2, Edit } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import JournalEntryTable from "./accounting/components/JournalEntryTable";
+import JournalEntryDialog from "./accounting/components/JournalEntryDialog";
+import JournalEntryImportExport from "./accounting/components/JournalEntryImportExport";
+import { ChartOfAccountsManager } from "@/components/accounting/ChartOfAccountsManager";
+import { useJournalEntries } from "./accounting/hooks/useJournalEntries";
+import type { JournalEntry } from "@/types/database";
+import FinancialReports from "./accounting/components/FinancialReports";
 
 export default function AccountingPage() {
   const [isOpen, setIsOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
+  const [currentTab, setCurrentTab] = useState("journal-entries");
+  const { journalEntries, isLoading, fetchJournalEntries, handleDeleteEntry } = useJournalEntries();
+
+  const handleEditEntry = (entry: JournalEntry) => {
+    setEditingEntry(entry);
+    setIsOpen(true);
+  };
 
   const handleAddEntry = () => {
-    toast.success("تمت إضافة القيد بنجاح!");
-    setIsOpen(false);
+    setEditingEntry(null);
+    setIsOpen(true);
   };
 
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
-              إضافة قيد جديد
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 ml-2" />
-                  إضافة قيد جديد
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <p>تفاصيل القيد الجديد</p>
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex justify-between items-center">
+            النظام المحاسبي
+            {currentTab === "journal-entries" && (
+              <JournalEntryImportExport 
+                journalEntries={journalEntries} 
+                onImportSuccess={fetchJournalEntries} 
+              />
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={currentTab} onValueChange={setCurrentTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="journal-entries">القيود المحاسبية</TabsTrigger>
+              <TabsTrigger value="chart-of-accounts">شجرة الحسابات</TabsTrigger>
+              <TabsTrigger value="reports">التقارير المالية</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="journal-entries">
+              <Button className="mb-4" onClick={handleAddEntry}>
+                <Plus className="mr-2" /> إضافة قيد محاسبي
+              </Button>
+              
+              <JournalEntryTable 
+                entries={journalEntries} 
+                isLoading={isLoading} 
+                onEdit={handleEditEntry}
+                onDelete={handleDeleteEntry}
+              />
+              
+              {/* Dialog for adding/editing journal entries */}
+              <JournalEntryDialog 
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+                editingEntry={editingEntry}
+                onSuccess={fetchJournalEntries}
+              />
+            </TabsContent>
+            
+            <TabsContent value="chart-of-accounts">
+              <ChartOfAccountsManager />
+            </TabsContent>
+            
+            <TabsContent value="reports">
+              <FinancialReports />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </AppLayout>
   );
 }
