@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { DataIntegrationService } from '@/services/dataIntegrationService';
 
 interface IntegratedData {
   employees: any[];
@@ -26,6 +27,8 @@ export function useDataIntegration() {
     totalProjects: 0
   });
   const [loading, setLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const { toast } = useToast();
 
   const fetchIntegratedData = async () => {
@@ -37,9 +40,28 @@ export function useDataIntegration() {
         .from('employees')
         .select(`
           *,
-          employee_accounts (count),
-          employee_performance (performance_score),
-          project_employee_assignments (count)
+          employee_accounts (
+            id,
+            account_number,
+            account_name,
+            account_type,
+            balance
+          ),
+          employee_performance (
+            performance_score,
+            attendance_rate,
+            kpi_metrics
+          ),
+          project_employee_assignments (
+            id,
+            project_id,
+            role_in_project,
+            total_cost,
+            projects (
+              title,
+              status
+            )
+          )
         `);
 
       if (empError) throw empError;
@@ -54,7 +76,17 @@ export function useDataIntegration() {
       // جلب بيانات المشاريع
       const { data: projects, error: projError } = await supabase
         .from('projects')
-        .select('*');
+        .select(`
+          *,
+          project_employee_assignments (
+            employee_id,
+            total_cost
+          ),
+          project_tasks (
+            id,
+            status
+          )
+        `);
 
       if (projError) throw projError;
 
@@ -84,6 +116,8 @@ export function useDataIntegration() {
         totalProjects
       });
 
+      setHasInitialized(true);
+
     } catch (error) {
       console.error('Error fetching integrated data:', error);
       toast({
@@ -96,6 +130,28 @@ export function useDataIntegration() {
     }
   };
 
+  const refreshDataIntegrity = async () => {
+    try {
+      setIsInitializing(true);
+      await DataIntegrationService.ensureDataIntegrity();
+      await fetchIntegratedData();
+      
+      toast({
+        title: 'تم تحديث ترابط البيانات',
+        description: 'تم ضمان ترابط البيانات عبر جميع أقسام النظام',
+      });
+    } catch (error) {
+      console.error('Error refreshing data integrity:', error);
+      toast({
+        title: 'خطأ في تحديث الترابط',
+        description: 'حدث خطأ أثناء تحديث ترابط البيانات',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+
   useEffect(() => {
     fetchIntegratedData();
   }, []);
@@ -103,6 +159,9 @@ export function useDataIntegration() {
   return {
     data,
     loading,
-    refresh: fetchIntegratedData
+    isInitializing,
+    hasInitialized,
+    refresh: fetchIntegratedData,
+    refreshDataIntegrity
   };
 }
