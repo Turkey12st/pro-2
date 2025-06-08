@@ -5,13 +5,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Settings, LogOut, User } from "lucide-react";
 import type { MenuItem } from "@/types/navigation";
+import type { UserRole, Permission } from "@/types/permissions";
 
 interface DesktopNavProps {
   menuItems: MenuItem[];
   groupedMenuItems: Record<string, MenuItem[]>;
   isActive: (href: string) => boolean;
   user: any;
-  onSignOut?: () => void; // Add onSignOut prop
+  onSignOut?: () => void;
+  userRole: UserRole;
+  permissions: Permission[];
 }
 
 export function DesktopNav({
@@ -19,7 +22,9 @@ export function DesktopNav({
   groupedMenuItems,
   isActive,
   user,
-  onSignOut
+  onSignOut,
+  userRole,
+  permissions
 }: DesktopNavProps) {
   return (
     <nav className="hidden md:flex flex-col h-full bg-card">

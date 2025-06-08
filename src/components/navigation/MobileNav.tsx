@@ -25,6 +25,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { MenuItem } from "@/types/navigation";
+import { UserRole } from "@/types/permissions";
 import { useNavigate, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -34,10 +35,11 @@ interface MobileNavProps {
   user: any;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  onSignOut?: () => void; // Add onSignOut prop
+  onSignOut?: () => void;
+  userRole: UserRole;
 }
 
-export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen, onSignOut }: MobileNavProps) {
+export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen, onSignOut, userRole }: MobileNavProps) {
   const navigate = useNavigate();
 
   const handleMenuClick = (href: string) => {

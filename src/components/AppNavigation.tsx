@@ -6,6 +6,7 @@ import { MobileNav } from "./navigation/MobileNav";
 import { getNavigationMenu } from "@/data/navigationMenu";
 import { MenuItem } from "@/types/navigation";
 import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/types/permissions";
 import { Loader2 } from "lucide-react";
 
 interface AppNavigationProps {
@@ -45,7 +46,7 @@ export function AppNavigation({ user, onSignOut }: AppNavigationProps) {
     // تصفية العناصر بناءً على الصلاحيات
     const filtered = allMenuItems.filter(item => {
       if (!item.requiredPermission) return true;
-      return hasPermission(item.requiredPermission);
+      return hasPermission(item.requiredPermission as Permission);
     });
 
     setFilteredMenuItems(filtered);
