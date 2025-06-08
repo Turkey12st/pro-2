@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { AdminLogin } from '@/components/AdminLogin';
+import { SimpleLogin } from '@/components/auth/SimpleLogin';
 
 export default function AdminAuthPage() {
-  return <AdminLogin />;
+  return <SimpleLogin />;
 }
