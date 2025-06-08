@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import DashboardPage from "@/pages/dashboard/Index";
 import AuthPage from "@/pages/auth/Auth";
+import AdminAuthPage from "@/pages/auth/AdminAuth";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -80,7 +81,15 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* صفحة المصادقة */}
+            {/* صفحة مصادقة المسؤول */}
+            <Route 
+              path="/admin" 
+              element={
+                session ? <Navigate to="/dashboard" replace /> : <AdminAuthPage />
+              } 
+            />
+            
+            {/* صفحة المصادقة العادية */}
             <Route 
               path="/auth" 
               element={
@@ -92,7 +101,7 @@ const App = () => {
             <Route 
               path="/" 
               element={
-                session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />
+                session ? <Navigate to="/dashboard" replace /> : <Navigate to="/admin" replace />
               } 
             />
             
@@ -100,7 +109,7 @@ const App = () => {
             <Route 
               path="/*" 
               element={
-                session ? <AppLayout /> : <Navigate to="/auth" replace />
+                session ? <AppLayout /> : <Navigate to="/admin" replace />
               } 
             />
           </Routes>

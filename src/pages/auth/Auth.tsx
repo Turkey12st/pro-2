@@ -422,6 +422,19 @@ export default function AuthPage() {
                 </form>
               </TabsContent>
             </Tabs>
+            
+            {/* إضافة رابط دخول المسؤول */}
+            <div className="mt-6 pt-4 border-t">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">هل أنت مسؤول النظام؟</p>
+                <Button asChild variant="outline" className="w-full border-red-200 text-red-600 hover:bg-red-50">
+                  <Link to="/admin">
+                    <Shield className="h-4 w-4 mr-2" />
+                    دخول المسؤول
+                  </Link>
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
