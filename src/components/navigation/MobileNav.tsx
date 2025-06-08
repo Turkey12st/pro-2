@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { 
   Sheet, 
@@ -35,9 +34,10 @@ interface MobileNavProps {
   user: any;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  onSignOut?: () => void; // Add onSignOut prop
 }
 
-export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: MobileNavProps) {
+export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen, onSignOut }: MobileNavProps) {
   const navigate = useNavigate();
 
   const handleMenuClick = (href: string) => {
@@ -74,7 +74,6 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
         <Separator className="my-4" />
         
         <div className="flex flex-col space-y-1 mt-4">
-          {/* Group sections */}
           {Object.entries(groupedMenuItems).map(([group, items]) => (
             <div key={group} className="mb-4">
               <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground">{group}</h3>
@@ -185,7 +184,10 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive cursor-pointer">
+              <DropdownMenuItem 
+                className="text-destructive cursor-pointer"
+                onClick={onSignOut}
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>تسجيل الخروج</span>
               </DropdownMenuItem>

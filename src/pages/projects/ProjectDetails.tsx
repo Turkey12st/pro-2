@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,6 +68,14 @@ export default function ProjectDetails() {
     }
   };
 
+  const getStatusVariant = (status: string) => {
+    return status === "completed" ? "default" : "secondary";
+  };
+
+  const getPriorityVariant = (priority: string) => {
+    return priority === "high" ? "destructive" : "outline";
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6">
       <div className="container mx-auto py-6 space-y-6">
@@ -84,10 +91,10 @@ export default function ProjectDetails() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={project.status === "completed" ? "default" : "secondary"}>
+            <Badge variant={getStatusVariant(project.status)}>
               {getStatusText(project.status)}
             </Badge>
-            <Badge variant={project.priority === "high" ? "destructive" : "outline"}>
+            <Badge variant={getPriorityVariant(project.priority)}>
               {getPriorityText(project.priority)}
             </Badge>
           </div>

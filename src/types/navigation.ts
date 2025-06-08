@@ -12,4 +12,5 @@ export interface MenuItem {
   disabled?: boolean; // For disabling menu items
   exact?: boolean; // For exact matching of routes in navigation
   title?: string; // Additional property for compatibility
+  requiredPermission?: string; // Add the missing required permission property
 }
