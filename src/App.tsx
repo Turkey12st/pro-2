@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import AuthPage from "@/pages/auth/Auth";
 
 // إعداد عميل React Query مع خيارات محسنة
 const queryClient = new QueryClient({
@@ -30,13 +29,10 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* صفحة تسجيل الدخول */}
-            <Route path="/auth" element={<AuthPage />} />
-            
-            {/* توجيه مباشر لصفحة الدخول */}
+            {/* توجيه مباشر للوحة التحكم */}
             <Route 
               path="/" 
-              element={<Navigate to="/auth" replace />} 
+              element={<Navigate to="/dashboard" replace />} 
             />
             
             {/* جميع صفحات التطبيق */}
