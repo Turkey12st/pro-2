@@ -17,11 +17,14 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleQuickAccess = () => {
+  const handleLogin = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setLoading(true);
+    setError('');
+    
     toast({
-      title: 'دخول سريع للإصلاحات',
-      description: 'تم الدخول للنظام بنجاح',
+      title: 'تم الدخول بنجاح',
+      description: 'مرحباً بك في نظام إدارة الأعمال',
     });
     
     setTimeout(() => {
@@ -30,11 +33,11 @@ export default function AuthPage() {
     }, 500);
   };
 
-  const handleAdminAccess = () => {
+  const handleQuickAccess = () => {
     setLoading(true);
     toast({
-      title: 'دخول المسؤول',
-      description: 'تم الدخول كمسؤول للنظام',
+      title: 'دخول سريع',
+      description: 'تم الدخول للنظام بنجاح',
     });
     
     setTimeout(() => {
@@ -59,51 +62,53 @@ export default function AuthPage() {
             <CardTitle className="text-center text-blue-600">الوصول للنظام</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="أدخل البريد الإلكتروني"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-9"
-                  dir="ltr"
-                />
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">البريد الإلكتروني</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="أدخل البريد الإلكتروني"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-9"
+                    dir="ltr"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">كلمة المرور</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="أدخل كلمة المرور"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-9"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="password">كلمة المرور</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="أدخل كلمة المرور"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
               </div>
-            </div>
 
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-            <Button 
-              onClick={handleQuickAccess}
-              className="w-full bg-green-600 hover:bg-green-700" 
-              disabled={loading}
-            >
-              {loading ? 'جاري الدخول...' : 'دخول سريع للإصلاحات'}
-            </Button>
+              <Button 
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700" 
+                disabled={loading}
+              >
+                {loading ? 'جاري الدخول...' : 'دخول النظام'}
+              </Button>
+            </form>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -115,13 +120,11 @@ export default function AuthPage() {
             </div>
 
             <Button 
-              onClick={handleAdminAccess}
-              variant="outline" 
-              className="w-full border-red-200 text-red-600 hover:bg-red-50"
+              onClick={handleQuickAccess}
+              className="w-full bg-green-600 hover:bg-green-700" 
               disabled={loading}
             >
-              <Shield className="h-4 w-4 mr-2" />
-              دخول المسؤول
+              {loading ? 'جاري الدخول...' : 'دخول سريع للإصلاحات'}
             </Button>
 
             <div className="text-center text-sm text-gray-500 space-y-1">
