@@ -31,23 +31,7 @@ export type Permission =
   // System administration
   | 'manage_users' 
   | 'configure_system' 
-  | 'view_audit_logs'
-  // Financial permissions
-  | 'view_financials'
-  | 'manage_financials'
-  | 'approve_transactions'
-  // Project permissions
-  | 'view_projects'
-  | 'manage_projects'
-  | 'approve_projects'
-  // Company management
-  | 'manage_company_info'
-  | 'manage_partners'
-  | 'manage_capital'
-  // Dashboard and analytics
-  | 'view_dashboard'
-  | 'view_analytics'
-  | 'export_reports';
+  | 'view_audit_logs';
 
 export interface RolePermissions {
   [key: string]: Permission[];
@@ -55,59 +39,44 @@ export interface RolePermissions {
 
 export const DEFAULT_ROLE_PERMISSIONS: RolePermissions = {
   admin: [
-    // الإدمن الرئيسي - كل الصلاحيات
     'view_employees', 'add_employees', 'edit_employees', 'delete_employees',
     'view_attendance', 'add_attendance', 'edit_attendance', 'approve_attendance',
     'view_salaries', 'process_salaries', 'approve_salaries',
     'manage_benefits', 'manage_deductions', 'approve_benefits',
     'view_violations', 'add_violations', 'approve_violations',
     'configure_hr_rules', 'view_reports', 'export_data',
-    'manage_users', 'configure_system', 'view_audit_logs',
-    'view_financials', 'manage_financials', 'approve_transactions',
-    'view_projects', 'manage_projects', 'approve_projects',
-    'manage_company_info', 'manage_partners', 'manage_capital',
-    'view_dashboard', 'view_analytics', 'export_reports'
+    'manage_users', 'configure_system', 'view_audit_logs'
   ],
   hr_manager: [
-    // مدير الموارد البشرية
     'view_employees', 'add_employees', 'edit_employees',
     'view_attendance', 'add_attendance', 'edit_attendance', 'approve_attendance',
     'view_salaries', 'process_salaries',
     'manage_benefits', 'manage_deductions', 'approve_benefits',
     'view_violations', 'add_violations', 'approve_violations',
-    'configure_hr_rules', 'view_reports', 'export_data',
-    'view_dashboard', 'view_analytics'
+    'configure_hr_rules', 'view_reports', 'export_data'
   ],
   hr_officer: [
-    // موظف الموارد البشرية
     'view_employees', 'add_employees', 'edit_employees',
     'view_attendance', 'add_attendance', 'edit_attendance',
     'view_salaries',
     'manage_benefits', 'manage_deductions',
     'view_violations', 'add_violations',
-    'view_reports', 'view_dashboard'
+    'view_reports'
   ],
   finance_manager: [
-    // مدير المالية
     'view_employees',
     'view_attendance',
     'view_salaries', 'process_salaries', 'approve_salaries',
-    'view_financials', 'manage_financials', 'approve_transactions',
-    'manage_capital',
-    'view_reports', 'export_data', 'view_dashboard', 'view_analytics'
+    'view_reports', 'export_data'
   ],
   department_manager: [
-    // مدير القسم
     'view_employees',
     'view_attendance', 'add_attendance',
     'view_violations', 'add_violations',
-    'view_projects', 'manage_projects',
-    'view_reports', 'view_dashboard'
+    'view_reports'
   ],
   employee: [
-    // موظف عادي
-    'view_attendance',
-    'view_dashboard'
+    'view_attendance'
   ]
 };
 
@@ -128,18 +97,4 @@ export interface HRRegulation {
   isActive: boolean;
   lastUpdated: string;
   updatedBy: string;
-}
-
-// نظام تدقيق العمليات
-export interface AuditLog {
-  id: string;
-  userId: string;
-  action: string;
-  resource: string;
-  resourceId: string;
-  oldValues?: any;
-  newValues?: any;
-  timestamp: string;
-  ipAddress?: string;
-  userAgent?: string;
 }

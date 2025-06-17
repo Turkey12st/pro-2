@@ -5,56 +5,35 @@ import { DesktopNav } from "./navigation/DesktopNav";
 import { MobileNav } from "./navigation/MobileNav";
 import { getNavigationMenu } from "@/data/navigationMenu";
 import { MenuItem } from "@/types/navigation";
-import { usePermissions } from "@/hooks/usePermissions";
-import { Permission } from "@/types/permissions";
-import { Loader2 } from "lucide-react";
 
-interface AppNavigationProps {
-  user?: any;
-  onSignOut?: () => void;
-}
-
-export function AppNavigation({ user, onSignOut }: AppNavigationProps) {
+export function AppNavigation() {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const [pathname, setPathname] = useState("/");
+  const [user, setUser] = useState<any>(null); // Simplified user state
   const [groupedMenuItems, setGroupedMenuItems] = useState<Record<string, MenuItem[]>>({});
-  const [filteredMenuItems, setFilteredMenuItems] = useState<MenuItem[]>([]);
-  
-  const { 
-    userRole, 
-    permissions, 
-    isLoading: permissionsLoading, 
-    hasPermission 
-  } = usePermissions();
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
     setPathname(location.pathname);
-  }, [location]);
-
-  useEffect(() => {
-    if (!permissionsLoading && isMounted) {
-      filterMenuItems();
-    }
-  }, [permissions, userRole, permissionsLoading, isMounted]);
-
-  const filterMenuItems = () => {
-    const allMenuItems = getNavigationMenu();
     
-    // تصفية العناصر بناءً على الصلاحيات
-    const filtered = allMenuItems.filter(item => {
-      if (!item.requiredPermission) return true;
-      return hasPermission(item.requiredPermission as Permission);
+    // Mock user data for UI rendering
+    setUser({
+      firstName: "مستخدم",
+      imageUrl: "",
+      username: "مستخدم النظام"
     });
 
-    setFilteredMenuItems(filtered);
+    // Get menu items
+    const navItems = getNavigationMenu();
+    setMenuItems(navItems);
     
-    // تجميع العناصر حسب المجموعة
+    // Group menu items by their group property
     const grouped: Record<string, MenuItem[]> = {};
     
-    filtered.forEach(item => {
+    navItems.forEach(item => {
       const group = item.group || "أخرى";
       if (!grouped[group]) {
         grouped[group] = [];
@@ -63,59 +42,42 @@ export function AppNavigation({ user, onSignOut }: AppNavigationProps) {
     });
     
     setGroupedMenuItems(grouped);
-  };
+  }, [location]);
 
   useEffect(() => {
     setPathname(location.pathname);
   }, [location.pathname]);
 
-  if (!isMounted || permissionsLoading) {
-    return (
-      <div className="fixed inset-0 bg-gray-50 flex items-center justify-center z-50">
-        <div className="text-center">
-          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-blue-600" />
-          <p className="text-sm text-gray-600">جاري تحميل القائمة...</p>
-        </div>
-      </div>
-    );
+  if (!isMounted) {
+    return null;
   }
 
   const isActive = (href: string): boolean => {
-    if (href === "/dashboard") {
-      return pathname === "/" || pathname === "/dashboard";
+    if (href === "/") {
+      return pathname === "/";
+    }
+    
+    if (href === "/dashboard" && pathname === "/dashboard") {
+      return true;
     }
     
     return pathname.startsWith(href);
   };
 
-  const enhancedUser = {
-    ...user,
-    firstName: user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || "مستخدم",
-    fullName: user?.user_metadata?.full_name || user?.email || "مستخدم النظام",
-    imageUrl: user?.user_metadata?.avatar_url || "",
-    role: userRole,
-    permissions: permissions.length
-  };
-
   return (
     <>
       <DesktopNav 
-        menuItems={filteredMenuItems} 
+        menuItems={menuItems} 
         groupedMenuItems={groupedMenuItems}
         isActive={isActive} 
-        user={enhancedUser}
-        onSignOut={onSignOut}
-        userRole={userRole}
-        permissions={permissions}
+        user={user} 
       />
       <MobileNav 
-        menuItems={filteredMenuItems} 
+        menuItems={menuItems} 
         isActive={isActive} 
-        user={enhancedUser}
+        user={user} 
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        onSignOut={onSignOut}
-        userRole={userRole}
       />
     </>
   );
