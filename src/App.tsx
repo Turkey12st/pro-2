@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import AdminAuthPage from "@/pages/auth/AdminAuth";
+import AuthPage from "@/pages/auth/Auth";
 import DashboardPage from "@/pages/dashboard/Index";
 
 // إعداد عميل React Query مع خيارات محسنة
@@ -31,6 +32,9 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* صفحة تسجيل الدخول الرئيسية */}
+            <Route path="/auth" element={<AuthPage />} />
+            
             {/* صفحة دخول المسؤول */}
             <Route path="/admin" element={<AdminAuthPage />} />
             
