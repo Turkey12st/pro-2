@@ -67,24 +67,43 @@ export function CompactNotificationsPanel() {
 
   return (
     <div className="space-y-3">
-      {/* تنبيهات الرواتب */}
-      <Card className="border-l-4 border-l-amber-500">
+      {/* التنبيهات المهمة مع تنبيه الرواتب */}
+      <Card className="border-l-4 border-l-gray-500">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-amber-600" />
-            تنبيه الرواتب
+            <AlertTriangle className="h-3 w-3 text-gray-600" />
+            التنبيهات المهمة
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              متبقي {Math.abs(salaryAlert.daysRemaining)} {Math.abs(salaryAlert.daysRemaining) === 1 ? 'يوم' : 'أيام'}
-            </span>
+          {/* تنبيه الرواتب */}
+          <div className="flex items-center justify-between p-2 bg-amber-50 rounded text-xs border border-amber-200">
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-3 w-3 text-amber-600" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">راتب شهري مستحق</p>
+                <p className="text-muted-foreground">
+                  متبقي {Math.abs(salaryAlert.daysRemaining)} {Math.abs(salaryAlert.daysRemaining) === 1 ? 'يوم' : 'أيام'}
+                </p>
+              </div>
+            </div>
             <Badge variant={salaryAlert.daysRemaining <= 3 ? 'destructive' : 'secondary'} className="text-xs">
-              {salaryAlert.daysRemaining <= 0 ? 'مستحق اليوم' : 'قريباً'}
+              {salaryAlert.daysRemaining <= 0 ? 'مستحق' : 'قريباً'}
             </Badge>
           </div>
-          <p className="text-sm font-medium">{salaryAlert.amount.toLocaleString()} ريال</p>
+          
+          {/* باقي التنبيهات */}
+          <div className="flex items-center justify-between p-2 bg-blue-50 rounded text-xs border border-blue-200">
+            <div className="flex items-center gap-2">
+              <Bell className="h-3 w-3 text-blue-600" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">مراجعة عقود الموظفين</p>
+                <p className="text-muted-foreground">مطلوب خلال أسبوع</p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="text-xs">جديد</Badge>
+          </div>
+
           <Button 
             size="sm" 
             variant="outline" 
@@ -92,7 +111,7 @@ export function CompactNotificationsPanel() {
             onClick={() => navigate('/hr')}
           >
             <ChevronRight className="h-3 w-3 mr-1" />
-            عرض التفاصيل
+            عرض جميع التنبيهات
           </Button>
         </CardContent>
       </Card>
@@ -102,7 +121,7 @@ export function CompactNotificationsPanel() {
         <Card className="border-l-4 border-l-red-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
-              <FileText className="h-4 w-4 text-red-600" />
+              <FileText className="h-3 w-3 text-red-600" />
               مستندات منتهية
             </CardTitle>
           </CardHeader>
@@ -136,8 +155,8 @@ export function CompactNotificationsPanel() {
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Bell className="h-4 w-4 text-blue-600" />
-              التنبيهات
+              <Bell className="h-3 w-3 text-blue-600" />
+              إشعارات النظام
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 space-y-2">

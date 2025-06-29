@@ -88,7 +88,7 @@ export function ERPDashboard() {
             <Card className="bg-white border shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <Activity className="h-4 w-4" />
+                  <Activity className="h-3 w-3" />
                   ملخص الأداء العام
                 </CardTitle>
               </CardHeader>
@@ -108,7 +108,7 @@ export function ERPDashboard() {
             <Card className="bg-white border shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <BarChart3 className="h-4 w-4" />
+                  <BarChart3 className="h-3 w-3" />
                   إحصائيات سريعة
                 </CardTitle>
               </CardHeader>
@@ -132,7 +132,7 @@ export function ERPDashboard() {
             <Card className="bg-white border shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-700">
-                  <PieChart className="h-4 w-4" />
+                  <PieChart className="h-3 w-3" />
                   ملخص التكاليف
                 </CardTitle>
               </CardHeader>
@@ -162,7 +162,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users2 className="h-4 w-4 text-gray-600" />
+                  <Users2 className="h-3 w-3 text-gray-600" />
                   توزيع الموظفين حسب الأقسام
                 </CardTitle>
               </CardHeader>
@@ -189,7 +189,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-gray-600" />
+                  <Star className="h-3 w-3 text-gray-600" />
                   أفضل الموظفين أداءً
                 </CardTitle>
               </CardHeader>
@@ -227,7 +227,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <UserCheck className="h-4 w-4 text-gray-600" />
+                  <UserCheck className="h-3 w-3 text-gray-600" />
                   معدلات الحضور والانصراف
                 </CardTitle>
               </CardHeader>
@@ -256,7 +256,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-gray-600" />
+                  <Award className="h-3 w-3 text-gray-600" />
                   الإبداعات والإنجازات
                 </CardTitle>
               </CardHeader>
@@ -284,7 +284,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-3 w-3 text-green-600" />
                   المشاريع المكتملة
                 </CardTitle>
               </CardHeader>
@@ -297,7 +297,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-blue-600" />
+                  <Activity className="h-3 w-3 text-blue-600" />
                   المشاريع النشطة
                 </CardTitle>
               </CardHeader>
@@ -310,7 +310,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Pause className="h-4 w-4 text-yellow-600" />
+                  <Pause className="h-3 w-3 text-yellow-600" />
                   المشاريع المتوقفة
                 </CardTitle>
               </CardHeader>
@@ -369,7 +369,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-gray-600" />
+                  <TrendingUp className="h-3 w-3 text-gray-600" />
                   الوضع المالي التفصيلي
                 </CardTitle>
               </CardHeader>
@@ -406,7 +406,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-gray-600" />
+                  <FileText className="h-3 w-3 text-gray-600" />
                   آخر المعاملات المالية
                 </CardTitle>
               </CardHeader>
@@ -436,7 +436,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-gray-600" />
+                  <Zap className="h-3 w-3 text-gray-600" />
                   تحليل الإنتاجية المتقدم
                 </CardTitle>
               </CardHeader>
@@ -472,7 +472,7 @@ export function ERPDashboard() {
             <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-gray-600" />
+                  <AlertCircle className="h-3 w-3 text-gray-600" />
                   تنبيهات وتوصيات النظام
                 </CardTitle>
               </CardHeader>
