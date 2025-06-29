@@ -1,45 +1,22 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  TrendingUp, 
-  BarChart3,
-  PieChart,
-  Activity,
-  AlertCircle,
-  Zap,
-  Star,
-  Users2,
-  Calendar,
-  Clock,
-  DollarSign,
-  Target,
-  Award,
-  FileText,
-  UserCheck,
-  CheckCircle,
-  XCircle,
-  Pause
-} from 'lucide-react';
+import { TrendingUp, BarChart3, PieChart, Activity, AlertCircle, Zap, Star, Users2, Calendar, Clock, DollarSign, Target, Award, FileText, UserCheck, CheckCircle, XCircle, Pause } from 'lucide-react';
 import { useDataIntegration } from '@/hooks/useDataIntegration';
-
 export function ERPDashboard() {
-  const { data, loading } = useDataIntegration();
-
+  const {
+    data,
+    loading
+  } = useDataIntegration();
   if (loading) {
-    return (
-      <div className="space-y-4">
+    return <div className="space-y-4">
         <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-48 bg-gray-200 rounded animate-pulse"></div>
-          ))}
+          {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-48 bg-gray-200 rounded animate-pulse"></div>)}
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // حساب مؤشرات محددة للتبويبات
@@ -47,16 +24,11 @@ export function ERPDashboard() {
     const perf = emp.employee_performance?.[0]?.performance_score || 0;
     return sum + perf;
   }, 0) / (data.employees.length || 1);
-
-  const totalProjectsCost = data.projects.reduce((sum, project) => 
-    sum + (project.budget || 0), 0);
-
+  const totalProjectsCost = data.projects.reduce((sum, project) => sum + (project.budget || 0), 0);
   const activeProjects = data.projects.filter(p => p.status === 'in_progress').length;
   const completedProjects = data.projects.filter(p => p.status === 'completed').length;
   const onHoldProjects = data.projects.filter(p => p.status === 'on_hold').length;
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* التبويبات التفصيلية */}
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-5 bg-gray-50 p-1 rounded-lg">
@@ -87,13 +59,13 @@ export function ERPDashboard() {
             {/* معدل الأداء المختصر */}
             <Card className="bg-white border shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
+                <CardTitle className="flex items-center gap-2 text-gray-700 text-sm font-medium">
                   <Activity className="h-3 w-3" />
                   ملخص الأداء العام
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold text-gray-700 mb-2">{avgPerformance.toFixed(1)}%</div>
+                <div className="text-4xl font-bold text-gray-700 mb-2 rounded-md">{avgPerformance.toFixed(1)}%</div>
                 <Progress value={avgPerformance} className="mb-3 bg-gray-100" />
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">الهدف: 85%</span>
@@ -107,7 +79,7 @@ export function ERPDashboard() {
             {/* إحصائيات سريعة */}
             <Card className="bg-white border shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
+                <CardTitle className="flex items-center gap-2 text-gray-700 text-sm font-medium">
                   <BarChart3 className="h-3 w-3" />
                   إحصائيات سريعة
                 </CardTitle>
@@ -131,7 +103,7 @@ export function ERPDashboard() {
             {/* التكاليف الملخصة */}
             <Card className="bg-white border shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-gray-700">
+                <CardTitle className="flex items-center gap-2 text-gray-700 text-sm font-medium">
                   <PieChart className="h-3 w-3" />
                   ملخص التكاليف
                 </CardTitle>
@@ -168,20 +140,17 @@ export function ERPDashboard() {
               </CardHeader>
               <CardContent>
                 {Array.from(new Set(data.employees.map(emp => emp.department))).map(dept => {
-                  const deptEmployees = data.employees.filter(emp => emp.department === dept);
-                  const percentage = (deptEmployees.length / data.totalEmployees) * 100;
-                  
-                  return (
-                    <div key={dept} className="mb-4">
+                const deptEmployees = data.employees.filter(emp => emp.department === dept);
+                const percentage = deptEmployees.length / data.totalEmployees * 100;
+                return <div key={dept} className="mb-4">
                       <div className="flex justify-between mb-2">
                         <span className="text-sm font-medium text-gray-700">{dept}</span>
                         <span className="text-sm text-gray-600">{deptEmployees.length} موظف</span>
                       </div>
                       <Progress value={percentage} className="h-2 bg-gray-200" />
                       <div className="text-xs text-gray-500 mt-1">{percentage.toFixed(1)}%</div>
-                    </div>
-                  );
-                })}
+                    </div>;
+              })}
               </CardContent>
             </Card>
 
@@ -195,30 +164,22 @@ export function ERPDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {data.employees
-                    .sort((a, b) => {
-                      const perfA = a.employee_performance?.[0]?.performance_score || 0;
-                      const perfB = b.employee_performance?.[0]?.performance_score || 0;
-                      return perfB - perfA;
-                    })
-                    .slice(0, 5)
-                    .map(emp => {
-                      const performance = emp.employee_performance?.[0];
-                      return (
-                        <div key={emp.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  {data.employees.sort((a, b) => {
+                  const perfA = a.employee_performance?.[0]?.performance_score || 0;
+                  const perfB = b.employee_performance?.[0]?.performance_score || 0;
+                  return perfB - perfA;
+                }).slice(0, 5).map(emp => {
+                  const performance = emp.employee_performance?.[0];
+                  return <div key={emp.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                           <div>
                             <p className="font-medium text-gray-800">{emp.name}</p>
                             <p className="text-xs text-gray-500">{emp.position}</p>
                           </div>
-                          <Badge variant={
-                            (performance?.performance_score || 0) >= 80 ? 'default' :
-                            (performance?.performance_score || 0) >= 60 ? 'secondary' : 'destructive'
-                          }>
+                          <Badge variant={(performance?.performance_score || 0) >= 80 ? 'default' : (performance?.performance_score || 0) >= 60 ? 'secondary' : 'destructive'}>
                             {performance?.performance_score || 0}%
                           </Badge>
-                        </div>
-                      );
-                    })}
+                        </div>;
+                })}
                 </div>
               </CardContent>
             </Card>
@@ -322,17 +283,12 @@ export function ERPDashboard() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {data.projects.slice(0, 6).map(project => (
-              <Card key={project.id} className="shadow-sm hover:shadow-md transition-shadow">
+            {data.projects.slice(0, 6).map(project => <Card key={project.id} className="shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center justify-between">
                     <span className="truncate">{project.title}</span>
-                    <Badge variant={
-                      project.status === 'completed' ? 'default' :
-                      project.status === 'in_progress' ? 'secondary' : 'outline'
-                    } className="ml-2">
-                      {project.status === 'completed' ? 'مكتمل' :
-                       project.status === 'in_progress' ? 'جاري' : 'متوقف'}
+                    <Badge variant={project.status === 'completed' ? 'default' : project.status === 'in_progress' ? 'secondary' : 'outline'} className="ml-2">
+                      {project.status === 'completed' ? 'مكتمل' : project.status === 'in_progress' ? 'جاري' : 'متوقف'}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
@@ -359,8 +315,7 @@ export function ERPDashboard() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </TabsContent>
 
@@ -412,8 +367,7 @@ export function ERPDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {data.financials.slice(0, 5).map(entry => (
-                    <div key={entry.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  {data.financials.slice(0, 5).map(entry => <div key={entry.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-800">{entry.description}</p>
                         <p className="text-xs text-gray-500">
@@ -423,8 +377,7 @@ export function ERPDashboard() {
                       <Badge variant={entry.status === 'posted' ? 'default' : 'secondary'}>
                         {entry.status === 'posted' ? 'مرحل' : 'مسودة'}
                       </Badge>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </CardContent>
             </Card>
@@ -515,6 +468,5 @@ export function ERPDashboard() {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 }
