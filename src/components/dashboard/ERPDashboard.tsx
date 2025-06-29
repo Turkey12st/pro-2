@@ -1,20 +1,20 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Users, 
-  DollarSign, 
-  Building, 
-  Briefcase, 
   TrendingUp, 
-  Target,
   BarChart3,
   PieChart,
   Activity,
-  AlertCircle
+  AlertCircle,
+  Zap,
+  Star,
+  Users2,
+  Calendar,
+  Clock
 } from 'lucide-react';
 import { useDataIntegration } from '@/hooks/useDataIntegration';
 
@@ -23,15 +23,18 @@ export function ERPDashboard() {
 
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="h-48 bg-gray-200 rounded animate-pulse"></div>
-        ))}
+      <div className="space-y-4">
+        <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="h-48 bg-gray-200 rounded animate-pulse"></div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  // حساب مؤشرات الأداء الرئيسية (KPIs)
+  // حساب مؤشرات محددة للتبويبات
   const avgPerformance = data.employees.reduce((sum, emp) => {
     const perf = emp.employee_performance?.[0]?.performance_score || 0;
     return sum + perf;
@@ -42,8 +45,6 @@ export function ERPDashboard() {
 
   const activeProjects = data.projects.filter(p => p.status === 'in_progress').length;
   const completedProjects = data.projects.filter(p => p.status === 'completed').length;
-  const projectSuccessRate = data.projects.length > 0 ? 
-    (completedProjects / data.projects.length) * 100 : 0;
 
   const totalEmployeeCosts = data.employees.reduce((sum, emp) => {
     const accounts = emp.employee_accounts || [];
@@ -52,226 +53,207 @@ export function ERPDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* مؤشرات الأداء الرئيسية */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-blue-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي الموظفين</CardTitle>
-            <Users className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.totalEmployees}</div>
-            <p className="text-xs text-muted-foreground">
-              نشط في النظام
-            </p>
-            <Progress value={75} className="mt-2" />
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-green-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي الرواتب</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.totalSalaries.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              ريال شهرياً
-            </p>
-            <div className="mt-2 text-xs">
-              <span className="text-green-600">+2.5%</span> من الشهر الماضي
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-purple-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">رأس المال</CardTitle>
-            <Building className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.totalCapital.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              ريال إجمالي
-            </p>
-            <Progress value={85} className="mt-2" />
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-amber-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">المشاريع النشطة</CardTitle>
-            <Briefcase className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeProjects}</div>
-            <p className="text-xs text-muted-foreground">
-              من إجمالي {data.totalProjects}
-            </p>
-            <Progress value={(activeProjects / data.totalProjects) * 100} className="mt-2" />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* التبويبات التفصيلية */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
-          <TabsTrigger value="hr">الموارد البشرية</TabsTrigger>
-          <TabsTrigger value="projects">المشاريع</TabsTrigger>
-          <TabsTrigger value="financial">المالية</TabsTrigger>
-          <TabsTrigger value="analytics">التحليلات</TabsTrigger>
+      {/* التبويبات التفصيلية مع تصميم محسن */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-blue-50 to-purple-50 p-1 rounded-xl">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-md">
+            نظرة عامة
+          </TabsTrigger>
+          <TabsTrigger value="hr" className="data-[state=active]:bg-white data-[state=active]:shadow-md">
+            الموارد البشرية
+          </TabsTrigger>
+          <TabsTrigger value="projects" className="data-[state=active]:bg-white data-[state=active]:shadow-md">
+            المشاريع
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="data-[state=active]:bg-white data-[state=active]:shadow-md">
+            المالية
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:shadow-md">
+            التحليلات
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {/* معدل الأداء العام */}
-            <Card>
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {/* معدل الأداء المختصر */}
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-0 shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  معدل الأداء العام
+                <CardTitle className="flex items-center gap-2 text-indigo-700">
+                  <div className="p-2 bg-indigo-500 rounded-lg">
+                    <Activity className="h-5 w-5 text-white" />
+                  </div>
+                  ملخص الأداء العام
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{avgPerformance.toFixed(1)}%</div>
-                <Progress value={avgPerformance} className="mt-2" />
-                <div className="mt-2 flex justify-between text-xs">
-                  <span>الهدف: 85%</span>
-                  <Badge variant={avgPerformance >= 85 ? 'default' : 'secondary'}>
+                <div className="text-4xl font-bold text-indigo-700 mb-2">{avgPerformance.toFixed(1)}%</div>
+                <Progress value={avgPerformance} className="mb-3 bg-indigo-200" />
+                <div className="flex justify-between text-sm">
+                  <span className="text-indigo-600">الهدف: 85%</span>
+                  <Badge variant={avgPerformance >= 85 ? 'default' : 'secondary'} className="text-xs">
                     {avgPerformance >= 85 ? 'ممتاز' : 'جيد'}
                   </Badge>
                 </div>
               </CardContent>
             </Card>
 
-            {/* معدل نجاح المشاريع */}
-            <Card>
+            {/* إحصائيات سريعة */}
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-0 shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  معدل نجاح المشاريع
+                <CardTitle className="flex items-center gap-2 text-green-700">
+                  <div className="p-2 bg-green-500 rounded-lg">
+                    <BarChart3 className="h-5 w-5 text-white" />
+                  </div>
+                  إحصائيات سريعة
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{projectSuccessRate.toFixed(1)}%</div>
-                <Progress value={projectSuccessRate} className="mt-2" />
-                <div className="mt-2 text-xs text-muted-foreground">
-                  {completedProjects} مكتمل من {data.totalProjects}
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">المشاريع المكتملة</span>
+                  <span className="font-bold text-green-700">{completedProjects}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">معدل الحضور</span>
+                  <span className="font-bold text-blue-700">92%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">رضا العملاء</span>
+                  <span className="font-bold text-purple-700">88%</span>
                 </div>
               </CardContent>
             </Card>
 
-            {/* التكاليف الإجمالية */}
-            <Card>
+            {/* التكاليف الملخصة */}
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-100 border-0 shadow-lg">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PieChart className="h-5 w-5" />
-                  التكاليف الإجمالية
+                <CardTitle className="flex items-center gap-2 text-purple-700">
+                  <div className="p-2 bg-purple-500 rounded-lg">
+                    <PieChart className="h-5 w-5 text-white" />
+                  </div>
+                  ملخص التكاليف
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">رواتب الموظفين:</span>
-                    <span className="font-medium">{data.totalSalaries.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">تكاليف المشاريع:</span>
-                    <span className="font-medium">{totalProjectsCost.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">تكاليف أخرى:</span>
-                    <span className="font-medium">{totalEmployeeCosts.toLocaleString()}</span>
-                  </div>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">الرواتب الشهرية</span>
+                  <span className="font-medium text-red-600">{data.totalSalaries.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">تكاليف المشاريع</span>
+                  <span className="font-medium text-amber-600">{totalProjectsCost.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <span className="font-bold text-gray-700">الصافي المتاح</span>
+                  <span className="font-bold text-blue-600">
+                    {(data.totalCapital - data.totalSalaries - totalProjectsCost).toLocaleString()}
+                  </span>
                 </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="hr" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
+        <TabsContent value="hr" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>توزيع الموظفين حسب الأقسام</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Users2 className="h-5 w-5 text-blue-600" />
+                  توزيع الموظفين حسب الأقسام
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                {/* تجميع الموظفين حسب القسم */}
                 {Array.from(new Set(data.employees.map(emp => emp.department))).map(dept => {
                   const deptEmployees = data.employees.filter(emp => emp.department === dept);
                   const percentage = (deptEmployees.length / data.totalEmployees) * 100;
                   
                   return (
-                    <div key={dept} className="mb-3">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">{dept}</span>
-                        <span className="text-sm">{deptEmployees.length} موظف</span>
+                    <div key={dept} className="mb-4">
+                      <div className="flex justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">{dept}</span>
+                        <span className="text-sm text-gray-600">{deptEmployees.length} موظف</span>
                       </div>
-                      <Progress value={percentage} className="h-2" />
+                      <Progress value={percentage} className="h-3 bg-gray-200" />
+                      <div className="text-xs text-gray-500 mt-1">{percentage.toFixed(1)}%</div>
                     </div>
                   );
                 })}
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>مؤشرات الأداء للموظفين</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-yellow-600" />
+                  أفضل الموظفين أداءً
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {data.employees.slice(0, 5).map(emp => {
-                    const performance = emp.employee_performance?.[0];
-                    return (
-                      <div key={emp.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{emp.name}</p>
-                          <p className="text-xs text-muted-foreground">{emp.position}</p>
+                  {data.employees
+                    .sort((a, b) => {
+                      const perfA = a.employee_performance?.[0]?.performance_score || 0;
+                      const perfB = b.employee_performance?.[0]?.performance_score || 0;
+                      return perfB - perfA;
+                    })
+                    .slice(0, 5)
+                    .map(emp => {
+                      const performance = emp.employee_performance?.[0];
+                      return (
+                        <div key={emp.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div>
+                            <p className="font-medium text-gray-800">{emp.name}</p>
+                            <p className="text-xs text-gray-500">{emp.position}</p>
+                          </div>
+                          <Badge variant={
+                            (performance?.performance_score || 0) >= 80 ? 'default' :
+                            (performance?.performance_score || 0) >= 60 ? 'secondary' : 'destructive'
+                          }>
+                            {performance?.performance_score || 0}%
+                          </Badge>
                         </div>
-                        <Badge variant={
-                          (performance?.performance_score || 0) >= 80 ? 'default' :
-                          (performance?.performance_score || 0) >= 60 ? 'secondary' : 'destructive'
-                        }>
-                          {performance?.performance_score || 0}%
-                        </Badge>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="projects" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <TabsContent value="projects" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.projects.slice(0, 6).map(project => (
-              <Card key={project.id}>
+              <Card key={project.id} className="shadow-lg hover:shadow-xl transition-shadow">
                 <CardHeader>
-                  <CardTitle className="text-lg">{project.title}</CardTitle>
-                  <Badge variant={
-                    project.status === 'completed' ? 'default' :
-                    project.status === 'in_progress' ? 'secondary' : 'outline'
-                  }>
-                    {project.status === 'completed' ? 'مكتمل' :
-                     project.status === 'in_progress' ? 'قيد التنفيذ' : 'مخطط'}
-                  </Badge>
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <span className="truncate">{project.title}</span>
+                    <Badge variant={
+                      project.status === 'completed' ? 'default' :
+                      project.status === 'in_progress' ? 'secondary' : 'outline'
+                    } className="ml-2">
+                      {project.status === 'completed' ? 'مكتمل' :
+                       project.status === 'in_progress' ? 'جاري' : 'مخطط'}
+                    </Badge>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">التقدم:</span>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">التقدم</span>
                       <span className="font-medium">{project.progress || 0}%</span>
                     </div>
-                    <Progress value={project.progress || 0} />
-                    <div className="flex justify-between">
-                      <span className="text-sm">الميزانية:</span>
-                      <span className="font-medium">{(project.budget || 0).toLocaleString()}</span>
+                    <Progress value={project.progress || 0} className="h-2" />
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">الميزانية</span>
+                      <span className="font-medium text-green-600">
+                        {(project.budget || 0).toLocaleString()} ريال
+                      </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">الفريق:</span>
-                      <span className="font-medium">
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">الفريق</span>
+                      <span className="font-medium text-blue-600">
                         {project.project_employee_assignments?.length || 0} موظف
                       </span>
                     </div>
@@ -282,39 +264,38 @@ export function ERPDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="financial" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
+        <TabsContent value="financial" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  الوضع المالي
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                  الوضع المالي التفصيلي
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span>إجمالي رأس المال</span>
-                    <span className="font-bold text-green-600">
+                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                    <span className="font-medium">إجمالي رأس المال</span>
+                    <span className="font-bold text-green-700">
                       {data.totalCapital.toLocaleString()} ريال
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span>الرواتب الشهرية</span>
+                  <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                    <span className="font-medium">الرواتب الشهرية</span>
                     <span className="font-bold text-red-600">
                       -{data.totalSalaries.toLocaleString()} ريال
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span>تكاليف المشاريع</span>
+                  <div className="flex justify-between items-center p-3 bg-amber-50 rounded-lg">
+                    <span className="font-medium">تكاليف المشاريع</span>
                     <span className="font-bold text-amber-600">
                       -{totalProjectsCost.toLocaleString()} ريال
                     </span>
                   </div>
-                  <hr />
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold">الصافي</span>
-                    <span className="font-bold text-blue-600">
+                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
+                    <span className="font-bold text-lg">الصافي المتاح</span>
+                    <span className="font-bold text-blue-700 text-lg">
                       {(data.totalCapital - data.totalSalaries - totalProjectsCost).toLocaleString()} ريال
                     </span>
                   </div>
@@ -322,17 +303,20 @@ export function ERPDashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>آخر المعاملات المالية</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                  آخر المعاملات المالية
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {data.financials.slice(0, 5).map(entry => (
-                    <div key={entry.id} className="flex justify-between items-center">
+                    <div key={entry.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                       <div>
-                        <p className="font-medium">{entry.description}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="font-medium text-gray-800">{entry.description}</p>
+                        <p className="text-xs text-gray-500">
                           {new Date(entry.entry_date).toLocaleDateString('ar-SA')}
                         </p>
                       </div>
@@ -347,58 +331,83 @@ export function ERPDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  تحليل الإنتاجية
+                  <Zap className="h-5 w-5 text-yellow-600" />
+                  تحليل الإنتاجية المتقدم
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span>معدل إنجاز المهام</span>
-                    <span className="font-bold">85%</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">معدل إنجاز المهام</span>
+                    <span className="font-bold text-green-600">85%</span>
                   </div>
-                  <Progress value={85} />
+                  <Progress value={85} className="bg-green-100" />
                   
-                  <div className="flex justify-between">
-                    <span>معدل الحضور</span>
-                    <span className="font-bold">92%</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">معدل الحضور الشهري</span>
+                    <span className="font-bold text-blue-600">92%</span>
                   </div>
-                  <Progress value={92} />
+                  <Progress value={92} className="bg-blue-100" />
                   
-                  <div className="flex justify-between">
-                    <span>رضا العملاء</span>
-                    <span className="font-bold">88%</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">رضا العملاء</span>
+                    <span className="font-bold text-purple-600">88%</span>
                   </div>
-                  <Progress value={88} />
+                  <Progress value={88} className="bg-purple-100" />
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700">كفاءة استخدام الموارد</span>
+                    <span className="font-bold text-indigo-600">78%</span>
+                  </div>
+                  <Progress value={78} className="bg-indigo-100" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5" />
-                  تنبيهات النظام
+                  <AlertCircle className="h-5 w-5 text-orange-600" />
+                  تنبيهات وتوصيات النظام
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded">
-                    <AlertCircle className="h-4 w-4 text-yellow-600" />
-                    <span className="text-sm">انتباه: 3 مشاريع تتطلب مراجعة</span>
+                  <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-yellow-800">انتباه مطلوب</p>
+                      <p className="text-xs text-yellow-700">3 مشاريع تتطلب مراجعة عاجلة</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 p-2 bg-blue-50 rounded">
-                    <AlertCircle className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm">معلومات: تقييم أداء شهري مستحق</span>
+                  
+                  <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-blue-800">تذكير</p>
+                      <p className="text-xs text-blue-700">تقييم أداء شهري مستحق خلال أسبوع</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 p-2 bg-green-50 rounded">
-                    <AlertCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">نجاح: اكتمال 2 مشاريع هذا الأسبوع</span>
+                  
+                  <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <Star className="h-4 w-4 text-green-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-green-800">إنجاز ممتاز</p>
+                      <p className="text-xs text-green-700">اكتمال 2 مشاريع كبيرة هذا الأسبوع</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                    <TrendingUp className="h-4 w-4 text-purple-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-purple-800">فرصة تحسين</p>
+                      <p className="text-xs text-purple-700">يمكن تحسين كفاءة الموارد بنسبة 12%</p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
