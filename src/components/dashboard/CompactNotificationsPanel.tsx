@@ -9,8 +9,7 @@ import {
   FileText, 
   DollarSign,
   Calendar,
-  ChevronRight,
-  Clock
+  ChevronRight
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -162,34 +161,6 @@ export function CompactNotificationsPanel() {
           </CardContent>
         </Card>
       )}
-
-      {/* مؤشر الوقت الحالي */}
-      <Card className="border-l-4 border-l-green-500">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Clock className="h-4 w-4 text-green-600" />
-            الوقت الحالي
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="text-center">
-            <p className="text-lg font-bold">
-              {new Date().toLocaleTimeString('ar-SA', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {new Date().toLocaleDateString('ar-SA', { 
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

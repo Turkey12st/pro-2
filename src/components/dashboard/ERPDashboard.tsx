@@ -14,7 +14,15 @@ import {
   Star,
   Users2,
   Calendar,
-  Clock
+  Clock,
+  DollarSign,
+  Target,
+  Award,
+  FileText,
+  UserCheck,
+  CheckCircle,
+  XCircle,
+  Pause
 } from 'lucide-react';
 import { useDataIntegration } from '@/hooks/useDataIntegration';
 
@@ -45,30 +53,31 @@ export function ERPDashboard() {
 
   const activeProjects = data.projects.filter(p => p.status === 'in_progress').length;
   const completedProjects = data.projects.filter(p => p.status === 'completed').length;
-
-  const totalEmployeeCosts = data.employees.reduce((sum, emp) => {
-    const accounts = emp.employee_accounts || [];
-    return sum + accounts.reduce((accSum: number, acc: any) => accSum + (acc.balance || 0), 0);
-  }, 0);
+  const onHoldProjects = data.projects.filter(p => p.status === 'on_hold').length;
 
   return (
     <div className="space-y-6">
-      {/* التبويبات التفصيلية مع تصميم محسن */}
+      {/* التبويبات التفصيلية */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-blue-50 to-purple-50 p-1 rounded-xl">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-md">
+        <TabsList className="grid w-full grid-cols-5 bg-gray-50 p-1 rounded-lg">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <Activity className="h-3 w-3 mr-1" />
             نظرة عامة
           </TabsTrigger>
-          <TabsTrigger value="hr" className="data-[state=active]:bg-white data-[state=active]:shadow-md">
+          <TabsTrigger value="hr" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <Users2 className="h-3 w-3 mr-1" />
             الموارد البشرية
           </TabsTrigger>
-          <TabsTrigger value="projects" className="data-[state=active]:bg-white data-[state=active]:shadow-md">
+          <TabsTrigger value="projects" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <Target className="h-3 w-3 mr-1" />
             المشاريع
           </TabsTrigger>
-          <TabsTrigger value="financial" className="data-[state=active]:bg-white data-[state=active]:shadow-md">
+          <TabsTrigger value="financial" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <DollarSign className="h-3 w-3 mr-1" />
             المالية
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:shadow-md">
+          <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <BarChart3 className="h-3 w-3 mr-1" />
             التحليلات
           </TabsTrigger>
         </TabsList>
@@ -76,20 +85,18 @@ export function ERPDashboard() {
         <TabsContent value="overview" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* معدل الأداء المختصر */}
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-0 shadow-lg">
+            <Card className="bg-white border shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-indigo-700">
-                  <div className="p-2 bg-indigo-500 rounded-lg">
-                    <Activity className="h-5 w-5 text-white" />
-                  </div>
+                <CardTitle className="flex items-center gap-2 text-gray-700">
+                  <Activity className="h-4 w-4" />
                   ملخص الأداء العام
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold text-indigo-700 mb-2">{avgPerformance.toFixed(1)}%</div>
-                <Progress value={avgPerformance} className="mb-3 bg-indigo-200" />
+                <div className="text-4xl font-bold text-gray-700 mb-2">{avgPerformance.toFixed(1)}%</div>
+                <Progress value={avgPerformance} className="mb-3 bg-gray-100" />
                 <div className="flex justify-between text-sm">
-                  <span className="text-indigo-600">الهدف: 85%</span>
+                  <span className="text-gray-600">الهدف: 85%</span>
                   <Badge variant={avgPerformance >= 85 ? 'default' : 'secondary'} className="text-xs">
                     {avgPerformance >= 85 ? 'ممتاز' : 'جيد'}
                   </Badge>
@@ -98,38 +105,34 @@ export function ERPDashboard() {
             </Card>
 
             {/* إحصائيات سريعة */}
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-0 shadow-lg">
+            <Card className="bg-white border shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-700">
-                  <div className="p-2 bg-green-500 rounded-lg">
-                    <BarChart3 className="h-5 w-5 text-white" />
-                  </div>
+                <CardTitle className="flex items-center gap-2 text-gray-700">
+                  <BarChart3 className="h-4 w-4" />
                   إحصائيات سريعة
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">المشاريع المكتملة</span>
-                  <span className="font-bold text-green-700">{completedProjects}</span>
+                  <span className="font-bold text-gray-700">{completedProjects}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">معدل الحضور</span>
-                  <span className="font-bold text-blue-700">92%</span>
+                  <span className="font-bold text-gray-700">92%</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">رضا العملاء</span>
-                  <span className="font-bold text-purple-700">88%</span>
+                  <span className="font-bold text-gray-700">88%</span>
                 </div>
               </CardContent>
             </Card>
 
             {/* التكاليف الملخصة */}
-            <Card className="bg-gradient-to-br from-purple-50 to-pink-100 border-0 shadow-lg">
+            <Card className="bg-white border shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-purple-700">
-                  <div className="p-2 bg-purple-500 rounded-lg">
-                    <PieChart className="h-5 w-5 text-white" />
-                  </div>
+                <CardTitle className="flex items-center gap-2 text-gray-700">
+                  <PieChart className="h-4 w-4" />
                   ملخص التكاليف
                 </CardTitle>
               </CardHeader>
@@ -140,11 +143,11 @@ export function ERPDashboard() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">تكاليف المشاريع</span>
-                  <span className="font-medium text-amber-600">{totalProjectsCost.toLocaleString()}</span>
+                  <span className="font-medium text-gray-600">{totalProjectsCost.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="font-bold text-gray-700">الصافي المتاح</span>
-                  <span className="font-bold text-blue-600">
+                  <span className="font-bold text-gray-700">
                     {(data.totalCapital - data.totalSalaries - totalProjectsCost).toLocaleString()}
                   </span>
                 </div>
@@ -155,10 +158,11 @@ export function ERPDashboard() {
 
         <TabsContent value="hr" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            <Card className="shadow-lg">
+            {/* توزيع الموظفين حسب الأقسام */}
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users2 className="h-5 w-5 text-blue-600" />
+                  <Users2 className="h-4 w-4 text-gray-600" />
                   توزيع الموظفين حسب الأقسام
                 </CardTitle>
               </CardHeader>
@@ -173,7 +177,7 @@ export function ERPDashboard() {
                         <span className="text-sm font-medium text-gray-700">{dept}</span>
                         <span className="text-sm text-gray-600">{deptEmployees.length} موظف</span>
                       </div>
-                      <Progress value={percentage} className="h-3 bg-gray-200" />
+                      <Progress value={percentage} className="h-2 bg-gray-200" />
                       <div className="text-xs text-gray-500 mt-1">{percentage.toFixed(1)}%</div>
                     </div>
                   );
@@ -181,10 +185,11 @@ export function ERPDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg">
+            {/* أفضل الموظفين أداءً */}
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-600" />
+                  <Star className="h-4 w-4 text-gray-600" />
                   أفضل الموظفين أداءً
                 </CardTitle>
               </CardHeader>
@@ -217,13 +222,108 @@ export function ERPDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* توزيع الحضور والانصراف */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-gray-600" />
+                  معدلات الحضور والانصراف
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">معدل الحضور العام</span>
+                  <span className="font-bold text-green-600">92%</span>
+                </div>
+                <Progress value={92} className="h-2 bg-gray-200" />
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">الانصراف المبكر</span>
+                  <span className="font-bold text-red-600">5%</span>
+                </div>
+                <Progress value={5} className="h-2 bg-gray-200" />
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">التأخير</span>
+                  <span className="font-bold text-yellow-600">8%</span>
+                </div>
+                <Progress value={8} className="h-2 bg-gray-200" />
+              </CardContent>
+            </Card>
+
+            {/* الإبداعات والإنجازات */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-4 w-4 text-gray-600" />
+                  الإبداعات والإنجازات
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+                  <span className="text-sm text-gray-700">مبادرات تحسين</span>
+                  <Badge variant="default" className="text-xs">12</Badge>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                  <span className="text-sm text-gray-700">شهادات تقدير</span>
+                  <Badge variant="secondary" className="text-xs">8</Badge>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-purple-50 rounded">
+                  <span className="text-sm text-gray-700">دورات تدريبية</span>
+                  <Badge variant="outline" className="text-xs">15</Badge>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
         <TabsContent value="projects" className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
+            {/* إحصائيات المشاريع */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  المشاريع المكتملة
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600 mb-2">{completedProjects}</div>
+                <p className="text-sm text-gray-600">مشروع مكتمل بنجاح</p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-blue-600" />
+                  المشاريع النشطة
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-blue-600 mb-2">{activeProjects}</div>
+                <p className="text-sm text-gray-600">مشروع قيد التنفيذ</p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Pause className="h-4 w-4 text-yellow-600" />
+                  المشاريع المتوقفة
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-yellow-600 mb-2">{onHoldProjects}</div>
+                <p className="text-sm text-gray-600">مشروع متوقف مؤقتاً</p>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.projects.slice(0, 6).map(project => (
-              <Card key={project.id} className="shadow-lg hover:shadow-xl transition-shadow">
+              <Card key={project.id} className="shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center justify-between">
                     <span className="truncate">{project.title}</span>
@@ -232,7 +332,7 @@ export function ERPDashboard() {
                       project.status === 'in_progress' ? 'secondary' : 'outline'
                     } className="ml-2">
                       {project.status === 'completed' ? 'مكتمل' :
-                       project.status === 'in_progress' ? 'جاري' : 'مخطط'}
+                       project.status === 'in_progress' ? 'جاري' : 'متوقف'}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
@@ -246,14 +346,14 @@ export function ERPDashboard() {
                     
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">الميزانية</span>
-                      <span className="font-medium text-green-600">
+                      <span className="font-medium text-gray-600">
                         {(project.budget || 0).toLocaleString()} ريال
                       </span>
                     </div>
                     
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">الفريق</span>
-                      <span className="font-medium text-blue-600">
+                      <span className="font-medium text-gray-600">
                         {project.project_employee_assignments?.length || 0} موظف
                       </span>
                     </div>
@@ -266,10 +366,10 @@ export function ERPDashboard() {
 
         <TabsContent value="financial" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            <Card className="shadow-lg">
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-green-600" />
+                  <TrendingUp className="h-4 w-4 text-gray-600" />
                   الوضع المالي التفصيلي
                 </CardTitle>
               </CardHeader>
@@ -303,10 +403,10 @@ export function ERPDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg">
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-blue-600" />
+                  <FileText className="h-4 w-4 text-gray-600" />
                   آخر المعاملات المالية
                 </CardTitle>
               </CardHeader>
@@ -333,10 +433,10 @@ export function ERPDashboard() {
 
         <TabsContent value="analytics" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            <Card className="shadow-lg">
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-yellow-600" />
+                  <Zap className="h-4 w-4 text-gray-600" />
                   تحليل الإنتاجية المتقدم
                 </CardTitle>
               </CardHeader>
@@ -344,42 +444,42 @@ export function ERPDashboard() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-700">معدل إنجاز المهام</span>
-                    <span className="font-bold text-green-600">85%</span>
+                    <span className="font-bold text-gray-600">85%</span>
                   </div>
-                  <Progress value={85} className="bg-green-100" />
+                  <Progress value={85} className="bg-gray-100" />
                   
                   <div className="flex justify-between items-center">
                     <span className="text-gray-700">معدل الحضور الشهري</span>
-                    <span className="font-bold text-blue-600">92%</span>
+                    <span className="font-bold text-gray-600">92%</span>
                   </div>
-                  <Progress value={92} className="bg-blue-100" />
+                  <Progress value={92} className="bg-gray-100" />
                   
                   <div className="flex justify-between items-center">
                     <span className="text-gray-700">رضا العملاء</span>
-                    <span className="font-bold text-purple-600">88%</span>
+                    <span className="font-bold text-gray-600">88%</span>
                   </div>
-                  <Progress value={88} className="bg-purple-100" />
+                  <Progress value={88} className="bg-gray-100" />
                   
                   <div className="flex justify-between items-center">
                     <span className="text-gray-700">كفاءة استخدام الموارد</span>
-                    <span className="font-bold text-indigo-600">78%</span>
+                    <span className="font-bold text-gray-600">78%</span>
                   </div>
-                  <Progress value={78} className="bg-indigo-100" />
+                  <Progress value={78} className="bg-gray-100" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg">
+            <Card className="shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-orange-600" />
+                  <AlertCircle className="h-4 w-4 text-gray-600" />
                   تنبيهات وتوصيات النظام
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                    <AlertCircle className="h-3 w-3 text-yellow-600 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-yellow-800">انتباه مطلوب</p>
                       <p className="text-xs text-yellow-700">3 مشاريع تتطلب مراجعة عاجلة</p>
@@ -387,7 +487,7 @@ export function ERPDashboard() {
                   </div>
                   
                   <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <Calendar className="h-4 w-4 text-blue-600 mt-0.5" />
+                    <Calendar className="h-3 w-3 text-blue-600 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-blue-800">تذكير</p>
                       <p className="text-xs text-blue-700">تقييم أداء شهري مستحق خلال أسبوع</p>
@@ -395,7 +495,7 @@ export function ERPDashboard() {
                   </div>
                   
                   <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                    <Star className="h-4 w-4 text-green-600 mt-0.5" />
+                    <Star className="h-3 w-3 text-green-600 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-green-800">إنجاز ممتاز</p>
                       <p className="text-xs text-green-700">اكتمال 2 مشاريع كبيرة هذا الأسبوع</p>
@@ -403,7 +503,7 @@ export function ERPDashboard() {
                   </div>
                   
                   <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                    <TrendingUp className="h-4 w-4 text-purple-600 mt-0.5" />
+                    <TrendingUp className="h-3 w-3 text-purple-600 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-purple-800">فرصة تحسين</p>
                       <p className="text-xs text-purple-700">يمكن تحسين كفاءة الموارد بنسبة 12%</p>

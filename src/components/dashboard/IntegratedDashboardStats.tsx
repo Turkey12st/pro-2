@@ -16,7 +16,13 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Clock
+  Clock,
+  BarChart3,
+  PieChart,
+  UserCheck,
+  Calendar as CalendarIcon,
+  Star,
+  Activity
 } from 'lucide-react';
 import { useDataIntegration } from '@/hooks/useDataIntegration';
 
@@ -63,34 +69,54 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
 
   const availableCapital = data.totalCapital - data.totalSalaries - totalProjectsCost;
 
-  const currentTime = new Date().toLocaleString('ar-SA', {
+  // التاريخ الميلادي والهجري
+  const currentDate = new Date();
+  const gregorianDate = currentDate.toLocaleDateString('ar-SA', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric',
+    day: 'numeric'
+  });
+  
+  // تاريخ هجري تقريبي (يمكن تحسينه باستخدام مكتبة متخصصة)
+  const hijriDate = currentDate.toLocaleDateString('ar-SA-u-ca-islamic', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  const currentTime = currentDate.toLocaleTimeString('ar-SA', {
     hour: '2-digit',
     minute: '2-digit'
   });
 
   return (
     <div className="space-y-6">
-      {/* الوقت الحالي في الأعلى */}
-      <div className="flex justify-between items-center bg-white border rounded-lg p-4 shadow-sm">
-        <div className="flex items-center gap-2 text-gray-600">
-          <Clock className="h-4 w-4" />
-          <span className="text-sm">{currentTime}</span>
+      {/* الهيدر المحسن مع التاريخ والوقت */}
+      <div className="flex justify-between items-center bg-white border rounded-lg p-3 shadow-sm">
+        <div className="flex flex-col gap-1 text-gray-600">
+          <div className="flex items-center gap-2 text-sm">
+            <CalendarIcon className="h-3 w-3" />
+            <span>{gregorianDate}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span>{hijriDate}</span>
+          </div>
         </div>
         <div className="text-center flex-1">
-          <h1 className="text-2xl font-bold text-gray-800">لوحة التحكم المتكاملة</h1>
+          <h1 className="text-lg font-bold text-gray-800">لوحة التحكم المتكاملة</h1>
         </div>
-        <div className="w-32"></div> {/* للتوازن */}
+        <div className="flex items-center gap-2 text-gray-600">
+          <Clock className="h-3 w-3" />
+          <span className="text-sm">{currentTime}</span>
+        </div>
       </div>
 
-      {/* المؤشرات الأساسية - تصميم رسمي بدون ألوان */}
+      {/* المؤشرات الأساسية */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 group cursor-pointer bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700">إجمالي الموظفين</CardTitle>
-            <Users className="h-4 w-4 text-gray-500" />
+            <Users className="h-3 w-3 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 mb-1">{data.totalEmployees}</div>
@@ -110,7 +136,7 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
         <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 group cursor-pointer bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700">إجمالي الرواتب</CardTitle>
-            <DollarSign className="h-4 w-4 text-gray-500" />
+            <DollarSign className="h-3 w-3 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 mb-1">{data.totalSalaries.toLocaleString()}</div>
@@ -130,7 +156,7 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
         <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 group cursor-pointer bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700">رأس المال</CardTitle>
-            <Building className="h-4 w-4 text-gray-500" />
+            <Building className="h-3 w-3 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 mb-1">{data.totalCapital.toLocaleString()}</div>
@@ -150,7 +176,7 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
         <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-300 group cursor-pointer bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-700">المشاريع النشطة</CardTitle>
-            <Briefcase className="h-4 w-4 text-gray-500" />
+            <Briefcase className="h-3 w-3 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 mb-1">{activeProjects}</div>
@@ -178,18 +204,24 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
           >
             <CardTitle className="flex items-center justify-between text-gray-800">
               <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-gray-600" />
+                <Target className={`h-3 w-3 ${
+                  avgPerformance >= 85 ? 'text-green-600' : 
+                  avgPerformance >= 70 ? 'text-yellow-600' : 'text-red-600'
+                }`} />
                 <span className="text-sm font-bold">مؤشر الأداء العام</span>
               </div>
               {expandedPerformance ? 
-                <ChevronUp className="h-4 w-4 text-gray-500" /> : 
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <ChevronUp className="h-3 w-3 text-gray-500" /> : 
+                <ChevronDown className="h-3 w-3 text-gray-500" />
               }
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-700 mb-2">{avgPerformance.toFixed(1)}%</div>
+              <div className={`text-3xl font-bold mb-2 ${
+                avgPerformance >= 85 ? 'text-green-700' : 
+                avgPerformance >= 70 ? 'text-yellow-700' : 'text-red-700'
+              }`}>{avgPerformance.toFixed(1)}%</div>
               <Progress value={avgPerformance} className="mb-2 bg-gray-100 h-2" />
               <Badge variant={avgPerformance >= 85 ? 'default' : avgPerformance >= 70 ? 'secondary' : 'destructive'} 
                      className="text-xs">
@@ -231,12 +263,12 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
           >
             <CardTitle className="flex items-center justify-between text-gray-800">
               <div className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-gray-600" />
+                <Award className="h-3 w-3 text-gray-600" />
                 <span className="text-sm font-bold">معدل نجاح المشاريع</span>
               </div>
               {expandedProjectSuccess ? 
-                <ChevronUp className="h-4 w-4 text-gray-500" /> : 
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <ChevronUp className="h-3 w-3 text-gray-500" /> : 
+                <ChevronDown className="h-3 w-3 text-gray-500" />
               }
             </CardTitle>
           </CardHeader>
@@ -282,12 +314,12 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
           >
             <CardTitle className="flex items-center justify-between text-gray-800">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-gray-600" />
+                <TrendingUp className="h-3 w-3 text-gray-600" />
                 <span className="text-sm font-bold">السيولة المتاحة</span>
               </div>
               {expandedLiquidity ? 
-                <ChevronUp className="h-4 w-4 text-gray-500" /> : 
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+                <ChevronUp className="h-3 w-3 text-gray-500" /> : 
+                <ChevronDown className="h-3 w-3 text-gray-500" />
               }
             </CardTitle>
           </CardHeader>
@@ -332,7 +364,7 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
         <Card className="border-l-4 border-l-red-500 bg-red-50 shadow-sm border border-red-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-800 text-sm">
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle className="h-3 w-3" />
               تنبيهات مهمة
             </CardTitle>
           </CardHeader>
