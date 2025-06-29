@@ -37,11 +37,7 @@ export default function DashboardPage() {
   return (
     <AutoSaveProvider>
       <div className="min-h-screen max-w-full mx-auto space-y-4 p-2 sm:p-4">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">لوحة التحكم المتكاملة</h1>
-            <p className="text-sm text-muted-foreground">نظام ERP شامل لإدارة الأعمال</p>
-          </div>
+        <div className="flex justify-end items-center mb-4">
           <QuickNavMenu />
         </div>
 
