@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -14,6 +13,7 @@ import {
   Award,
   AlertCircle,
   ChevronRight,
+  ChevronDown,
   Activity,
   PieChart,
   BarChart3,
@@ -29,6 +29,14 @@ interface IntegratedDashboardStatsProps {
 
 export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardStatsProps) {
   const { data, loading } = useDataIntegration();
+  const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({});
+
+  const toggleCard = (cardId: string) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [cardId]: !prev[cardId]
+    }));
+  };
 
   if (loading) {
     return (
@@ -161,27 +169,34 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
         </Card>
       </div>
 
-      {/* مؤشرات الأداء المتقدمة - مع تفاصيل داخلية */}
+      {/* مؤشرات الأداء المتقدمة - قابلة للتوسيع */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* مؤشر الأداء العام */}
         <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-0 hover:shadow-lg transition-shadow">
-          <CardHeader>
+          <CardHeader 
+            className="cursor-pointer"
+            onClick={() => toggleCard('performance')}
+          >
             <CardTitle className="flex items-center gap-2 text-blue-700">
               <Target className="h-5 w-5" />
               مؤشر الأداء العام (KPI)
+              {expandedCards['performance'] ? 
+                <ChevronDown className="h-4 w-4 ml-auto" /> : 
+                <ChevronRight className="h-4 w-4 ml-auto" />
+              }
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-blue-700 mb-2">{avgPerformance.toFixed(1)}%</div>
-                <Progress value={avgPerformance} className="mb-3" />
-                <Badge variant={avgPerformance >= 85 ? 'default' : avgPerformance >= 70 ? 'secondary' : 'destructive'}>
-                  {avgPerformance >= 85 ? 'ممتاز' : avgPerformance >= 70 ? 'جيد' : 'يحتاج تحسين'}
-                </Badge>
-              </div>
-              
-              {/* مؤشرات فرعية */}
-              <div className="space-y-3 pt-3 border-t">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-blue-700 mb-2">{avgPerformance.toFixed(1)}%</div>
+              <Progress value={avgPerformance} className="mb-3" />
+              <Badge variant={avgPerformance >= 85 ? 'default' : avgPerformance >= 70 ? 'secondary' : 'destructive'}>
+                {avgPerformance >= 85 ? 'ممتاز' : avgPerformance >= 70 ? 'جيد' : 'يحتاج تحسين'}
+              </Badge>
+            </div>
+            
+            {expandedCards['performance'] && (
+              <div className="space-y-3 pt-3 border-t mt-4">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <Zap className="h-3 w-3 text-blue-600" />
@@ -214,34 +229,41 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
                     <p className="text-xs text-muted-foreground">آخر استطلاع</p>
                   </div>
                 </div>
+                
+                <div className="text-xs text-muted-foreground bg-white/50 p-2 rounded">
+                  <strong>الفائدة:</strong> يساعد في تحديد نقاط القوة والضعف، ووضع خطط التطوير المهني
+                </div>
               </div>
-              
-              <div className="text-xs text-muted-foreground bg-white/50 p-2 rounded">
-                <strong>الفائدة:</strong> يساعد في تحديد نقاط القوة والضعف، ووضع خطط التطوير المهني
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
+        {/* معدل نجاح المشاريع */}
         <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-0 hover:shadow-lg transition-shadow">
-          <CardHeader>
+          <CardHeader 
+            className="cursor-pointer"
+            onClick={() => toggleCard('projects')}
+          >
             <CardTitle className="flex items-center gap-2 text-green-700">
               <Award className="h-5 w-5" />
               معدل نجاح المشاريع (PSR)
+              {expandedCards['projects'] ? 
+                <ChevronDown className="h-4 w-4 ml-auto" /> : 
+                <ChevronRight className="h-4 w-4 ml-auto" />
+              }
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-green-700 mb-2">{projectSuccessRate.toFixed(1)}%</div>
-                <Progress value={projectSuccessRate} className="mb-3" />
-                <div className="text-sm text-muted-foreground">
-                  {completedProjects} مكتمل من {data.totalProjects} مشروع
-                </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-green-700 mb-2">{projectSuccessRate.toFixed(1)}%</div>
+              <Progress value={projectSuccessRate} className="mb-3" />
+              <div className="text-sm text-muted-foreground">
+                {completedProjects} مكتمل من {data.totalProjects} مشروع
               </div>
-              
-              {/* مؤشرات فرعية */}
-              <div className="space-y-3 pt-3 border-t">
+            </div>
+            
+            {expandedCards['projects'] && (
+              <div className="space-y-3 pt-3 border-t mt-4">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-3 w-3 text-green-600" />
@@ -276,35 +298,42 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
                     <p className="text-xs text-muted-foreground">نسبة التوفير</p>
                   </div>
                 </div>
+                
+                <div className="text-xs text-muted-foreground bg-white/50 p-2 rounded">
+                  <strong>الفائدة:</strong> يقيس فعالية إدارة المشاريع ويساعد في تحسين عمليات التخطيط والتنفيذ
+                </div>
               </div>
-              
-              <div className="text-xs text-muted-foreground bg-white/50 p-2 rounded">
-                <strong>الفائدة:</strong> يقيس فعالية إدارة المشاريع ويساعد في تحسين عمليات التخطيط والتنفيذ
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
+        {/* السيولة المتاحة */}
         <Card className="bg-gradient-to-br from-purple-50 to-pink-100 border-0 hover:shadow-lg transition-shadow">
-          <CardHeader>
+          <CardHeader 
+            className="cursor-pointer"
+            onClick={() => toggleCard('liquidity')}
+          >
             <CardTitle className="flex items-center gap-2 text-purple-700">
               <TrendingUp className="h-5 w-5" />
               السيولة المتاحة (Liquidity)
+              {expandedCards['liquidity'] ? 
+                <ChevronDown className="h-4 w-4 ml-auto" /> : 
+                <ChevronRight className="h-4 w-4 ml-auto" />
+              }
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-700 mb-2">{availableCapital.toLocaleString()}</div>
-                <p className="text-sm text-muted-foreground mb-3">ريال متاح</p>
-                <Progress value={Math.min(liquidityRatio, 100)} className="mb-2" />
-                <Badge variant={liquidityRatio >= 100 ? 'default' : liquidityRatio >= 50 ? 'secondary' : 'destructive'}>
-                  {liquidityRatio >= 100 ? 'سيولة ممتازة' : liquidityRatio >= 50 ? 'سيولة جيدة' : 'سيولة منخفضة'}
-                </Badge>
-              </div>
-              
-              {/* مؤشرات فرعية */}
-              <div className="space-y-3 pt-3 border-t">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-700 mb-2">{availableCapital.toLocaleString()}</div>
+              <p className="text-sm text-muted-foreground mb-3">ريال متاح</p>
+              <Progress value={Math.min(liquidityRatio, 100)} className="mb-2" />
+              <Badge variant={liquidityRatio >= 100 ? 'default' : liquidityRatio >= 50 ? 'secondary' : 'destructive'}>
+                {liquidityRatio >= 100 ? 'سيولة ممتازة' : liquidityRatio >= 50 ? 'سيولة جيدة' : 'سيولة منخفضة'}
+              </Badge>
+            </div>
+            
+            {expandedCards['liquidity'] && (
+              <div className="space-y-3 pt-3 border-t mt-4">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-3 w-3 text-green-600" />
@@ -342,12 +371,12 @@ export function IntegratedDashboardStats({ onStatClick }: IntegratedDashboardSta
                     <p className="text-xs text-muted-foreground">التقييم الحالي</p>
                   </div>
                 </div>
+                
+                <div className="text-xs text-muted-foreground bg-white/50 p-2 rounded">
+                  <strong>الفائدة:</strong> يساعد في التخطيط المالي واتخاذ قرارات الاستثمار والتوسع
+                </div>
               </div>
-              
-              <div className="text-xs text-muted-foreground bg-white/50 p-2 rounded">
-                <strong>الفائدة:</strong> يساعد في التخطيط المالي واتخاذ قرارات الاستثمار والتوسع
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
