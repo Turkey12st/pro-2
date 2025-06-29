@@ -66,9 +66,9 @@ export function CompactNotificationsPanel() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {/* التنبيهات المهمة مع تنبيه الرواتب */}
-      <Card className="border-l-4 border-l-gray-500">
+      <Card className="shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <AlertTriangle className="h-3 w-3 text-gray-600" />
@@ -118,7 +118,7 @@ export function CompactNotificationsPanel() {
 
       {/* المستندات المنتهية */}
       {expiringDocs && expiringDocs.length > 0 && (
-        <Card className="border-l-4 border-l-red-500">
+        <Card className="shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <FileText className="h-3 w-3 text-red-600" />
@@ -150,9 +150,9 @@ export function CompactNotificationsPanel() {
         </Card>
       )}
 
-      {/* التنبيهات العامة */}
+      {/* إشعارات النظام */}
       {notifications && notifications.length > 0 && (
-        <Card className="border-l-4 border-l-blue-500">
+        <Card className="shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Bell className="h-3 w-3 text-blue-600" />
@@ -180,6 +180,37 @@ export function CompactNotificationsPanel() {
           </CardContent>
         </Card>
       )}
+
+      {/* معلومات إضافية */}
+      <Card className="shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Calendar className="h-3 w-3 text-gray-600" />
+            تذكيرات اليوم
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0 space-y-2">
+          <div className="p-2 bg-green-50 rounded text-xs">
+            <div className="flex items-start gap-2">
+              <Calendar className="h-3 w-3 text-green-600 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium">اجتماع فريق العمل</p>
+                <p className="text-muted-foreground">الساعة 10:00 صباحاً</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-2 bg-purple-50 rounded text-xs">
+            <div className="flex items-start gap-2">
+              <Bell className="h-3 w-3 text-purple-600 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium">مراجعة التقارير الشهرية</p>
+                <p className="text-muted-foreground">مستحق اليوم</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

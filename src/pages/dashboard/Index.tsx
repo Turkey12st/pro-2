@@ -41,24 +41,21 @@ export default function DashboardPage() {
           <QuickNavMenu />
         </div>
 
-        {/* Layout with main content and sidebar notifications */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Main Content Area */}
-          <div className="col-span-1 lg:col-span-3 space-y-4">
-            {/* مؤشرات الأداء الأساسية */}
-            <div className="w-full">
-              <IntegratedDashboardStats onStatClick={handleStatClick} />
-            </div>
-
-            {/* لوحة التحكم الشاملة */}
-            <div className="w-full">
-              <ERPDashboard />
-            </div>
+        {/* Main Content Area - Single Column Layout */}
+        <div className="space-y-4">
+          {/* مؤشرات الأداء الأساسية */}
+          <div className="w-full">
+            <IntegratedDashboardStats onStatClick={handleStatClick} />
           </div>
 
-          {/* Compact Notifications Sidebar */}
-          <div className="col-span-1">
+          {/* لوحة التنبيهات المدمجة */}
+          <div className="w-full">
             <CompactNotificationsPanel />
+          </div>
+
+          {/* لوحة التحكم الشاملة */}
+          <div className="w-full">
+            <ERPDashboard />
           </div>
         </div>
       </div>
