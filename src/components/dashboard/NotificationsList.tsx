@@ -12,7 +12,7 @@ export function NotificationsList() {
         .from('notifications')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(3);
       
       if (error) throw error;
       return data;
@@ -20,28 +20,28 @@ export function NotificationsList() {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-primary flex items-center gap-2 text-lg">
-          <BellRing className="h-5 w-5" />
+    <Card className="w-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-primary flex items-center gap-2 text-sm">
+          <BellRing className="h-4 w-4" />
           التنبيهات العاجلة
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
+      <CardContent className="pt-0">
+        <div className="space-y-2">
           {notifications?.map((notification) => (
             <div 
               key={notification.id} 
-              className="flex items-start gap-3 p-3 bg-muted rounded-lg"
+              className="flex items-start gap-2 p-2 bg-muted rounded-md"
             >
-              <AlertTriangle className={`h-5 w-5 ${
+              <AlertTriangle className={`h-3 w-3 mt-0.5 ${
                 notification.priority === 'high' ? 'text-destructive' : 
                 notification.priority === 'medium' ? 'text-yellow-500' : 
                 'text-blue-500'
               }`} />
-              <div>
-                <h4 className="font-medium">{notification.title}</h4>
-                <p className="text-sm text-muted-foreground">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-xs truncate">{notification.title}</h4>
+                <p className="text-xs text-muted-foreground line-clamp-2">
                   {notification.description}
                 </p>
               </div>

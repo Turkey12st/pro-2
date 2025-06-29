@@ -64,16 +64,16 @@ export function DocumentExpiryNotifications() {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            المستندات التي توشك على الانتهاء
+      <Card className="w-full">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <AlertCircle className="h-4 w-4" />
+            المستندات المنتهية قريباً
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-[100px] flex items-center justify-center">
-            <p className="text-muted-foreground">جاري تحميل البيانات...</p>
+        <CardContent className="pt-0">
+          <div className="h-[60px] flex items-center justify-center">
+            <p className="text-xs text-muted-foreground">جاري التحميل...</p>
           </div>
         </CardContent>
       </Card>
@@ -82,62 +82,58 @@ export function DocumentExpiryNotifications() {
 
   if (expiringDocuments.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            المستندات التي توشك على الانتهاء
+      <Card className="w-full">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <AlertCircle className="h-4 w-4" />
+            المستندات المنتهية قريباً
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">لا توجد مستندات توشك على الانتهاء خلال الـ 30 يوم القادمة.</p>
+        <CardContent className="pt-0">
+          <p className="text-xs text-muted-foreground">لا توجد مستندات منتهية خلال 30 يوم.</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5" />
-          المستندات التي توشك على الانتهاء
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <AlertCircle className="h-4 w-4" />
+          المستندات المنتهية قريباً
         </CardTitle>
-        <Button size="sm" variant="outline" onClick={() => navigate("/documents")}>
-          <FileText className="h-4 w-4 mr-2" /> إدارة المستندات
+        <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => navigate("/documents")}>
+          <FileText className="h-3 w-3 mr-1" /> إدارة
         </Button>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {expiringDocuments.map((document) => (
-          <Alert key={document.id} variant={document.days_remaining <= 7 ? "destructive" : "default"}>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle className="flex items-center justify-between">
-              <span>{document.title}</span>
+      <CardContent className="space-y-2 pt-0">
+        {expiringDocuments.slice(0, 3).map((document) => (
+          <Alert key={document.id} variant={document.days_remaining <= 7 ? "destructive" : "default"} className="py-2 px-3">
+            <AlertCircle className="h-3 w-3" />
+            <AlertTitle className="flex items-center justify-between text-xs">
+              <span className="truncate max-w-[120px]">{document.title}</span>
               {document.days_remaining <= 7 && (
-                <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">عاجل</span>
+                <span className="text-xs bg-red-100 text-red-800 px-1 py-0.5 rounded-full">عاجل</span>
               )}
             </AlertTitle>
-            <AlertDescription className="mt-2">
-              <div className="grid gap-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">تاريخ الانتهاء:</span>
-                  <span className="font-medium">{formatDate(document.expiry_date)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">المتبقي:</span>
-                  <span className={`font-semibold ${document.days_remaining <= 7 ? 'text-red-600' : 'text-amber-600'}`}>
-                    {document.days_remaining} {document.days_remaining === 1 ? "يوم" : "أيام"}
-                  </span>
-                </div>
-              </div>
-              <div className="mt-2 flex justify-end">
-                <Button size="sm" variant="outline" onClick={() => navigate(`/documents/edit/${document.id}`)}>
-                  <Calendar className="h-4 w-4 mr-2" /> تجديد
-                </Button>
+            <AlertDescription className="mt-1">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">المتبقي:</span>
+                <span className={`font-semibold ${document.days_remaining <= 7 ? 'text-red-600' : 'text-amber-600'}`}>
+                  {document.days_remaining} {document.days_remaining === 1 ? "يوم" : "أيام"}
+                </span>
               </div>
             </AlertDescription>
           </Alert>
         ))}
+        {expiringDocuments.length > 3 && (
+          <div className="text-center pt-1">
+            <Button size="sm" variant="ghost" className="h-6 px-2 text-xs" onClick={() => navigate("/documents")}>
+              عرض الكل ({expiringDocuments.length})
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
