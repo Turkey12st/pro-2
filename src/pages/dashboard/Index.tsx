@@ -9,28 +9,50 @@ import { AutoSaveProvider } from "@/components/dashboard/AutoSaveProvider";
 import { IntegratedDashboardStats } from "@/components/dashboard/IntegratedDashboardStats";
 import { CompactNotificationsPanel } from "@/components/dashboard/CompactNotificationsPanel";
 
+// Security enhancement: Route validation
+const VALID_ROUTES = ['/hr', '/projects', '/documents', '/financial', '/partners'];
+
+const validateRoute = (route: string): boolean => {
+  return VALID_ROUTES.includes(route);
+};
+
 export default function DashboardPage() {
   const navigate = useNavigate();
 
+  // Security enhancement: Safe navigation with route validation
   const handleStatClick = (type: string) => {
-    switch (type) {
-      case 'employees':
-        navigate('/hr');
-        break;
-      case 'projects':
-        navigate('/projects');
-        break;
-      case 'documents':
-        navigate('/documents');
-        break;
-      case 'financial':
-        navigate('/financial');
-        break;
-      case 'partners':
-        navigate('/partners');
-        break;
-      default:
-        break;
+    try {
+      let route = '';
+      
+      switch (type) {
+        case 'employees':
+          route = '/hr';
+          break;
+        case 'projects':
+          route = '/projects';
+          break;
+        case 'documents':
+          route = '/documents';
+          break;
+        case 'financial':
+          route = '/financial';
+          break;
+        case 'partners':
+          route = '/partners';
+          break;
+        default:
+          console.warn('Invalid navigation type:', type);
+          return;
+      }
+
+      // Security: Validate route before navigation
+      if (validateRoute(route)) {
+        navigate(route);
+      } else {
+        console.error('Attempted to navigate to invalid route:', route);
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
     }
   };
 
