@@ -13,7 +13,7 @@ interface ActionButtonsProps {
   showEdit?: boolean;
   showDelete?: boolean;
   showCreate?: boolean;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'lg' | 'default';
 }
 
 export function ActionButtons({

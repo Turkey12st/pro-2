@@ -46,12 +46,17 @@ export function useUserPermissions() {
       if (userRole) {
         const isMainAccount = userRole.role === 'admin' || userRole.role === 'owner';
         
+        // تحويل permissions إلى مصفوفة إذا لم تكن كذلك
+        const permissionsArray = Array.isArray(userRole.permissions) 
+          ? userRole.permissions 
+          : [];
+        
         setPermissions({
           isMainAccount,
-          canCreate: isMainAccount || userRole.permissions?.includes('create'),
-          canUpdate: isMainAccount || userRole.permissions?.includes('update'),
+          canCreate: isMainAccount || permissionsArray.includes('create'),
+          canUpdate: isMainAccount || permissionsArray.includes('update'),
           canDelete: isMainAccount,
-          canViewFinancials: isMainAccount || userRole.permissions?.includes('view_financials'),
+          canViewFinancials: isMainAccount || permissionsArray.includes('view_financials'),
           canManageUsers: isMainAccount
         });
       } else {
