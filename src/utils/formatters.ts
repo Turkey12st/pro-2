@@ -1,24 +1,16 @@
 
+import { formatNumberEnglish, formatCurrencyEnglish, formatPercentageEnglish } from './numberFormatter';
+
 export const formatDate = (dateString: string | null | undefined) => {
   if (!dateString) return "غير محدد";
   const date = new Date(dateString);
   return new Intl.DateTimeFormat('en-US').format(date);
 };
 
-export const formatSalary = (salary: number | null | undefined) => {
-  if (salary === null || salary === undefined) return "غير محدد";
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'SAR' }).format(salary);
-};
-
-export const formatNumber = (number: number | null | undefined) => {
-  if (number === null || number === undefined) return "غير محدد";
-  return new Intl.NumberFormat('en-US').format(number);
-};
-
-export const formatPercentage = (value: number | null | undefined) => {
-  if (value === null || value === undefined) return "غير محدد";
-  return new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 2 }).format(value / 100);
-};
+// استخدام المنسقات الجديدة للأرقام الإنجليزية
+export const formatSalary = formatCurrencyEnglish;
+export const formatNumber = formatNumberEnglish;
+export const formatPercentage = formatPercentageEnglish;
 
 export const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
