@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import PersonalInfo from "./PersonalInfo";
 import JobInfo from "./JobInfo";
 import FileUpload from "./FileUpload";
+import { validateAndSanitizeFormData, employeeSchema, validateFileUpload } from "@/lib/validation";
 
 const initialEmployeeState: Omit<Employee, 'id' | 'created_at' | 'created_by'> = {
   name: "",
@@ -59,13 +60,32 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setPhoto(e.target.files[0]);
+      try {
+        validateFileUpload(e.target.files[0]);
+        setPhoto(e.target.files[0]);
+      } catch (error) {
+        toast({
+          title: "خطأ في رفع الصورة",
+          description: error instanceof Error ? error.message : "ملف غير صالح",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleDocumentsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setDocuments(Array.from(e.target.files));
+      try {
+        const files = Array.from(e.target.files);
+        files.forEach(file => validateFileUpload(file));
+        setDocuments(files);
+      } catch (error) {
+        toast({
+          title: "خطأ في رفع المستندات",
+          description: error instanceof Error ? error.message : "ملف غير صالح",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -76,6 +96,31 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error('يجب تسجيل الدخول لإضافة موظف');
+      }
+
+      // Validate employee data
+      const validationData = {
+        name: employee.name,
+        identity_number: employee.identityNumber,
+        email: employee.email,
+        phone: employee.phone,
+        salary: employee.salary,
+        birth_date: employee.birthDate,
+        joining_date: employee.joiningDate,
+        position: employee.position,
+        department: employee.department,
+        nationality: employee.nationality,
+        contract_type: employee.contractType
+      };
+
+      const validation = validateAndSanitizeFormData(validationData, employeeSchema);
+      if (!validation.success) {
+        toast({
+          title: "خطأ في البيانات",
+          description: validation.errors?.join(', ') || "البيانات غير صحيحة",
+          variant: "destructive",
+        });
+        return;
       }
 
       let photoUrl = '';

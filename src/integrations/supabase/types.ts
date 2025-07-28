@@ -1870,6 +1870,45 @@ export type Database = {
           },
         ]
       }
+      security_audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       sponsorship_transfer_fees: {
         Row: {
           created_at: string
@@ -2021,6 +2060,10 @@ export type Database = {
           attachment_url: string
         }[]
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_journal_entry_attachment: {
         Args: { p_entry_id: string }
         Returns: string
@@ -2028,6 +2071,10 @@ export type Database = {
       get_unified_national_number: {
         Args: { company_id: string }
         Returns: string
+      }
+      has_role: {
+        Args: { _role: string }
+        Returns: boolean
       }
       reset_journal_entry_attachment: {
         Args: { p_entry_id: string }

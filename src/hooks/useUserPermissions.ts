@@ -36,12 +36,17 @@ export function useUserPermissions() {
         return;
       }
 
-      // التحقق من دور المستخدم
-      const { data: userRole } = await supabase
+      // التحقق من دور المستخدم باستخدام .maybeSingle() لتجنب أخطاء البيانات المفقودة
+      const { data: userRole, error } = await supabase
         .from('user_roles')
         .select('role, permissions')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        throw error;
+      }
 
       if (userRole) {
         const isMainAccount = userRole.role === 'admin' || userRole.role === 'owner';
@@ -60,7 +65,7 @@ export function useUserPermissions() {
           canManageUsers: isMainAccount
         });
       } else {
-        // إذا لم يوجد دور محدد، يُعتبر مستخدم عادي
+        // إذا لم يوجد دور محدد، يُعتبر مستخدم عادي بدون صلاحيات
         setPermissions({
           isMainAccount: false,
           canCreate: false,
@@ -76,6 +81,16 @@ export function useUserPermissions() {
         title: 'خطأ في تحميل الصلاحيات',
         description: 'حدث خطأ أثناء تحميل صلاحيات المستخدم',
         variant: 'destructive',
+      });
+      
+      // في حالة الخطأ، تعيين صلاحيات آمنة (بدون صلاحيات)
+      setPermissions({
+        isMainAccount: false,
+        canCreate: false,
+        canUpdate: false,
+        canDelete: false,
+        canViewFinancials: false,
+        canManageUsers: false
       });
     } finally {
       setLoading(false);
