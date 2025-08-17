@@ -42,7 +42,7 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
 
     // Set saving state and show a toast
     setIsSaving(true);
-    const savingToast = toast({
+    toast({
       title: "جاري الحفظ...",
       description: "يرجى الانتظار بينما يتم حفظ التغييرات.",
     });
@@ -58,6 +58,7 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
         
         if (!validTables.includes(tableName)) {
           console.warn(`Table ${tableName} not in valid tables list`);
+          setIsSaving(false);
           return false;
         }
 
@@ -80,7 +81,6 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
 
         // On success, update the toast and set saving state to false
         toast({
-          id: savingToast.id,
           title: "تم الحفظ تلقائياً",
           description: "تم حفظ البيانات بنجاح",
           variant: "default",
@@ -92,7 +92,6 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
         console.error('خطأ في الحفظ التلقائي:', error);
         // On error, update the toast and set saving state to false
         toast({
-          id: savingToast.id,
           title: "خطأ في الحفظ التلقائي",
           description: "حدث خطأ أثناء محاولة حفظ البيانات",
           variant: "destructive",

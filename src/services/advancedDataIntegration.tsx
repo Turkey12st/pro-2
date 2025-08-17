@@ -57,7 +57,7 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
     return new Promise<boolean>((resolve) => {
       // Set saving state and show a toast
       setIsSaving(true);
-      const savingToast = toast({
+      toast({
         title: `جاري حفظ بيانات ${tableName}...`,
         description: "يرجى الانتظار بينما يتم حفظ التغييرات.",
       });
@@ -96,9 +96,8 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
 
           if (result.error) throw result.error;
 
-          // On success, update the toast and resolve the promise as true
+          // On success, show a success toast and resolve the promise as true
           toast({
-            id: savingToast.id,
             title: "تم الحفظ تلقائياً",
             description: "تم حفظ البيانات بنجاح",
             variant: "default",
@@ -108,9 +107,8 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           // Log a specific error message including the table name
           console.error(`خطأ في الحفظ التلقائي لجدول ${tableName}:`, error);
-          // On error, update the toast and resolve the promise as false
+          // On error, show an error toast and resolve the promise as false
           toast({
-            id: savingToast.id,
             title: "خطأ في الحفظ التلقائي",
             description: "حدث خطأ أثناء محاولة حفظ البيانات",
             variant: "destructive",
@@ -181,3 +179,25 @@ export function useAutoSave() {
   }
   return context;
 }
+
+// Minimal service used by dashboard and data integration
+export const AdvancedDataIntegrationService = {
+  async getDashboardMetrics() {
+    // TODO: Replace with real DB aggregation
+    return {
+      employees: [],
+      partners: [],
+      projects: [],
+      financials: [],
+      summary: {
+        totalEmployees: 0,
+        totalCapital: 0,
+        totalProjects: 0,
+      },
+    } as any;
+  },
+  async ensureComprehensiveDataIntegrity() {
+    // Placeholder for integrity checks
+    return true;
+  },
+};

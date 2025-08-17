@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CapitalManagement } from "@/types/database";
@@ -156,5 +157,34 @@ export function CapitalIncreaseDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Minimal performance metrics component expected by DashboardTabs
+export function PerformanceMetrics({ financialData }: { financialData: { total_income: number; total_expenses: number; net_profit: number; profit_margin: number; } }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>مؤشرات الأداء</CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <p className="text-sm text-muted-foreground">إجمالي الدخل</p>
+          <p className="text-xl font-semibold">{financialData.total_income.toLocaleString('ar-SA')}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted-foreground">إجمالي المصاريف</p>
+          <p className="text-xl font-semibold">{financialData.total_expenses.toLocaleString('ar-SA')}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted-foreground">صافي الربح</p>
+          <p className="text-xl font-semibold">{financialData.net_profit.toLocaleString('ar-SA')}</p>
+        </div>
+        <div>
+          <p className="text-sm text-muted-foreground">هامش الربح</p>
+          <p className="text-xl font-semibold">{financialData.profit_margin}%</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
