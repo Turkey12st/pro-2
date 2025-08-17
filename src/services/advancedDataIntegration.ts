@@ -29,6 +29,7 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch the authenticated user ID on component mount
   useEffect(() => {
+    // This function fetches the current user from Supabase and sets their ID in the state.
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -105,6 +106,7 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
           resolve(true);
 
         } catch (error) {
+          // Log a specific error message including the table name
           console.error(`خطأ في الحفظ التلقائي لجدول ${tableName}:`, error);
           // On error, update the toast and resolve the promise as false
           toast({
@@ -124,6 +126,7 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Saves form data using the upsert method for specific forms.
+   * This is useful for saving form state to a single 'auto_saves' table.
    * @param {string} formType - The type of the form.
    * @param {any} data - The form data object.
    * @returns {Promise<boolean>} A promise that resolves to true on success or false on failure.
@@ -135,6 +138,7 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
     }
     
     try {
+      // Use upsert to either update an existing record or insert a new one
       const { error } = await supabase
         .from('auto_saves')
         .upsert(
@@ -157,6 +161,7 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
   }, [userId]);
 
   return (
+    // The provider wraps the children and provides the context value
     <AutoSaveContext.Provider value={{ saveData, saveFormData, isSaving }}>
       {children}
     </AutoSaveContext.Provider>
@@ -170,6 +175,7 @@ export function AutoSaveProvider({ children }: { children: React.ReactNode }) {
  */
 export function useAutoSave() {
   const context = useContext(AutoSaveContext);
+  // Throw an error if the hook is used without the provider
   if (context === undefined) {
     throw new Error('useAutoSave must be used within an AutoSaveProvider');
   }
