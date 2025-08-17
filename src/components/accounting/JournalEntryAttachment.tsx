@@ -15,6 +15,7 @@ interface JournalEntryAttachmentProps {
   onChange?: (file: File | null) => void;
   existingUrl?: string;
   onDelete?: () => void;
+  isSaving?: boolean;
 }
 
 export const JournalEntryAttachment: React.FC<JournalEntryAttachmentProps> = ({

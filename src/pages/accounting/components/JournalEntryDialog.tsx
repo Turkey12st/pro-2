@@ -126,7 +126,7 @@ const JournalEntryDialog: React.FC<JournalEntryDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" disabled={isSaving}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {editingEntry ? "تعديل قيد محاسبي" : "إضافة قيد محاسبي جديد"}

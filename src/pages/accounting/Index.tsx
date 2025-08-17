@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppLayout from "@/components/AppLayout";
 import JournalEntryTable from "./components/JournalEntryTable";
 import JournalEntryDialog from "./components/JournalEntryDialog";
-import JournalEntryImportExport from "./components/JournalEntryImportExport";
+
 import { ChartOfAccountsManager } from "@/components/accounting/ChartOfAccountsManager";
 import { useJournalEntries } from "./hooks/useJournalEntries";
 import type { JournalEntry } from "@/types/database";
@@ -35,12 +35,6 @@ export default function AccountingPage() {
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             النظام المحاسبي
-            {currentTab === "journal-entries" && (
-              <JournalEntryImportExport 
-                journalEntries={journalEntries} 
-                onImportSuccess={fetchJournalEntries} 
-              />
-            )}
           </CardTitle>
         </CardHeader>
         <CardContent>

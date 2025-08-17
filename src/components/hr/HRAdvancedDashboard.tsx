@@ -119,7 +119,7 @@ const HRAdvancedDashboard = () => {
   }
 
   const topDepartments = Object.entries(metrics.departmentDistribution)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([,a], [,b]) => Number(b) - Number(a))
     .slice(0, 5);
 
   return (
@@ -202,7 +202,7 @@ const HRAdvancedDashboard = () => {
                 <div key={dept} className="flex items-center justify-between">
                   <span className="text-sm font-medium">{dept}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">{count} موظف</span>
+                    <span className="text-sm text-muted-foreground">{String(count)} موظف</span>
                     <Progress 
                       value={(Number(count) / metrics.totalEmployees) * 100} 
                       className="w-20 h-2"
@@ -239,7 +239,7 @@ const HRAdvancedDashboard = () => {
                       <span className="text-sm font-medium">{typeInfo.label}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{count}</Badge>
+                      <Badge variant="secondary">{String(count)}</Badge>
                       <span className="text-xs text-muted-foreground">
                         {((Number(count) / metrics.totalEmployees) * 100).toFixed(1)}%
                       </span>
