@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Dialog,
@@ -22,6 +21,10 @@ interface CapitalIncreaseDialogProps {
   capitalData?: CapitalManagement;
 }
 
+/**
+ * A dialog component for increasing the company's capital.
+ * It handles the input, form submission, and interaction with the database.
+ */
 export function CapitalIncreaseDialog({
   isOpen = false,
   onClose = () => {},
@@ -33,18 +36,28 @@ export function CapitalIncreaseDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   
-  // Use currentCapital if provided, otherwise use capitalData.total_capital
-  const actualCapital = currentCapital !== undefined 
-    ? currentCapital 
+  // Determine the actual capital to use based on the provided props
+  const actualCapital = currentCapital !== undefined
+    ? currentCapital
     : (capitalData?.total_capital || 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount) return;
+
+    const numericAmount = parseFloat(amount);
+    
+    // Client-side validation to ensure a valid positive number is entered
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      toast({
+        title: "خطأ في الإدخال",
+        description: "الرجاء إدخال مبلغ صحيح وموجب.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      const numericAmount = parseFloat(amount);
       const newCapital = actualCapital + numericAmount;
 
       const { error } = await supabase
@@ -64,6 +77,7 @@ export function CapitalIncreaseDialog({
         description: `تمت إضافة ${amount} ريال إلى رأس المال`,
       });
 
+      // Call onSuccess callback if provided and close the dialog
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
