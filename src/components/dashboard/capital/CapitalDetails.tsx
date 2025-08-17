@@ -1,4 +1,3 @@
-
 import { Progress } from "@/components/ui/progress";
 import { formatNumber } from "@/utils/formatters";
 import { CapitalManagement } from "@/types/database";
@@ -13,10 +12,13 @@ interface CapitalDetailsProps {
 
 export function CapitalDetails({ data }: CapitalDetailsProps) {
   const { total_capital, available_capital, reserved_capital } = data;
-  const capitalUsagePercentage = total_capital > 0 
-    ? ((total_capital - available_capital) / total_capital) * 100 
-    : 0;
   
+  // Calculate the percentage and round it once for efficiency
+  const capitalUsagePercentage = total_capital > 0
+    ? ((total_capital - available_capital) / total_capital) * 100
+    : 0;
+  const roundedPercentage = Math.round(capitalUsagePercentage);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (
@@ -39,7 +41,7 @@ export function CapitalDetails({ data }: CapitalDetailsProps) {
       <div className="space-y-1">
         <div className="flex justify-between text-sm">
           <span>نسبة استخدام رأس المال</span>
-          <span>{Math.round(capitalUsagePercentage)}%</span>
+          <span>{roundedPercentage}%</span>
         </div>
         <Progress value={capitalUsagePercentage} className="h-2" />
       </div>
