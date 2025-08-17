@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -128,6 +128,51 @@ export type Database = {
           created_at?: string
           description?: string | null
           name?: string
+        }
+        Relationships: []
+      }
+      api_integrations: {
+        Row: {
+          api_key_encrypted: string | null
+          configuration: Json | null
+          created_at: string
+          endpoint: string
+          events: string[] | null
+          headers: Json | null
+          id: string
+          is_active: boolean | null
+          last_sync: string | null
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          configuration?: Json | null
+          created_at?: string
+          endpoint: string
+          events?: string[] | null
+          headers?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          configuration?: Json | null
+          created_at?: string
+          endpoint?: string
+          events?: string[] | null
+          headers?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          name?: string
+          type?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1198,6 +1243,50 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event: string
+          execution_time_ms: number | null
+          id: string
+          integration_id: string
+          payload: Json | null
+          response: Json | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event: string
+          execution_time_ms?: number | null
+          id?: string
+          integration_id: string
+          payload?: Json | null
+          response?: Json | null
+          status: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event?: string
+          execution_time_ms?: number | null
+          id?: string
+          integration_id?: string
+          payload?: Json | null
+          response?: Json | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_logs_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "api_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journal_entries: {
         Row: {
           amount: number | null
@@ -2011,12 +2100,12 @@ export type Database = {
     }
     Functions: {
       calculate_cash_flow: {
-        Args: { start_date: string; end_date: string }
+        Args: { end_date: string; start_date: string }
         Returns: {
+          flow_ratio: number
+          net_flow: number
           total_inflow: number
           total_outflow: number
-          net_flow: number
-          flow_ratio: number
         }[]
       }
       calculate_employee_kpi: {
@@ -2054,10 +2143,10 @@ export type Database = {
       get_all_journal_entries: {
         Args: Record<PropertyKey, never>
         Returns: {
+          attachment_url: string
+          content: string
           id: string
           title: string
-          content: string
-          attachment_url: string
         }[]
       }
       get_current_user_role: {
@@ -2089,7 +2178,7 @@ export type Database = {
         Returns: undefined
       }
       update_journal_entry_attachment: {
-        Args: { p_entry_id: string; p_attachment_url: string }
+        Args: { p_attachment_url: string; p_entry_id: string }
         Returns: undefined
       }
     }

@@ -25,23 +25,20 @@ export class APIIntegrationService {
   // حفظ إعداد التكامل
   static async saveIntegration(config: Omit<APIIntegrationConfig, 'id'>): Promise<string> {
     try {
-      const { data, error } = await supabase
-        .from('api_integrations')
-        .insert({
-          name: config.name,
-          type: config.type,
-          endpoint: config.endpoint,
-          api_key_encrypted: config.apiKey,
-          headers: config.headers || {},
-          is_active: config.isActive,
-          events: config.events,
-          configuration: config.configuration
-        })
-        .select()
-        .single();
+      // استخدام SQL مباشر للتعامل مع الجدول الجديد
+      const { data, error } = await supabase.rpc('create_api_integration', {
+        integration_name: config.name,
+        integration_type: config.type,
+        integration_endpoint: config.endpoint,
+        integration_api_key: config.apiKey,
+        integration_headers: JSON.stringify(config.headers || {}),
+        integration_events: config.events,
+        integration_active: config.isActive,
+        integration_config: JSON.stringify(config.configuration)
+      });
 
       if (error) throw error;
-      return data.id;
+      return data;
     } catch (error) {
       console.error('خطأ في حفظ إعدادات التكامل:', error);
       throw error;
@@ -51,14 +48,12 @@ export class APIIntegrationService {
   // جلب جميع التكاملات
   static async getIntegrations(): Promise<APIIntegrationConfig[]> {
     try {
-      const { data, error } = await supabase
-        .from('api_integrations')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // استخدام SQL مباشر للوصول للجدول الجديد
+      const { data, error } = await supabase.rpc('get_api_integrations');
 
       if (error) throw error;
 
-      return data.map(item => ({
+      return (data || []).map((item: any) => ({
         id: item.id,
         name: item.name,
         type: item.type,
@@ -72,7 +67,7 @@ export class APIIntegrationService {
       }));
     } catch (error) {
       console.error('خطأ في جلب التكاملات:', error);
-      throw error;
+      return [];
     }
   }
 
@@ -137,10 +132,10 @@ export class APIIntegrationService {
       }
 
       // تحديث وقت آخر مزامنة
-      await supabase
-        .from('api_integrations')
-        .update({ last_sync: new Date().toISOString() })
-        .eq('id', integration.id);
+      await supabase.rpc('update_integration_sync', {
+        integration_id: integration.id,
+        sync_time: new Date().toISOString()
+      });
 
       console.log(`تم إرسال البيانات بنجاح إلى: ${integration.name}`);
 
@@ -148,15 +143,12 @@ export class APIIntegrationService {
       console.error(`خطأ في إرسال البيانات إلى ${integration.name}:`, error);
       
       // تسجيل الخطأ
-      await supabase
-        .from('integration_logs')
-        .insert({
-          integration_id: integration.id,
-          event: payload.event,
-          status: 'error',
-          error_message: error instanceof Error ? error.message : 'Unknown error',
-          payload: payload
-        });
+      await supabase.rpc('log_integration_error', {
+        integration_id: integration.id,
+        event_name: payload.event,
+        error_msg: error instanceof Error ? error.message : 'Unknown error',
+        payload_data: JSON.stringify(payload)
+      });
     }
   }
 
@@ -260,28 +252,26 @@ export class APIIntegrationService {
     lastSync: string | null;
   }> {
     try {
-      const { data, error } = await supabase
-        .from('integration_logs')
-        .select('status, created_at')
-        .eq('integration_id', integrationId)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_integration_stats', {
+        integration_id: integrationId
+      });
 
       if (error) throw error;
 
-      const totalRequests = data.length;
-      const successfulRequests = data.filter(log => log.status === 'success').length;
-      const failedRequests = data.filter(log => log.status === 'error').length;
-      const lastSync = data[0]?.created_at || null;
-
-      return {
-        totalRequests,
-        successfulRequests,
-        failedRequests,
-        lastSync
+      return data || {
+        totalRequests: 0,
+        successfulRequests: 0,
+        failedRequests: 0,
+        lastSync: null
       };
     } catch (error) {
       console.error('خطأ في جلب إحصائيات التكامل:', error);
-      throw error;
+      return {
+        totalRequests: 0,
+        successfulRequests: 0,
+        failedRequests: 0,
+        lastSync: null
+      };
     }
   }
 }
