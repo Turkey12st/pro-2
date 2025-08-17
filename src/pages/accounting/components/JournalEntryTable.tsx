@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Table,
@@ -16,6 +15,7 @@ import { Edit, Trash2, FileText, Search, Filter } from "lucide-react";
 import type { JournalEntry } from "@/types/database";
 import { formatEntryDate, getFinancialSectionName, formatAmount } from "@/utils/journalEntryHelpers";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast"; // تم إضافة هذا الاستيراد
 
 interface JournalEntryTableProps {
   entries: JournalEntry[];
@@ -36,6 +36,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
   const [filteredEntries, setFilteredEntries] = useState<JournalEntry[]>(entries);
   const [showFilters, setShowFilters] = useState(false);
   const [isApproved, setIsApproved] = useState<string | null>(null);
+  const { toast } = useToast(); // تهيئة useToast
 
   useEffect(() => {
     let result = [...entries];
@@ -80,7 +81,9 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
         })
         .eq("id", entryId);
         
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message);
+      }
       
       // تحديث القائمة بدون إعادة التحميل الكامل
       setFilteredEntries(prev => 
@@ -90,8 +93,17 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
             : entry
         )
       );
+      toast({
+        title: "تم اعتماد القيد",
+        description: "تم اعتماد القيد المحاسبي بنجاح.",
+      });
     } catch (error) {
       console.error("خطأ في اعتماد القيد:", error);
+      toast({
+        variant: "destructive",
+        title: "فشل في الاعتماد",
+        description: "حدث خطأ أثناء محاولة اعتماد القيد.",
+      });
     }
   };
   
@@ -100,7 +112,6 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
     setFilterType(null);
     setFilterSection(null);
     setIsApproved(null);
-    setFilteredEntries(entries);
   };
 
   if (isLoading) {
@@ -200,87 +211,95 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredEntries.map((entry) => (
-              <TableRow key={entry.id} className={entry.is_approved ? "bg-muted/20" : ""}>
-                <TableCell>{entry.entry_name || "-"}</TableCell>
-                <TableCell className="max-w-[200px] truncate" title={entry.description}>
-                  {entry.description}
-                </TableCell>
-                <TableCell>
-                  {formatEntryDate(entry.entry_date)}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={entry.entry_type === "income" ? "success" : "destructive"}>
-                    {entry.entry_type === "income" ? "إيراد" : "مصروف"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="font-medium text-left" dir="ltr">
-                  {formatAmount(entry.total_debit)}
-                </TableCell>
-                <TableCell className="font-medium text-left" dir="ltr">
-                  {formatAmount(entry.total_credit)}
-                </TableCell>
-                <TableCell>{entry.currency || "SAR"}</TableCell>
-                <TableCell>
-                  {getFinancialSectionName(entry.financial_statement_section)}
-                </TableCell>
-                <TableCell>
-                  {entry.is_approved ? (
-                    <Badge variant="success">معتمد</Badge>
-                  ) : (
-                    <Badge variant="outline">بانتظار الاعتماد</Badge>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-1 space-x-reverse">
-                    {!entry.is_approved && (
-                      <>
+            {filteredEntries.length > 0 ? (
+              filteredEntries.map((entry) => (
+                <TableRow key={entry.id} className={entry.is_approved ? "bg-muted/20" : ""}>
+                  <TableCell>{entry.entry_name || "-"}</TableCell>
+                  <TableCell className="max-w-[200px] truncate" title={entry.description}>
+                    {entry.description}
+                  </TableCell>
+                  <TableCell>
+                    {formatEntryDate(entry.entry_date)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={entry.entry_type === "income" ? "success" : "destructive"}>
+                      {entry.entry_type === "income" ? "إيراد" : "مصروف"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-medium text-left" dir="ltr">
+                    {formatAmount(entry.total_debit)}
+                  </TableCell>
+                  <TableCell className="font-medium text-left" dir="ltr">
+                    {formatAmount(entry.total_credit)}
+                  </TableCell>
+                  <TableCell>{entry.currency || "SAR"}</TableCell>
+                  <TableCell>
+                    {getFinancialSectionName(entry.financial_statement_section)}
+                  </TableCell>
+                  <TableCell>
+                    {entry.is_approved ? (
+                      <Badge variant="success">معتمد</Badge>
+                    ) : (
+                      <Badge variant="outline">بانتظار الاعتماد</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-1 space-x-reverse">
+                      {!entry.is_approved && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onEdit(entry)}
+                            aria-label="تعديل"
+                          >
+                            <Edit className="h-4 w-4 text-primary" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleApproveEntry(entry.id)}
+                            aria-label="اعتماد"
+                          >
+                            <FileText className="h-4 w-4 text-green-600" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDelete(entry.id)}
+                            aria-label="حذف"
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                      {entry.is_approved && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => onEdit(entry)}
-                          aria-label="تعديل"
+                          aria-label="عرض"
                         >
-                          <Edit className="h-4 w-4 text-primary" />
+                          <FileText className="h-4 w-4 text-muted-foreground" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleApproveEntry(entry.id)}
-                          aria-label="اعتماد"
-                        >
-                          <FileText className="h-4 w-4 text-green-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDelete(entry.id)}
-                          aria-label="حذف"
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                    {entry.is_approved && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(entry)}
-                        aria-label="عرض"
-                      >
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
+                  لا توجد نتائج تطابق معايير البحث
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
       {filteredEntries.length === 0 && (
-        <div className="text-center py-4 text-muted-foreground">
+        <div className="text-center py-4 text-muted-foreground md:hidden">
           لا توجد نتائج تطابق معايير البحث
         </div>
       )}
