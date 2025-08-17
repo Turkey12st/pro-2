@@ -10,6 +10,7 @@ import { IntegratedDashboardStats } from "@/components/dashboard/IntegratedDashb
 import { CompactNotificationsPanel } from "@/components/dashboard/CompactNotificationsPanel";
 import { FinancialMetricsCard } from "@/components/dashboard/FinancialMetricsCard";
 import { ModernDashboard } from "@/components/dashboard/ModernDashboard";
+import { ProfessionalDashboard } from "@/components/dashboard/ProfessionalDashboard";
 
 // Security enhancement: Route validation
 const VALID_ROUTES = ['/hr', '/projects', '/documents', '/financial', '/partners'];
@@ -61,8 +62,8 @@ export default function DashboardPage() {
   return (
     <AutoSaveProvider>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        {/* Modern Dashboard */}
-        <ModernDashboard onKPIClick={handleStatClick} />
+        {/* Professional Analytics Dashboard */}
+        <ProfessionalDashboard onKPIClick={handleStatClick} />
         
         {/* Legacy Components (Hidden by default, can be toggled) */}
         <div className="hidden">
