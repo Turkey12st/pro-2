@@ -2116,6 +2116,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      create_api_integration: {
+        Args: {
+          integration_active?: boolean
+          integration_api_key?: string
+          integration_config?: string
+          integration_endpoint: string
+          integration_events?: string[]
+          integration_headers?: string
+          integration_name: string
+          integration_type: string
+        }
+        Returns: string
+      }
       create_employee_accounts: {
         Args: { emp_id: string; emp_name: string }
         Returns: undefined
@@ -2149,9 +2162,34 @@ export type Database = {
           title: string
         }[]
       }
+      get_api_integrations: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          api_key_encrypted: string
+          configuration: Json
+          created_at: string
+          endpoint: string
+          events: string[]
+          headers: Json
+          id: string
+          is_active: boolean
+          last_sync: string
+          name: string
+          type: string
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_integration_stats: {
+        Args: { integration_id: string }
+        Returns: {
+          failedrequests: number
+          lastsync: string
+          successfulrequests: number
+          totalrequests: number
+        }[]
       }
       get_journal_entry_attachment: {
         Args: { p_entry_id: string }
@@ -2165,6 +2203,15 @@ export type Database = {
         Args: { _role: string }
         Returns: boolean
       }
+      log_integration_error: {
+        Args: {
+          error_msg: string
+          event_name: string
+          integration_id: string
+          payload_data: string
+        }
+        Returns: undefined
+      }
       reset_journal_entry_attachment: {
         Args: { p_entry_id: string }
         Returns: undefined
@@ -2175,6 +2222,10 @@ export type Database = {
       }
       update_company_name: {
         Args: { p_company_id: string; p_new_name: string }
+        Returns: undefined
+      }
+      update_integration_sync: {
+        Args: { integration_id: string; sync_time: string }
         Returns: undefined
       }
       update_journal_entry_attachment: {

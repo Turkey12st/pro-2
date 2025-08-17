@@ -7,6 +7,7 @@ import { TaskScheduler } from "@/components/settings/TaskScheduler";
 import { LoanCalculator } from "@/components/settings/LoanCalculator";
 import { BusinessPlanner } from "@/components/settings/BusinessPlanner";
 import { ActivityLog } from "@/components/settings/ActivityLog";
+import { APIIntegrationManager } from "@/components/settings/APIIntegrationManager";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("task-scheduler");
@@ -21,7 +22,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-2 lg:grid-cols-4 h-auto">
+        <TabsList className="grid grid-cols-2 lg:grid-cols-5 h-auto">
           <TabsTrigger value="task-scheduler" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
             <CalendarClock className="h-4 w-4 ml-2" />
             جدولة المهام
@@ -38,6 +39,10 @@ export default function SettingsPage() {
             <ClipboardList className="h-4 w-4 ml-2" />
             سجل الأنشطة
           </TabsTrigger>
+          <TabsTrigger value="api-integrations" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+            <Settings className="h-4 w-4 ml-2" />
+            تكاملات API
+          </TabsTrigger>
         </TabsList>
 
         <Card>
@@ -47,12 +52,14 @@ export default function SettingsPage() {
               {activeTab === "loan-calculator" && "حاسبة القروض"}
               {activeTab === "business-planner" && "مخطط الأعمال"}
               {activeTab === "activity-log" && "سجل الأنشطة"}
+              {activeTab === "api-integrations" && "تكاملات API"}
             </CardTitle>
             <CardDescription>
               {activeTab === "task-scheduler" && "جدولة وإدارة المهام الدورية والتذكيرات"}
               {activeTab === "loan-calculator" && "حساب أقساط القروض والتمويلات"}
               {activeTab === "business-planner" && "تخطيط الأعمال ووضع الأهداف"}
               {activeTab === "activity-log" && "متابعة أنشطة النظام والمستخدمين"}
+              {activeTab === "api-integrations" && "إعداد ربط n8n وZapier وWebhooks"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -67,6 +74,9 @@ export default function SettingsPage() {
             </TabsContent>
             <TabsContent value="activity-log" className="mt-0">
               <ActivityLog />
+            </TabsContent>
+            <TabsContent value="api-integrations" className="mt-0">
+              <APIIntegrationManager />
             </TabsContent>
           </CardContent>
         </Card>

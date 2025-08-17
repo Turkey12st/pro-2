@@ -26,7 +26,7 @@ export class APIIntegrationService {
   static async saveIntegration(config: Omit<APIIntegrationConfig, 'id'>): Promise<string> {
     try {
       // استخدام SQL مباشر للتعامل مع الجدول الجديد
-      const { data, error } = await supabase.rpc('create_api_integration', {
+      const { data, error } = await (supabase as any).rpc('create_api_integration', {
         integration_name: config.name,
         integration_type: config.type,
         integration_endpoint: config.endpoint,
@@ -38,7 +38,7 @@ export class APIIntegrationService {
       });
 
       if (error) throw error;
-      return data;
+      return (data as string);
     } catch (error) {
       console.error('خطأ في حفظ إعدادات التكامل:', error);
       throw error;
@@ -49,11 +49,13 @@ export class APIIntegrationService {
   static async getIntegrations(): Promise<APIIntegrationConfig[]> {
     try {
       // استخدام SQL مباشر للوصول للجدول الجديد
-      const { data, error } = await supabase.rpc('get_api_integrations');
+      const { data, error } = await (supabase as any).rpc('get_api_integrations');
 
       if (error) throw error;
 
-      return (data || []).map((item: any) => ({
+      const rows = (data as any[]) || [];
+
+      return rows.map((item: any) => ({
         id: item.id,
         name: item.name,
         type: item.type,
@@ -132,7 +134,7 @@ export class APIIntegrationService {
       }
 
       // تحديث وقت آخر مزامنة
-      await supabase.rpc('update_integration_sync', {
+      await (supabase as any).rpc('update_integration_sync', {
         integration_id: integration.id,
         sync_time: new Date().toISOString()
       });
@@ -143,7 +145,7 @@ export class APIIntegrationService {
       console.error(`خطأ في إرسال البيانات إلى ${integration.name}:`, error);
       
       // تسجيل الخطأ
-      await supabase.rpc('log_integration_error', {
+      await (supabase as any).rpc('log_integration_error', {
         integration_id: integration.id,
         event_name: payload.event,
         error_msg: error instanceof Error ? error.message : 'Unknown error',
@@ -252,13 +254,15 @@ export class APIIntegrationService {
     lastSync: string | null;
   }> {
     try {
-      const { data, error } = await supabase.rpc('get_integration_stats', {
+      const { data, error } = await (supabase as any).rpc('get_integration_stats', {
         integration_id: integrationId
       });
 
       if (error) throw error;
 
-      return data || {
+      const stats = (data as any) || null;
+
+      return stats || {
         totalRequests: 0,
         successfulRequests: 0,
         failedRequests: 0,

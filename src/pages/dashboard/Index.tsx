@@ -8,6 +8,7 @@ import { QuickNavMenu } from "@/components/dashboard/QuickNavMenu";
 import { AutoSaveProvider } from "@/components/dashboard/AutoSaveProvider";
 import { IntegratedDashboardStats } from "@/components/dashboard/IntegratedDashboardStats";
 import { CompactNotificationsPanel } from "@/components/dashboard/CompactNotificationsPanel";
+import { FinancialMetricsCard } from "@/components/dashboard/FinancialMetricsCard";
 
 // Security enhancement: Route validation
 const VALID_ROUTES = ['/hr', '/projects', '/documents', '/financial', '/partners'];
@@ -73,6 +74,11 @@ export default function DashboardPage() {
           {/* لوحة التنبيهات المدمجة */}
           <div className="w-full">
             <CompactNotificationsPanel />
+          </div>
+
+          {/* المؤشرات المالية المتقدمة */}
+          <div className="w-full">
+            <FinancialMetricsCard />
           </div>
 
           {/* لوحة التحكم الشاملة */}
