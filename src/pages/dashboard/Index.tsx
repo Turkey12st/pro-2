@@ -9,6 +9,7 @@ import { AutoSaveProvider } from "@/components/dashboard/AutoSaveProvider";
 import { IntegratedDashboardStats } from "@/components/dashboard/IntegratedDashboardStats";
 import { CompactNotificationsPanel } from "@/components/dashboard/CompactNotificationsPanel";
 import { FinancialMetricsCard } from "@/components/dashboard/FinancialMetricsCard";
+import { ModernDashboard } from "@/components/dashboard/ModernDashboard";
 
 // Security enhancement: Route validation
 const VALID_ROUTES = ['/hr', '/projects', '/documents', '/financial', '/partners'];
@@ -59,31 +60,39 @@ export default function DashboardPage() {
 
   return (
     <AutoSaveProvider>
-      <div className="min-h-screen max-w-full mx-auto space-y-4 p-2 sm:p-4">
-        <div className="flex justify-end items-center mb-4">
-          <QuickNavMenu />
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        {/* Modern Dashboard */}
+        <ModernDashboard onKPIClick={handleStatClick} />
+        
+        {/* Legacy Components (Hidden by default, can be toggled) */}
+        <div className="hidden">
+          <div className="max-w-full mx-auto space-y-4 p-2 sm:p-4">
+            <div className="flex justify-end items-center mb-4">
+              <QuickNavMenu />
+            </div>
 
-        {/* Main Content Area - Single Column Layout */}
-        <div className="space-y-4">
-          {/* مؤشرات الأداء الأساسية */}
-          <div className="w-full">
-            <IntegratedDashboardStats onStatClick={handleStatClick} />
-          </div>
+            {/* Main Content Area - Single Column Layout */}
+            <div className="space-y-4">
+              {/* مؤشرات الأداء الأساسية */}
+              <div className="w-full">
+                <IntegratedDashboardStats onStatClick={handleStatClick} />
+              </div>
 
-          {/* لوحة التنبيهات المدمجة */}
-          <div className="w-full">
-            <CompactNotificationsPanel />
-          </div>
+              {/* لوحة التنبيهات المدمجة */}
+              <div className="w-full">
+                <CompactNotificationsPanel />
+              </div>
 
-          {/* المؤشرات المالية المتقدمة */}
-          <div className="w-full">
-            <FinancialMetricsCard />
-          </div>
+              {/* المؤشرات المالية المتقدمة */}
+              <div className="w-full">
+                <FinancialMetricsCard />
+              </div>
 
-          {/* لوحة التحكم الشاملة */}
-          <div className="w-full">
-            <ERPDashboard />
+              {/* لوحة التحكم الشاملة */}
+              <div className="w-full">
+                <ERPDashboard />
+              </div>
+            </div>
           </div>
         </div>
       </div>
