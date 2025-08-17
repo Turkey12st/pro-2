@@ -2,7 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users2, Calculator } from "lucide-react";
 import { EmployeeCostCalculator } from "@/components/hr/EmployeeCalculator";
-import EmployeeList from "@/components/hr/EmployeeList";
+import EnhancedEmployeeList from "@/components/hr/EnhancedEmployeeList";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 interface HRTabsContentProps {
@@ -30,7 +30,7 @@ export function HRTabsContent({
       </TabsList>
       <TabsContent value="list" className="space-y-4">
         <QueryClientProvider client={queryClient}>
-          <EmployeeList />
+          <EnhancedEmployeeList />
         </QueryClientProvider>
       </TabsContent>
       <TabsContent value="calculator">
