@@ -29,8 +29,8 @@ interface CustomPermission {
   granted_at: string;
   expires_at?: string;
   is_active: boolean;
-  user_email?: string;
-  granted_by_email?: string;
+  userEmail?: string;
+  grantedByEmail?: string;
 }
 
 export function PermissionManagementPanel() {
@@ -53,32 +53,39 @@ export function PermissionManagementPanel() {
   }, []);
 
   const loadPermissions = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
+      // First get permissions
+      const { data: permissionsData, error: permissionsError } = await supabase
         .from('custom_permissions')
-        .select(`
-          *,
-          user:user_id(email),
-          granted_by_user:granted_by(email)
-        `)
+        .select('*')
         .order('granted_at', { ascending: false });
 
-      if (error) throw error;
+      if (permissionsError) throw permissionsError;
 
-      const permissionsWithEmails = data?.map(permission => ({
+      // Then get user emails separately
+      const userIds = [...new Set([
+        ...permissionsData?.map(p => p.user_id).filter(Boolean) || [],
+        ...permissionsData?.map(p => p.granted_by).filter(Boolean) || []
+      ])];
+
+      const { data: usersData } = await supabase.auth.admin.listUsers();
+      const userEmailMap = new Map<string, string>(
+        usersData.users.map((user): [string, string] => [user.id, user.email || ''])
+      );
+
+      const enrichedPermissions: CustomPermission[] = permissionsData?.map(permission => ({
         ...permission,
-        user_email: permission.user?.email,
-        granted_by_email: permission.granted_by_user?.email
+        userEmail: userEmailMap.get(permission.user_id) || 'غير محدد',
+        grantedByEmail: userEmailMap.get(permission.granted_by) || 'النظام'
       })) || [];
 
-      setPermissions(permissionsWithEmails);
+      setPermissions(enrichedPermissions);
     } catch (error) {
-      console.error('خطأ في تحميل الأذونات:', error);
+      console.error('Error loading permissions:', error);
       toast({
-        title: 'خطأ في تحميل الأذونات',
-        description: 'حدث خطأ أثناء تحميل الأذونات المخصصة',
+        title: 'خطأ',
+        description: 'فشل في تحميل الأذونات',
         variant: 'destructive',
       });
     } finally {
@@ -95,7 +102,7 @@ export function PermissionManagementPanel() {
       
       if (usersError) throw usersError;
       
-      const targetUser = users.find(user => user.email === formData.userEmail);
+      const targetUser = users.find((user: any) => user.email === formData.userEmail);
       
       if (!targetUser) {
         toast({
@@ -309,7 +316,7 @@ export function PermissionManagementPanel() {
                           <User className="h-4 w-4" />
                           <div>
                             <div className="font-medium">
-                              {permission.user_email}
+                              {permission.userEmail}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {permission.user_id.substring(0, 8)}...
@@ -340,7 +347,7 @@ export function PermissionManagementPanel() {
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm">
                           <Shield className="h-4 w-4" />
-                          {permission.granted_by_email}
+                          {permission.grantedByEmail}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -360,7 +367,7 @@ export function PermissionManagementPanel() {
                             onClick={() => {
                               setSelectedPermission(permission);
                               setFormData({
-                                userEmail: permission.user_email || '',
+                                userEmail: permission.userEmail || '',
                                 permissionType: permission.permission_type,
                                 expiresAt: permission.expires_at ? 
                                   new Date(permission.expires_at).toISOString().split('T')[0] : '',

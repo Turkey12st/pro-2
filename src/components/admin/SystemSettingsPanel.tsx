@@ -120,10 +120,23 @@ export function SystemSettingsPanel() {
       }
 
       if (data?.preferences) {
-        setSettings(prevSettings => ({
-          ...prevSettings,
-          ...data.preferences
-        }));
+        const preferences = data.preferences as Partial<SystemSettings>;
+        setSettings(prevSettings => {
+          const updatedSettings = { ...prevSettings };
+          if (preferences.general) {
+            updatedSettings.general = { ...updatedSettings.general, ...preferences.general };
+          }
+          if (preferences.security) {
+            updatedSettings.security = { ...updatedSettings.security, ...preferences.security };
+          }
+          if (preferences.notifications) {
+            updatedSettings.notifications = { ...updatedSettings.notifications, ...preferences.notifications };
+          }
+          if (preferences.email) {
+            updatedSettings.email = { ...updatedSettings.email, ...preferences.email };
+          }
+          return updatedSettings;
+        });
       }
     } catch (error) {
       console.error('خطأ في تحميل الإعدادات:', error);
@@ -148,7 +161,7 @@ export function SystemSettingsPanel() {
         .from('system_preferences')
         .upsert({
           user_id: user.id,
-          preferences: settings,
+          preferences: settings as any,
           updated_at: new Date().toISOString()
         });
 
@@ -181,13 +194,16 @@ export function SystemSettingsPanel() {
   };
 
   const updateSetting = (section: keyof SystemSettings, key: string, value: any) => {
-    setSettings(prevSettings => ({
-      ...prevSettings,
-      [section]: {
-        ...prevSettings[section],
-        [key]: value
-      }
-    }));
+    setSettings(prev => {
+      const currentSection = prev[section] || {};
+      return {
+        ...prev,
+        [section]: {
+          ...currentSection,
+          [key]: value
+        }
+      };
+    });
   };
 
   const updateNestedSetting = (section: keyof SystemSettings, nestedKey: string, key: string, value: any) => {

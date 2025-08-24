@@ -12,6 +12,7 @@ import {
   Building2,
   TrendingUp,
   Home,
+  Shield,
 } from "lucide-react";
 import { MenuItem } from "@/types/navigation";
 
@@ -93,6 +94,12 @@ export function getNavigationMenu(): MenuItem[] {
       name: "الإعدادات",
       href: "/settings",
       icon: Settings,
+      group: "إدارة النظام"
+    },
+    {
+      name: "لوحة الإدارة",
+      href: "/admin",
+      icon: Shield,
       group: "إدارة النظام"
     }
   ];

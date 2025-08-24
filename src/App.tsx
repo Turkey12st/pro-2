@@ -12,6 +12,7 @@ import ClientsPage from "./pages/clients/Index";
 import CompanyPage from "./pages/company/Index";
 import PartnersPage from "./pages/partners/Index";
 import SettingsPage from "./pages/settings/Index";
+import AdminPage from "./pages/admin/Index";
 import NotFound from "./pages/NotFound";
 import CapitalManagementPage from "./pages/capital/Index";
 import CalendarPage from "./pages/calendar/Index";
@@ -38,6 +39,7 @@ function App() {
         <Route path="/company" element={<CompanyPage />} />
         <Route path="/partners" element={<PartnersPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -76,7 +76,12 @@ export function SecurityAuditPanel() {
 
       if (logsError) throw logsError;
 
-      setAuditLogs(logs || []);
+      const formattedLogs = (logs || []).map(log => ({
+        ...log,
+        ip_address: log.ip_address ? String(log.ip_address) : 'غير محدد'
+      }));
+      
+      setAuditLogs(formattedLogs);
 
       // حساب المقاييس
       const totalEvents = logs?.length || 0;

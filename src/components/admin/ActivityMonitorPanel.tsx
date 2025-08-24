@@ -147,16 +147,16 @@ export function ActivityMonitorPanel() {
     return actionNames[action as keyof typeof actionNames] || action;
   };
 
-  const getActionBadgeVariant = (action: string) => {
+  const getActionBadgeVariant = (action: string): "default" | "destructive" | "secondary" | "outline" | "success" | "warning" => {
     const variants = {
-      'INSERT': 'default',
-      'UPDATE': 'secondary',
+      'INSERT': 'success',
+      'UPDATE': 'warning', 
       'DELETE': 'destructive',
       'SELECT': 'outline',
       'login': 'default',
       'logout': 'secondary'
     };
-    return variants[action as keyof typeof variants] || 'outline' as const;
+    return (variants[action as keyof typeof variants] || 'outline') as "default" | "destructive" | "secondary" | "outline" | "success" | "warning";
   };
 
   const getResourceDisplayName = (resourceType: string) => {

@@ -165,7 +165,7 @@ export function UserManagementPanel() {
     return roleNames[role as keyof typeof roleNames] || role;
   };
 
-  const getRoleBadgeVariant = (role: string) => {
+  const getRoleBadgeVariant = (role: string): "default" | "destructive" | "secondary" | "outline" | "success" | "warning" => {
     const variants = {
       admin: 'destructive',
       hr_manager: 'default',
@@ -174,7 +174,7 @@ export function UserManagementPanel() {
       department_manager: 'secondary',
       employee: 'outline'
     };
-    return variants[role as keyof typeof variants] || 'outline' as const;
+    return (variants[role as keyof typeof variants] || 'outline') as "default" | "destructive" | "secondary" | "outline" | "success" | "warning";
   };
 
   return (
