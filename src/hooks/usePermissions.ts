@@ -20,11 +20,28 @@ export function usePermissions() {
         return;
       }
 
-      // في هذا المثال، سنستخدم metadata المستخدم لتحديد الدور
-      // يمكن تطوير هذا ليكون من جدول منفصل في المستقبل
-      const role = (user.user_metadata?.role as UserRole) || 'employee';
+      // جلب دور المستخدم من جدول user_roles
+      const { data: userRole, error } = await supabase
+        .from('user_roles')
+        .select('role, permissions')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+      }
+
+      const role = (userRole?.role as UserRole) || 'employee';
       setUserRole(role);
-      setPermissions(DEFAULT_ROLE_PERMISSIONS[role] || []);
+      
+      // دمج الأذونات الافتراضية مع الأذونات المخصصة
+      const defaultPermissions = DEFAULT_ROLE_PERMISSIONS[role] || [];
+      const customPermissions = Array.isArray(userRole?.permissions) 
+        ? userRole.permissions.filter((p): p is Permission => typeof p === 'string')
+        : [];
+      
+      const allPermissions = [...new Set([...defaultPermissions, ...customPermissions])];
+      setPermissions(allPermissions);
     } catch (error) {
       console.error('Error loading user permissions:', error);
     } finally {
