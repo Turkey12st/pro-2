@@ -176,6 +176,47 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance_files: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          employee_id: string | null
+          file_name: string
+          file_url: string
+          id: string
+          processed: boolean | null
+          upload_date: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          employee_id?: string | null
+          file_name: string
+          file_url: string
+          id?: string
+          processed?: boolean | null
+          upload_date?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          employee_id?: string | null
+          file_name?: string
+          file_url?: string
+          id?: string
+          processed?: boolean | null
+          upload_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_files_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_records: {
         Row: {
           approved_by: string | null
@@ -345,9 +386,11 @@ export type Database = {
           available_capital: number
           created_at: string
           fiscal_year: number
+          last_movement_date: string | null
           last_updated: string
           notes: string | null
           reserved_capital: number
+          start_date: string | null
           total_capital: number
           turnover_rate: number | null
         }
@@ -355,9 +398,11 @@ export type Database = {
           available_capital: number
           created_at?: string
           fiscal_year: number
+          last_movement_date?: string | null
           last_updated?: string
           notes?: string | null
           reserved_capital: number
+          start_date?: string | null
           total_capital: number
           turnover_rate?: number | null
         }
@@ -365,11 +410,52 @@ export type Database = {
           available_capital?: number
           created_at?: string
           fiscal_year?: number
+          last_movement_date?: string | null
           last_updated?: string
           notes?: string | null
           reserved_capital?: number
+          start_date?: string | null
           total_capital?: number
           turnover_rate?: number | null
+        }
+        Relationships: []
+      }
+      capital_movements: {
+        Row: {
+          amount: number
+          approved_by: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          documents: Json | null
+          id: string
+          movement_date: string | null
+          movement_type: string
+          reason: string
+        }
+        Insert: {
+          amount: number
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          documents?: Json | null
+          id?: string
+          movement_date?: string | null
+          movement_type: string
+          reason: string
+        }
+        Update: {
+          amount?: number
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          documents?: Json | null
+          id?: string
+          movement_date?: string | null
+          movement_type?: string
+          reason?: string
         }
         Relationships: []
       }
@@ -1165,6 +1251,50 @@ export type Database = {
         }
         Relationships: []
       }
+      gosi_integration: {
+        Row: {
+          api_response: Json | null
+          created_at: string | null
+          employee_id: string | null
+          gosi_number: string | null
+          id: string
+          last_sync: string | null
+          subscription_date: string | null
+          sync_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_response?: Json | null
+          created_at?: string | null
+          employee_id?: string | null
+          gosi_number?: string | null
+          id?: string
+          last_sync?: string | null
+          subscription_date?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_response?: Json | null
+          created_at?: string | null
+          employee_id?: string | null
+          gosi_number?: string | null
+          id?: string
+          last_sync?: string | null
+          subscription_date?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gosi_integration_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       government_fees: {
         Row: {
           amount: number
@@ -1505,6 +1635,39 @@ export type Database = {
           status?: string
           title?: string
           type?: string
+        }
+        Relationships: []
+      }
+      partner_capital_distribution: {
+        Row: {
+          calculation_date: string | null
+          capital_amount: number
+          created_at: string | null
+          fiscal_year: number | null
+          id: string
+          ownership_percentage: number
+          partner_name: string
+          share_count: number | null
+        }
+        Insert: {
+          calculation_date?: string | null
+          capital_amount: number
+          created_at?: string | null
+          fiscal_year?: number | null
+          id?: string
+          ownership_percentage: number
+          partner_name: string
+          share_count?: number | null
+        }
+        Update: {
+          calculation_date?: string | null
+          capital_amount?: number
+          created_at?: string | null
+          fiscal_year?: number | null
+          id?: string
+          ownership_percentage?: number
+          partner_name?: string
+          share_count?: number | null
         }
         Relationships: []
       }
@@ -1941,6 +2104,7 @@ export type Database = {
       }
       salary_records: {
         Row: {
+          allowances: Json | null
           base_salary: number
           created_at: string
           deductions: Json | null
@@ -1948,13 +2112,17 @@ export type Database = {
           gosi_subscription: number | null
           housing_allowance: number | null
           id: string
+          net_salary: number | null
           other_allowances: Json | null
           payment_date: string
+          payslip_url: string | null
           status: string | null
+          tax_amount: number | null
           total_salary: number
           transportation_allowance: number | null
         }
         Insert: {
+          allowances?: Json | null
           base_salary: number
           created_at?: string
           deductions?: Json | null
@@ -1962,13 +2130,17 @@ export type Database = {
           gosi_subscription?: number | null
           housing_allowance?: number | null
           id?: string
+          net_salary?: number | null
           other_allowances?: Json | null
           payment_date: string
+          payslip_url?: string | null
           status?: string | null
+          tax_amount?: number | null
           total_salary: number
           transportation_allowance?: number | null
         }
         Update: {
+          allowances?: Json | null
           base_salary?: number
           created_at?: string
           deductions?: Json | null
@@ -1976,9 +2148,12 @@ export type Database = {
           gosi_subscription?: number | null
           housing_allowance?: number | null
           id?: string
+          net_salary?: number | null
           other_allowances?: Json | null
           payment_date?: string
+          payslip_url?: string | null
           status?: string | null
+          tax_amount?: number | null
           total_salary?: number
           transportation_allowance?: number | null
         }
@@ -2139,6 +2314,166 @@ export type Database = {
           permissions?: Json | null
           role?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      vacation_balance: {
+        Row: {
+          annual_days_remaining: number | null
+          annual_days_total: number | null
+          annual_days_used: number | null
+          created_at: string | null
+          emergency_days_remaining: number | null
+          emergency_days_total: number | null
+          emergency_days_used: number | null
+          employee_id: string | null
+          id: string
+          last_calculation_date: string | null
+          sick_days_remaining: number | null
+          sick_days_total: number | null
+          sick_days_used: number | null
+          updated_at: string | null
+          year: number | null
+        }
+        Insert: {
+          annual_days_remaining?: number | null
+          annual_days_total?: number | null
+          annual_days_used?: number | null
+          created_at?: string | null
+          emergency_days_remaining?: number | null
+          emergency_days_total?: number | null
+          emergency_days_used?: number | null
+          employee_id?: string | null
+          id?: string
+          last_calculation_date?: string | null
+          sick_days_remaining?: number | null
+          sick_days_total?: number | null
+          sick_days_used?: number | null
+          updated_at?: string | null
+          year?: number | null
+        }
+        Update: {
+          annual_days_remaining?: number | null
+          annual_days_total?: number | null
+          annual_days_used?: number | null
+          created_at?: string | null
+          emergency_days_remaining?: number | null
+          emergency_days_total?: number | null
+          emergency_days_used?: number | null
+          employee_id?: string | null
+          id?: string
+          last_calculation_date?: string | null
+          sick_days_remaining?: number | null
+          sick_days_total?: number | null
+          sick_days_used?: number | null
+          updated_at?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacation_balance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vacation_requests: {
+        Row: {
+          approved_by: string | null
+          approved_date: string | null
+          created_at: string | null
+          days_count: number
+          employee_id: string | null
+          end_date: string
+          id: string
+          notes: string | null
+          reason: string | null
+          start_date: string
+          status: string | null
+          updated_at: string | null
+          vacation_type: string
+        }
+        Insert: {
+          approved_by?: string | null
+          approved_date?: string | null
+          created_at?: string | null
+          days_count: number
+          employee_id?: string | null
+          end_date: string
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          start_date: string
+          status?: string | null
+          updated_at?: string | null
+          vacation_type: string
+        }
+        Update: {
+          approved_by?: string | null
+          approved_date?: string | null
+          created_at?: string | null
+          days_count?: number
+          employee_id?: string | null
+          end_date?: string
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          start_date?: string
+          status?: string | null
+          updated_at?: string | null
+          vacation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacation_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      violation_types: {
+        Row: {
+          category: string
+          created_at: string | null
+          deduction_percentage: number | null
+          first_violation_penalty: string | null
+          id: string
+          is_active: boolean | null
+          legal_reference: string | null
+          second_violation_penalty: string | null
+          severity_level: number | null
+          third_violation_penalty: string | null
+          violation_name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          deduction_percentage?: number | null
+          first_violation_penalty?: string | null
+          id?: string
+          is_active?: boolean | null
+          legal_reference?: string | null
+          second_violation_penalty?: string | null
+          severity_level?: number | null
+          third_violation_penalty?: string | null
+          violation_name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          deduction_percentage?: number | null
+          first_violation_penalty?: string | null
+          id?: string
+          is_active?: boolean | null
+          legal_reference?: string | null
+          second_violation_penalty?: string | null
+          severity_level?: number | null
+          third_violation_penalty?: string | null
+          violation_name?: string
         }
         Relationships: []
       }

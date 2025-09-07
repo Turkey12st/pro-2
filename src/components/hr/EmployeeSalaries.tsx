@@ -37,7 +37,6 @@ export function EmployeeSalaries({ employeeId, employee }: EmployeeSalariesProps
     placeholderData: employee ? () => {
       if (!employee) return [];
       
-      // إنشاء بيانات افتراضية لعرض مثال للمستخدم
       const currentDate = new Date();
       const lastMonth = new Date(currentDate);
       lastMonth.setMonth(currentDate.getMonth() - 1);
@@ -48,42 +47,51 @@ export function EmployeeSalaries({ employeeId, employee }: EmployeeSalariesProps
       return [
         {
           id: "1",
-          employee_id: employeeId,
+          employee_id: employeeId!,
           base_salary: employee.baseSalary,
           housing_allowance: employee.housingAllowance,
           transportation_allowance: employee.transportationAllowance,
-          other_allowances: employee.otherAllowances,
-          deductions: [{name: "التأمينات الاجتماعية", amount: employee.employeeGosiContribution || 0}],
-          gosi_subscription: employee.gosiSubscription || 0, // Added this field
+          allowances: employee.otherAllowances as any,
+          deductions: [{name: "التأمينات الاجتماعية", amount: employee.employeeGosiContribution || 0}] as any,
+          gosi_subscription: employee.gosiSubscription || 0,
           total_salary: employee.salary,
+          net_salary: employee.salary - (employee.employeeGosiContribution || 0),
+          tax_amount: 0,
+          payslip_url: null,
           payment_date: currentDate.toISOString(),
           status: "pending",
           created_at: currentDate.toISOString(),
         },
         {
           id: "2",
-          employee_id: employeeId,
+          employee_id: employeeId!,
           base_salary: employee.baseSalary,
           housing_allowance: employee.housingAllowance,
           transportation_allowance: employee.transportationAllowance,
-          other_allowances: employee.otherAllowances,
-          deductions: [{name: "التأمينات الاجتماعية", amount: employee.employeeGosiContribution || 0}],
-          gosi_subscription: employee.gosiSubscription || 0, // Added this field
+          allowances: employee.otherAllowances as any,
+          deductions: [{name: "التأمينات الاجتماعية", amount: employee.employeeGosiContribution || 0}] as any,
+          gosi_subscription: employee.gosiSubscription || 0,
           total_salary: employee.salary,
+          net_salary: employee.salary - (employee.employeeGosiContribution || 0),
+          tax_amount: 0,
+          payslip_url: null,
           payment_date: lastMonth.toISOString(),
           status: "paid",
           created_at: lastMonth.toISOString(),
         },
         {
           id: "3",
-          employee_id: employeeId,
+          employee_id: employeeId!,
           base_salary: employee.baseSalary,
           housing_allowance: employee.housingAllowance,
           transportation_allowance: employee.transportationAllowance,
-          other_allowances: employee.otherAllowances,
-          deductions: [{name: "التأمينات الاجتماعية", amount: employee.employeeGosiContribution || 0}],
-          gosi_subscription: employee.gosiSubscription || 0, // Added this field
+          allowances: employee.otherAllowances as any,
+          deductions: [{name: "التأمينات الاجتماعية", amount: employee.employeeGosiContribution || 0}] as any,
+          gosi_subscription: employee.gosiSubscription || 0,
           total_salary: employee.salary,
+          net_salary: employee.salary - (employee.employeeGosiContribution || 0),
+          tax_amount: 0,
+          payslip_url: null,
           payment_date: twoMonthsAgo.toISOString(),
           status: "paid",
           created_at: twoMonthsAgo.toISOString(),
