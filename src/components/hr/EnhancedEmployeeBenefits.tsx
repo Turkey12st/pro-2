@@ -19,24 +19,23 @@ interface EnhancedEmployeeBenefitsProps {
 interface Benefit {
   id: string;
   benefit_type: string;
-  benefit_name: string;
   amount: number;
-  is_active: boolean;
-  start_date: string;
-  end_date?: string;
-  description?: string;
+  date: string;
+  notes?: string;
+  status: string;
   created_at: string;
+  employee_id?: string;
+  created_by?: string;
 }
 
 export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefitsProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newBenefit, setNewBenefit] = useState({
     benefit_type: '',
-    benefit_name: '',
     amount: 0,
-    start_date: new Date().toISOString().split('T')[0],
-    end_date: '',
-    description: ''
+    date: new Date().toISOString().split('T')[0],
+    notes: '',
+    status: 'active'
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -47,10 +46,10 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
       if (!employeeId) return [];
       
       const { data, error } = await supabase
-        .from("employee_benefits")
+        .from("employee_deductions")
         .select("*")
         .eq("employee_id", employeeId)
-        .eq("is_active", true)
+        .eq("status", "active")
         .order("created_at", { ascending: false });
         
       if (error) throw error;
@@ -72,7 +71,7 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
   ];
 
   const handleAddBenefit = async () => {
-    if (!employeeId || !newBenefit.benefit_name || !newBenefit.amount) {
+    if (!employeeId || !newBenefit.amount) {
       toast({
         title: "خطأ في البيانات",
         description: "يرجى ملء جميع الحقول المطلوبة",
@@ -83,15 +82,14 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
 
     try {
       const { error } = await supabase
-        .from('employee_benefits')
+        .from('employee_deductions')
         .insert({
           employee_id: employeeId,
           benefit_type: newBenefit.benefit_type,
-          benefit_name: newBenefit.benefit_name,
           amount: newBenefit.amount,
-          start_date: newBenefit.start_date,
-          end_date: newBenefit.end_date || null,
-          description: newBenefit.description
+          date: newBenefit.date,
+          notes: newBenefit.notes,
+          status: newBenefit.status
         });
 
       if (error) throw error;
@@ -104,11 +102,10 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
       setIsAddDialogOpen(false);
       setNewBenefit({
         benefit_type: '',
-        benefit_name: '',
         amount: 0,
-        start_date: new Date().toISOString().split('T')[0],
-        end_date: '',
-        description: ''
+        date: new Date().toISOString().split('T')[0],
+        notes: '',
+        status: 'active'
       });
 
       queryClient.invalidateQueries({ queryKey: ["employee-benefits", employeeId] });
@@ -124,8 +121,8 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
   const handleRemoveBenefit = async (benefitId: string) => {
     try {
       const { error } = await supabase
-        .from('employee_benefits')
-        .update({ is_active: false })
+        .from('employee_deductions')
+        .update({ status: 'inactive' })
         .eq('id', benefitId);
 
       if (error) throw error;
@@ -182,10 +179,10 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
                 </Select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">اسم الميزة</label>
+                <label className="block text-sm font-medium mb-2">ملاحظات</label>
                 <Input
-                  value={newBenefit.benefit_name}
-                  onChange={(e) => setNewBenefit({...newBenefit, benefit_name: e.target.value})}
+                  value={newBenefit.notes}
+                  onChange={(e) => setNewBenefit({...newBenefit, notes: e.target.value})}
                   placeholder="مثال: مكافأة الأداء المتميز"
                 />
               </div>
@@ -199,27 +196,11 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">تاريخ البداية</label>
+                <label className="block text-sm font-medium mb-2">التاريخ</label>
                 <Input
                   type="date"
-                  value={newBenefit.start_date}
-                  onChange={(e) => setNewBenefit({...newBenefit, start_date: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">تاريخ النهاية (اختياري)</label>
-                <Input
-                  type="date"
-                  value={newBenefit.end_date}
-                  onChange={(e) => setNewBenefit({...newBenefit, end_date: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">الوصف</label>
-                <Input
-                  value={newBenefit.description}
-                  onChange={(e) => setNewBenefit({...newBenefit, description: e.target.value})}
-                  placeholder="وصف الميزة أو سبب الاستحقاق"
+                  value={newBenefit.date}
+                  onChange={(e) => setNewBenefit({...newBenefit, date: e.target.value})}
                 />
               </div>
               <Button onClick={handleAddBenefit} className="w-full">
@@ -235,11 +216,10 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
             <TableHeader>
               <TableRow>
                 <TableHead>النوع</TableHead>
-                <TableHead>اسم الميزة</TableHead>
                 <TableHead>المبلغ</TableHead>
-                <TableHead>تاريخ البداية</TableHead>
-                <TableHead>تاريخ النهاية</TableHead>
-                <TableHead>الوصف</TableHead>
+                <TableHead>التاريخ</TableHead>
+                <TableHead>الحالة</TableHead>
+                <TableHead>الملاحظات</TableHead>
                 <TableHead>الإجراءات</TableHead>
               </TableRow>
             </TableHeader>
@@ -247,13 +227,10 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
               {benefits.map((benefit: Benefit) => (
                 <TableRow key={benefit.id}>
                   <TableCell>{getBenefitTypeLabel(benefit.benefit_type)}</TableCell>
-                  <TableCell>{benefit.benefit_name}</TableCell>
                   <TableCell>{formatSalary(benefit.amount)}</TableCell>
-                  <TableCell>{format(new Date(benefit.start_date), "yyyy/MM/dd")}</TableCell>
-                  <TableCell>
-                    {benefit.end_date ? format(new Date(benefit.end_date), "yyyy/MM/dd") : "مستمرة"}
-                  </TableCell>
-                  <TableCell>{benefit.description || "-"}</TableCell>
+                  <TableCell>{format(new Date(benefit.date), "yyyy/MM/dd")}</TableCell>
+                  <TableCell>{benefit.status}</TableCell>
+                  <TableCell>{benefit.notes || "-"}</TableCell>
                   <TableCell>
                     <Button
                       variant="destructive"
