@@ -64,14 +64,26 @@ export function EnhancedEmployeeSalaries({ employeeId, employee }: EnhancedEmplo
     }
   };
 
-  const calculateTotalAllowances = (allowances: any[]) => {
-    if (!allowances || !Array.isArray(allowances)) return 0;
-    return allowances.reduce((sum, allowance) => sum + (allowance.amount || 0), 0);
+  const calculateTotalAllowances = (allowances: any) => {
+    if (!allowances || (typeof allowances === 'string' && allowances === '[]')) return 0;
+    try {
+      const allowancesArray = typeof allowances === 'string' ? JSON.parse(allowances) : allowances;
+      if (!Array.isArray(allowancesArray)) return 0;
+      return allowancesArray.reduce((sum, allowance) => sum + (allowance.amount || 0), 0);
+    } catch {
+      return 0;
+    }
   };
 
-  const calculateTotalDeductions = (deductions: any[]) => {
-    if (!deductions || !Array.isArray(deductions)) return 0;
-    return deductions.reduce((sum, deduction) => sum + (deduction.amount || 0), 0);
+  const calculateTotalDeductions = (deductions: any) => {
+    if (!deductions || (typeof deductions === 'string' && deductions === '[]')) return 0;
+    try {
+      const deductionsArray = typeof deductions === 'string' ? JSON.parse(deductions) : deductions;
+      if (!Array.isArray(deductionsArray)) return 0;
+      return deductionsArray.reduce((sum, deduction) => sum + (deduction.amount || 0), 0);
+    } catch {
+      return 0;
+    }
   };
 
   const handleDownloadPayslip = (payslipUrl: string) => {
@@ -80,32 +92,46 @@ export function EnhancedEmployeeSalaries({ employeeId, employee }: EnhancedEmplo
     }
   };
 
-  const AllowancesBreakdown = ({ allowances }: { allowances: any[] }) => {
-    if (!allowances || allowances.length === 0) return <span>-</span>;
+  const AllowancesBreakdown = ({ allowances }: { allowances: any }) => {
+    if (!allowances) return <span>-</span>;
     
-    return (
-      <div className="space-y-1">
-        {allowances.map((allowance: any, index: number) => (
-          <div key={index} className="text-xs">
-            <span className="font-medium">{allowance.name}:</span> {formatSalary(allowance.amount)}
-          </div>
-        ))}
-      </div>
-    );
+    try {
+      const allowancesArray = typeof allowances === 'string' ? JSON.parse(allowances) : allowances;
+      if (!Array.isArray(allowancesArray) || allowancesArray.length === 0) return <span>-</span>;
+      
+      return (
+        <div className="space-y-1">
+          {allowancesArray.map((allowance: any, index: number) => (
+            <div key={index} className="text-xs">
+              <span className="font-medium">{allowance.name}:</span> {formatSalary(allowance.amount)}
+            </div>
+          ))}
+        </div>
+      );
+    } catch {
+      return <span>-</span>;
+    }
   };
 
-  const DeductionsBreakdown = ({ deductions }: { deductions: any[] }) => {
-    if (!deductions || deductions.length === 0) return <span>-</span>;
+  const DeductionsBreakdown = ({ deductions }: { deductions: any }) => {
+    if (!deductions) return <span>-</span>;
     
-    return (
-      <div className="space-y-1">
-        {deductions.map((deduction: any, index: number) => (
-          <div key={index} className="text-xs">
-            <span className="font-medium">{deduction.name}:</span> {formatSalary(deduction.amount)}
-          </div>
-        ))}
-      </div>
-    );
+    try {
+      const deductionsArray = typeof deductions === 'string' ? JSON.parse(deductions) : deductions;
+      if (!Array.isArray(deductionsArray) || deductionsArray.length === 0) return <span>-</span>;
+      
+      return (
+        <div className="space-y-1">
+          {deductionsArray.map((deduction: any, index: number) => (
+            <div key={index} className="text-xs">
+              <span className="font-medium">{deduction.name}:</span> {formatSalary(deduction.amount)}
+            </div>
+          ))}
+        </div>
+      );
+    } catch {
+      return <span>-</span>;
+    }
   };
 
   return (
@@ -172,7 +198,7 @@ export function EnhancedEmployeeSalaries({ employeeId, employee }: EnhancedEmplo
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {salaries.map((salary: SalaryRecord) => (
+                {salaries.map((salary: any) => (
                   <TableRow key={salary.id}>
                     <TableCell>{format(new Date(salary.payment_date), "yyyy/MM/dd")}</TableCell>
                     <TableCell>{formatSalary(salary.base_salary)}</TableCell>

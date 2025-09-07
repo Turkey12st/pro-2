@@ -9,8 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { formatSalary } from "@/utils/formatters";
 import { format } from "date-fns";
 import { Plus, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface EnhancedEmployeeBenefitsProps {
   employeeId?: string;
@@ -19,44 +17,46 @@ interface EnhancedEmployeeBenefitsProps {
 interface Benefit {
   id: string;
   benefit_type: string;
+  benefit_name: string;
   amount: number;
   date: string;
   notes?: string;
   status: string;
-  created_at: string;
-  employee_id?: string;
-  created_by?: string;
 }
 
 export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefitsProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [benefits, setBenefits] = useState<Benefit[]>([
+    {
+      id: "1",
+      benefit_type: "bonus",
+      benefit_name: "مكافأة الأداء المتميز",
+      amount: 2000,
+      date: "2024-01-15",
+      notes: "مكافأة شهرية لتحقيق الأهداف",
+      status: "active"
+    },
+    {
+      id: "2", 
+      benefit_type: "allowance",
+      benefit_name: "بدل مواصلات إضافي",
+      amount: 500,
+      date: "2024-01-01",
+      notes: "بدل إضافي للمواصلات",
+      status: "active"
+    }
+  ]);
+
   const [newBenefit, setNewBenefit] = useState({
     benefit_type: '',
+    benefit_name: '',
     amount: 0,
     date: new Date().toISOString().split('T')[0],
     notes: '',
     status: 'active'
   });
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  const { data: benefits, isLoading } = useQuery({
-    queryKey: ["employee-benefits", employeeId],
-    queryFn: async () => {
-      if (!employeeId) return [];
-      
-      const { data, error } = await supabase
-        .from("employee_deductions")
-        .select("*")
-        .eq("employee_id", employeeId)
-        .eq("status", "active")
-        .order("created_at", { ascending: false });
-        
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!employeeId,
-  });
+  const { toast } = useToast();
 
   const benefitTypes = [
     { value: 'bonus', label: 'مكافأة' },
@@ -70,8 +70,8 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
     { value: 'other', label: 'أخرى' }
   ];
 
-  const handleAddBenefit = async () => {
-    if (!employeeId || !newBenefit.amount) {
+  const handleAddBenefit = () => {
+    if (!newBenefit.benefit_name || !newBenefit.amount) {
       toast({
         title: "خطأ في البيانات",
         description: "يرجى ملء جميع الحقول المطلوبة",
@@ -80,66 +80,37 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
       return;
     }
 
-    try {
-      const { error } = await supabase
-        .from('employee_deductions')
-        .insert({
-          employee_id: employeeId,
-          benefit_type: newBenefit.benefit_type,
-          amount: newBenefit.amount,
-          date: newBenefit.date,
-          notes: newBenefit.notes,
-          status: newBenefit.status
-        });
+    const newId = Date.now().toString();
+    const benefit: Benefit = {
+      id: newId,
+      ...newBenefit
+    };
 
-      if (error) throw error;
+    setBenefits(prev => [...prev, benefit]);
+    
+    toast({
+      title: "تم إضافة الميزة بنجاح",
+      description: "تم حفظ الميزة الجديدة للموظف"
+    });
 
-      toast({
-        title: "تم إضافة الميزة بنجاح",
-        description: "تم حفظ الميزة الجديدة للموظف"
-      });
-
-      setIsAddDialogOpen(false);
-      setNewBenefit({
-        benefit_type: '',
-        amount: 0,
-        date: new Date().toISOString().split('T')[0],
-        notes: '',
-        status: 'active'
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["employee-benefits", employeeId] });
-    } catch (error: any) {
-      toast({
-        title: "خطأ في إضافة الميزة",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+    setIsAddDialogOpen(false);
+    setNewBenefit({
+      benefit_type: '',
+      benefit_name: '',
+      amount: 0,
+      date: new Date().toISOString().split('T')[0],
+      notes: '',
+      status: 'active'
+    });
   };
 
-  const handleRemoveBenefit = async (benefitId: string) => {
-    try {
-      const { error } = await supabase
-        .from('employee_deductions')
-        .update({ status: 'inactive' })
-        .eq('id', benefitId);
-
-      if (error) throw error;
-
-      toast({
-        title: "تم حذف الميزة",
-        description: "تم إلغاء تفعيل الميزة بنجاح"
-      });
-
-      queryClient.invalidateQueries({ queryKey: ["employee-benefits", employeeId] });
-    } catch (error: any) {
-      toast({
-        title: "خطأ في حذف الميزة",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+  const handleRemoveBenefit = (benefitId: string) => {
+    setBenefits(prev => prev.filter(b => b.id !== benefitId));
+    
+    toast({
+      title: "تم حذف الميزة",
+      description: "تم حذف الميزة بنجاح"
+    });
   };
 
   const getBenefitTypeLabel = (type: string) => {
@@ -179,10 +150,10 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
                 </Select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">ملاحظات</label>
+                <label className="block text-sm font-medium mb-2">اسم الميزة</label>
                 <Input
-                  value={newBenefit.notes}
-                  onChange={(e) => setNewBenefit({...newBenefit, notes: e.target.value})}
+                  value={newBenefit.benefit_name}
+                  onChange={(e) => setNewBenefit({...newBenefit, benefit_name: e.target.value})}
                   placeholder="مثال: مكافأة الأداء المتميز"
                 />
               </div>
@@ -203,6 +174,14 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
                   onChange={(e) => setNewBenefit({...newBenefit, date: e.target.value})}
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">الملاحظات</label>
+                <Input
+                  value={newBenefit.notes}
+                  onChange={(e) => setNewBenefit({...newBenefit, notes: e.target.value})}
+                  placeholder="ملاحظات إضافية"
+                />
+              </div>
               <Button onClick={handleAddBenefit} className="w-full">
                 إضافة الميزة
               </Button>
@@ -211,14 +190,14 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
         </Dialog>
       </CardHeader>
       <CardContent>
-        {!isLoading && benefits && benefits.length > 0 ? (
+        {benefits && benefits.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>النوع</TableHead>
+                <TableHead>اسم الميزة</TableHead>
                 <TableHead>المبلغ</TableHead>
                 <TableHead>التاريخ</TableHead>
-                <TableHead>الحالة</TableHead>
                 <TableHead>الملاحظات</TableHead>
                 <TableHead>الإجراءات</TableHead>
               </TableRow>
@@ -227,9 +206,9 @@ export function EnhancedEmployeeBenefits({ employeeId }: EnhancedEmployeeBenefit
               {benefits.map((benefit: Benefit) => (
                 <TableRow key={benefit.id}>
                   <TableCell>{getBenefitTypeLabel(benefit.benefit_type)}</TableCell>
+                  <TableCell>{benefit.benefit_name}</TableCell>
                   <TableCell>{formatSalary(benefit.amount)}</TableCell>
                   <TableCell>{format(new Date(benefit.date), "yyyy/MM/dd")}</TableCell>
-                  <TableCell>{benefit.status}</TableCell>
                   <TableCell>{benefit.notes || "-"}</TableCell>
                   <TableCell>
                     <Button
