@@ -183,21 +183,68 @@ export function useAutoSave() {
 // Minimal service used by dashboard and data integration
 export const AdvancedDataIntegrationService = {
   async getDashboardMetrics() {
-    // TODO: Replace with real DB aggregation
-    return {
-      employees: [],
-      partners: [],
-      projects: [],
-      financials: [],
-      summary: {
-        totalEmployees: 0,
-        totalCapital: 0,
-        totalProjects: 0,
-      },
-    } as any;
+    try {
+      // Fetch core entities in parallel
+      const [employeesQ, partnersQ, projectsQ, capitalQ] = await Promise.all([
+        supabase.from('employees').select('id, name, salary, department, created_at'),
+        supabase.from('company_partners').select('name, partner_type, ownership_percentage, share_value'),
+        supabase.from('projects').select('id, title, status, budget'),
+        supabase
+          .from('capital_management')
+          .select('fiscal_year, total_capital, available_capital, reserved_capital')
+          .order('fiscal_year', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+      const employees = Array.from(employeesQ.data ?? []);
+      const partners = Array.from(partnersQ.data ?? []);
+      const projects = Array.from(projectsQ.data ?? []);
+      const capitalRow = capitalQ.data || null;
+
+      const totalEmployees = employees.length;
+      const totalProjects = projects.length;
+
+      const totalCapitalFromPartners = partners.reduce(
+        (sum: number, p: any) => sum + (Number(p.share_value) || 0),
+        0
+      );
+      const totalCapital = capitalRow?.total_capital ?? totalCapitalFromPartners;
+
+      return {
+        employees,
+        partners,
+        projects,
+        financials: [],
+        summary: {
+          totalEmployees,
+          totalCapital,
+          totalProjects,
+        },
+      } as any;
+    } catch (error) {
+      console.error('getDashboardMetrics error:', error);
+      return {
+        employees: [],
+        partners: [],
+        projects: [],
+        financials: [],
+        summary: {
+          totalEmployees: 0,
+          totalCapital: 0,
+          totalProjects: 0,
+        },
+      } as any;
+    }
   },
   async ensureComprehensiveDataIntegrity() {
-    // Placeholder for integrity checks
-    return true;
+    try {
+      const { DataIntegrationService } = await import('@/services/dataIntegrationService');
+      await DataIntegrationService.ensureDataIntegrity();
+      return true;
+    } catch (error) {
+      console.error('ensureComprehensiveDataIntegrity error:', error);
+      return false;
+    }
   },
 };
