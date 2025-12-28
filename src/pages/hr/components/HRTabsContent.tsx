@@ -10,32 +10,40 @@ interface HRTabsContentProps {
   setActiveTab: (value: string) => void;
 }
 
+const queryClient = new QueryClient();
+
 export function HRTabsContent({
   activeTab,
   setActiveTab
 }: HRTabsContentProps) {
-  const queryClient = new QueryClient();
-
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="list" className="flex-1">
-          <Users2 className="h-4 w-4 mr-2" />
-          قائمة الموظفين
-        </TabsTrigger>
-        <TabsTrigger value="calculator" className="flex-1">
-          <Calculator className="h-4 w-4 mr-2" />
-          حاسبة التكاليف
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent value="list" className="space-y-4">
-        <QueryClientProvider client={queryClient}>
-          <EnhancedEmployeeList />
-        </QueryClientProvider>
-      </TabsContent>
-      <TabsContent value="calculator">
-        <EmployeeCostCalculator />
-      </TabsContent>
-    </Tabs>
+    <div className="section-card">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 p-1 bg-muted/50">
+          <TabsTrigger 
+            value="list" 
+            className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            <Users2 className="h-4 w-4" />
+            قائمة الموظفين
+          </TabsTrigger>
+          <TabsTrigger 
+            value="calculator" 
+            className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            <Calculator className="h-4 w-4" />
+            حاسبة التكاليف
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="list" className="space-y-4 animate-in">
+          <QueryClientProvider client={queryClient}>
+            <EnhancedEmployeeList />
+          </QueryClientProvider>
+        </TabsContent>
+        <TabsContent value="calculator" className="animate-in">
+          <EmployeeCostCalculator />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
