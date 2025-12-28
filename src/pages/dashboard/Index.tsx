@@ -1,14 +1,12 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Container } from "@/components/ui/container";
-import { CompanyInfoCard } from "@/components/dashboard/CompanyInfoCard";
-import { ERPDashboard } from "@/components/dashboard/ERPDashboard";
 import { QuickNavMenu } from "@/components/dashboard/QuickNavMenu";
 import { AutoSaveProvider } from "@/components/dashboard/AutoSaveProvider";
 import { IntegratedDashboardStats } from "@/components/dashboard/IntegratedDashboardStats";
 import { CompactNotificationsPanel } from "@/components/dashboard/CompactNotificationsPanel";
 import { FinancialMetricsCard } from "@/components/dashboard/FinancialMetricsCard";
+import { ERPDashboard } from "@/components/dashboard/ERPDashboard";
 
 // Security enhancement: Route validation
 const VALID_ROUTES = ['/hr', '/projects', '/documents', '/financial', '/partners'];
@@ -59,32 +57,28 @@ export default function DashboardPage() {
 
   return (
     <AutoSaveProvider>
-      <div className="min-h-screen max-w-full mx-auto space-y-4 p-2 sm:p-4">
-        <div className="flex justify-end items-center mb-4">
+      <div className="page-container">
+        <div className="flex justify-between items-center">
+          <div className="space-y-1">
+            <h1 className="page-title">لوحة التحكم</h1>
+            <p className="page-description">نظرة شاملة على أداء المنشأة</p>
+          </div>
           <QuickNavMenu />
         </div>
 
-        {/* Main Content Area - Single Column Layout */}
-        <div className="space-y-4">
+        {/* Main Content Area */}
+        <div className="space-y-6">
           {/* مؤشرات الأداء الأساسية */}
-          <div className="w-full">
-            <IntegratedDashboardStats onStatClick={handleStatClick} />
-          </div>
+          <IntegratedDashboardStats onStatClick={handleStatClick} />
 
           {/* لوحة التنبيهات المدمجة */}
-          <div className="w-full">
-            <CompactNotificationsPanel />
-          </div>
+          <CompactNotificationsPanel />
 
           {/* المؤشرات المالية المتقدمة */}
-          <div className="w-full">
-            <FinancialMetricsCard />
-          </div>
+          <FinancialMetricsCard />
 
           {/* لوحة التحكم الشاملة */}
-          <div className="w-full">
-            <ERPDashboard />
-          </div>
+          <ERPDashboard />
         </div>
       </div>
     </AutoSaveProvider>

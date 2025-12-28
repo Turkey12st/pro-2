@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, FileText, Download } from "lucide-react";
+import { Plus, FileSpreadsheet, Upload } from "lucide-react";
 import EmployeeForm from "@/components/hr/EmployeeForm";
 
 interface HRPageHeaderProps {
@@ -16,17 +16,17 @@ export function HRPageHeader({
   handleExportToExcel
 }: HRPageHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="page-header">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">الموارد البشرية</h1>
-        <p className="text-muted-foreground">
+        <h1 className="page-title">الموارد البشرية</h1>
+        <p className="page-description">
           إدارة الموظفين، الرواتب، والتكاليف
         </p>
       </div>
       <div className="flex flex-wrap gap-2 w-full sm:w-auto">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2 flex-1 sm:flex-none">
+            <Button className="flex items-center gap-2 flex-1 sm:flex-none shadow-sm">
               <Plus className="h-4 w-4" />
               إضافة موظف
             </Button>
@@ -43,20 +43,18 @@ export function HRPageHeader({
         </Dialog>
         <Button 
           variant="outline" 
-          size="sm" 
           className="flex items-center gap-2 flex-1 sm:flex-none"
           onClick={handleExportToExcel}
         >
-          <FileText className="h-4 w-4" />
-          تصدير إلى Excel
+          <FileSpreadsheet className="h-4 w-4" />
+          تصدير Excel
         </Button>
         <Button 
           variant="outline" 
-          size="sm" 
           className="flex items-center gap-2 flex-1 sm:flex-none"
         >
-          <Download className="h-4 w-4" />
-          استيراد من Excel
+          <Upload className="h-4 w-4" />
+          استيراد
         </Button>
       </div>
     </div>
