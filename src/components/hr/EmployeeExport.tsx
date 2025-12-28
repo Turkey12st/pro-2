@@ -1,9 +1,14 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, FileSpreadsheet } from "lucide-react";
+import { saveAs } from "file-saver";
+import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import Papa from "papaparse";
 import { useToast } from "@/hooks/use-toast";
-import { formatDate } from "@/utils/formatters";
-import { exportToExcel, exportToCSV, exportToPDF, ColumnDefinition } from "@/utils/exportHelpers";
+import { formatDate, formatSalary } from "@/utils/formatters";
 
 interface EmployeeExportProps {
   employees: any[];
@@ -13,40 +18,47 @@ interface EmployeeExportProps {
 const EmployeeExport: React.FC<EmployeeExportProps> = ({ employees, filteredEmployees }) => {
   const { toast } = useToast();
 
-  // تعريف الأعمدة
-  const columns: ColumnDefinition[] = [
-    { header: "الاسم", key: "name", width: 20 },
-    { header: "البريد الإلكتروني", key: "email", width: 25 },
-    { header: "رقم الهاتف", key: "phone", width: 15 },
-    { header: "المنصب", key: "position", width: 15 },
-    { header: "القسم", key: "department", width: 15 },
-    { header: "تاريخ الالتحاق", key: "joining_date_formatted", width: 15 },
-    { header: "الراتب الأساسي", key: "base_salary", width: 15 },
-    { header: "بدل السكن", key: "housing_allowance", width: 15 },
-    { header: "بدل النقل", key: "transportation_allowance", width: 15 },
-    { header: "إجمالي الراتب", key: "salary", width: 15 },
-  ];
-
-  // تحضير البيانات للتصدير
-  const prepareData = (data: any[]) => {
-    return data.map(emp => ({
-      ...emp,
-      joining_date_formatted: formatDate(emp.joining_date),
-      base_salary: emp.base_salary || 0,
-      housing_allowance: emp.housing_allowance || 0,
-      transportation_allowance: emp.transportation_allowance || 0,
-      salary: emp.salary || 0
-    }));
-  };
-
-  const exportToExcelHandler = () => {
+  const exportToExcel = () => {
     try {
-      const data = prepareData(employees);
-      exportToExcel(data, columns, {
-        filename: 'قائمة_الموظفين',
-        sheetName: 'الموظفين',
-        title: 'قائمة الموظفين'
-      });
+      const fileType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+      const fileExtension = '.xlsx';
+      
+      const preparedData = employees.map(emp => ({
+        "الاسم": emp.name,
+        "البريد الإلكتروني": emp.email,
+        "رقم الهاتف": emp.phone,
+        "المنصب": emp.position,
+        "القسم": emp.department,
+        "تاريخ الالتحاق": formatDate(emp.joining_date),
+        "الراتب الأساسي": emp.base_salary,
+        "بدل السكن": emp.housing_allowance,
+        "بدل النقل": emp.transportation_allowance,
+        "إجمالي الراتب": emp.salary
+      }));
+      
+      const worksheet = XLSX.utils.json_to_sheet(preparedData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "الموظفين");
+      
+      // Set column widths
+      const colWidths = [
+        { wch: 20 }, // الاسم
+        { wch: 25 }, // البريد الإلكتروني
+        { wch: 15 }, // رقم الهاتف
+        { wch: 15 }, // المنصب
+        { wch: 15 }, // القسم
+        { wch: 15 }, // تاريخ الالتحاق
+        { wch: 15 }, // الراتب الأساسي
+        { wch: 15 }, // بدل السكن
+        { wch: 15 }, // بدل النقل
+        { wch: 15 }  // إجمالي الراتب
+      ];
+      worksheet['!cols'] = colWidths;
+      
+      // Generate Excel file
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const data = new Blob([excelBuffer], { type: fileType });
+      saveAs(data, `قائمة_الموظفين${fileExtension}`);
       
       toast({
         title: "تم التصدير بنجاح",
@@ -62,12 +74,24 @@ const EmployeeExport: React.FC<EmployeeExportProps> = ({ employees, filteredEmpl
     }
   };
 
-  const exportToCSVHandler = () => {
+  const exportToCSV = () => {
     try {
-      const data = prepareData(employees);
-      exportToCSV(data, columns, {
-        filename: 'قائمة_الموظفين'
-      });
+      const preparedData = employees.map(emp => ({
+        "الاسم": emp.name,
+        "البريد الإلكتروني": emp.email,
+        "رقم الهاتف": emp.phone,
+        "المنصب": emp.position,
+        "القسم": emp.department,
+        "تاريخ الالتحاق": emp.joining_date,
+        "الراتب الأساسي": emp.base_salary,
+        "بدل السكن": emp.housing_allowance,
+        "بدل النقل": emp.transportation_allowance,
+        "إجمالي الراتب": emp.salary
+      }));
+      
+      const csv = Papa.unparse(preparedData);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      saveAs(blob, 'قائمة_الموظفين.csv');
       
       toast({
         title: "تم التصدير بنجاح",
@@ -83,13 +107,53 @@ const EmployeeExport: React.FC<EmployeeExportProps> = ({ employees, filteredEmpl
     }
   };
 
-  const exportToPDFHandler = () => {
+  const exportToPDF = () => {
     try {
-      const data = prepareData(filteredEmployees);
-      exportToPDF(data, columns, {
-        filename: 'قائمة_الموظفين',
-        title: 'قائمة الموظفين'
+      const doc = new jsPDF('l', 'mm', 'a4');
+      
+      // Add title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("قائمة الموظفين", doc.internal.pageSize.width / 2, 20, { align: 'center' });
+      
+      // Create table data
+      const tableColumn = ["الراتب", "القسم", "المنصب", "البريد الإلكتروني", "الاسم"];
+      const tableRows = [];
+      
+      filteredEmployees.forEach(emp => {
+        const salaryStr = formatSalary(emp.salary).toString().replace("ر.س.‏", "");
+        const employeeData = [
+          salaryStr,
+          emp.department,
+          emp.position,
+          emp.email,
+          emp.name
+        ];
+        tableRows.push(employeeData);
       });
+      
+      // Configure text direction RTL
+      doc.setR2L(true);
+      
+      // Add table
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 30,
+        styles: { 
+          font: 'helvetica', 
+          halign: 'right' 
+        },
+        headStyles: { 
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        theme: 'grid'
+      });
+      
+      // Save PDF
+      doc.save("قائمة_الموظفين.pdf");
       
       toast({
         title: "تم التصدير بنجاح",
@@ -111,7 +175,7 @@ const EmployeeExport: React.FC<EmployeeExportProps> = ({ employees, filteredEmpl
         variant="outline" 
         size="sm" 
         className="flex items-center gap-2"
-        onClick={exportToExcelHandler}
+        onClick={exportToExcel}
       >
         <FileSpreadsheet className="h-4 w-4" />
         تصدير إلى Excel
@@ -120,7 +184,7 @@ const EmployeeExport: React.FC<EmployeeExportProps> = ({ employees, filteredEmpl
         variant="outline" 
         size="sm" 
         className="flex items-center gap-2"
-        onClick={exportToCSVHandler}
+        onClick={exportToCSV}
       >
         <Download className="h-4 w-4" />
         تصدير إلى CSV
@@ -129,7 +193,7 @@ const EmployeeExport: React.FC<EmployeeExportProps> = ({ employees, filteredEmpl
         variant="outline" 
         size="sm" 
         className="flex items-center gap-2"
-        onClick={exportToPDFHandler}
+        onClick={exportToPDF}
       >
         <FileText className="h-4 w-4" />
         تصدير إلى PDF

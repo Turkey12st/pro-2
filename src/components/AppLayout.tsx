@@ -17,7 +17,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getNavigationMenu } from "@/data/navigationMenu";
-import { RealTimeNotificationBell } from "@/components/shared/RealTimeNotificationBell";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [user] = useState({
