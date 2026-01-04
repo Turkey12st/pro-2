@@ -3,17 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { UserRoleForm } from './UserRoleForm';
 import { supabase } from '@/integrations/supabase/client';
+import { listUsers, deleteUser as deleteUserService } from '@/services/adminUsersService';
 import { useToast } from '@/hooks/use-toast';
 import { 
   UserPlus, 
   Search, 
-  Filter, 
-  MoreHorizontal, 
   Edit, 
   Trash2, 
   Shield,
@@ -48,10 +47,8 @@ export function UserManagementPanel() {
     try {
       setLoading(true);
       
-      // جلب بيانات المستخدمين الأساسية من auth.users
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) throw authError;
+      // جلب بيانات المستخدمين من Edge Function
+      const authUsers = await listUsers();
 
       // جلب أدوار المستخدمين من user_roles
       const { data: userRoles, error: rolesError } = await supabase
@@ -61,12 +58,15 @@ export function UserManagementPanel() {
       if (rolesError) throw rolesError;
 
       // دمج البيانات
-      const usersWithRoles = authUsers.users.map(user => {
+      const usersWithRoles: User[] = authUsers.map(user => {
         const roleData = userRoles?.find(r => r.user_id === user.id);
+        const permissions = Array.isArray(roleData?.permissions) 
+          ? roleData.permissions.filter((p): p is string => typeof p === 'string')
+          : [];
         return {
           ...user,
           role: roleData?.role || 'employee',
-          permissions: roleData?.permissions || []
+          permissions
         };
       });
 
@@ -75,7 +75,7 @@ export function UserManagementPanel() {
       console.error('خطأ في تحميل المستخدمين:', error);
       toast({
         title: 'خطأ في تحميل المستخدمين',
-        description: 'حدث خطأ أثناء تحميل قائمة المستخدمين',
+        description: error instanceof Error ? error.message : 'حدث خطأ أثناء تحميل قائمة المستخدمين',
         variant: 'destructive',
       });
     } finally {
@@ -116,7 +116,7 @@ export function UserManagementPanel() {
     }
   };
 
-  const deleteUser = async (userId: string) => {
+  const handleDeleteUser = async (userId: string) => {
     if (!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
 
     try {
@@ -126,10 +126,8 @@ export function UserManagementPanel() {
         .delete()
         .eq('user_id', userId);
 
-      // حذف المستخدم من auth
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-      
-      if (error) throw error;
+      // حذف المستخدم من auth عبر Edge Function
+      await deleteUserService(userId);
 
       await loadUsers();
       
@@ -141,7 +139,7 @@ export function UserManagementPanel() {
       console.error('خطأ في حذف المستخدم:', error);
       toast({
         title: 'خطأ في حذف المستخدم',
-        description: 'حدث خطأ أثناء حذف المستخدم',
+        description: error instanceof Error ? error.message : 'حدث خطأ أثناء حذف المستخدم',
         variant: 'destructive',
       });
     }
@@ -309,7 +307,7 @@ export function UserManagementPanel() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => deleteUser(user.id)}
+                            onClick={() => handleDeleteUser(user.id)}
                             className="text-destructive hover:text-destructive"
                           >
                             <Trash2 className="h-4 w-4" />

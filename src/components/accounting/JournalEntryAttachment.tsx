@@ -76,12 +76,15 @@ export const JournalEntryAttachment: React.FC<JournalEntryAttachmentProps> = ({
       
       if (error) throw error;
       
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      // Get signed URL instead of public URL for security
+      const { data: urlData, error: urlError } = await supabase.storage
         .from('documents')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 86400); // 24 hours expiry
       
-      return urlData.publicUrl;
+      if (urlError) throw urlError;
+      
+      // Store the file path, not the signed URL (we'll generate new signed URLs when needed)
+      return filePath;
     } catch (error) {
       console.error("Error uploading file:", error);
       setError("حدث خطأ أثناء رفع الملف");
@@ -94,15 +97,15 @@ export const JournalEntryAttachment: React.FC<JournalEntryAttachmentProps> = ({
   const handleUpload = async () => {
     if (!file) return;
     
-    const fileUrl = await uploadToSupabase();
+    const filePath = await uploadToSupabase();
     
-    if (fileUrl && onSuccess) {
-      onSuccess(fileUrl);
+    if (filePath && onSuccess) {
+      onSuccess(filePath);
       toast({
         title: "تم رفع المرفق",
         description: "تم رفع المرفق بنجاح",
       });
-    } else if (!fileUrl) {
+    } else if (!filePath) {
       toast({
         variant: "destructive",
         title: "خطأ في رفع المرفق",
@@ -130,7 +133,7 @@ export const JournalEntryAttachment: React.FC<JournalEntryAttachmentProps> = ({
   const getFileName = () => {
     if (file) return file.name;
     if (existingUrl) {
-      // Extract file name from URL
+      // Extract file name from path
       const urlParts = existingUrl.split('/');
       return urlParts[urlParts.length - 1];
     }

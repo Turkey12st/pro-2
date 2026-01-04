@@ -60,9 +60,8 @@ export function EmployeeDocuments({ employeeId, documents }: EmployeeDocumentsPr
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('employee-documents')
-        .getPublicUrl(fileName);
+      // Store file path instead of public URL for security
+      const filePath = fileName;
 
       // Update employee record with new document
       const { data: employee, error: fetchError } = await supabase
@@ -80,7 +79,7 @@ export function EmployeeDocuments({ employeeId, documents }: EmployeeDocumentsPr
         ...existingDocuments,
         {
           name: documentName,
-          url: publicUrl,
+          url: filePath, // Store path, not URL
           type: documentType
         }
       ];
@@ -116,8 +115,50 @@ export function EmployeeDocuments({ employeeId, documents }: EmployeeDocumentsPr
     }
   };
 
-  const viewDocument = (url: string) => {
-    window.open(url, '_blank');
+  const viewDocument = async (url: string) => {
+    try {
+      // Generate signed URL for secure viewing
+      const { data, error } = await supabase.storage
+        .from('employee-documents')
+        .createSignedUrl(url, 3600); // 1 hour expiry
+
+      if (error) throw error;
+      
+      window.open(data.signedUrl, '_blank');
+    } catch (error) {
+      console.error("Error getting signed URL:", error);
+      toast({
+        title: "خطأ في فتح المستند",
+        description: "حدث خطأ أثناء محاولة فتح المستند",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadDocument = async (url: string, name: string) => {
+    try {
+      // Generate signed URL for download
+      const { data, error } = await supabase.storage
+        .from('employee-documents')
+        .createSignedUrl(url, 3600);
+
+      if (error) throw error;
+
+      // Create download link
+      const link = document.createElement('a');
+      link.href = data.signedUrl;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      toast({
+        title: "خطأ في تنزيل المستند",
+        description: "حدث خطأ أثناء محاولة تنزيل المستند",
+        variant: "destructive",
+      });
+    }
   };
 
   const documentTypes = [
@@ -168,11 +209,13 @@ export function EmployeeDocuments({ employeeId, documents }: EmployeeDocumentsPr
                       <Eye className="h-4 w-4" />
                       <span className="sr-only">عرض</span>
                     </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <a href={doc.url} download>
-                        <Download className="h-4 w-4" />
-                        <span className="sr-only">تنزيل</span>
-                      </a>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => downloadDocument(doc.url, doc.name)}
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="sr-only">تنزيل</span>
                     </Button>
                   </TableCell>
                 </TableRow>

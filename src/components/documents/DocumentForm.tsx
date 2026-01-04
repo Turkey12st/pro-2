@@ -111,12 +111,9 @@ export default function DocumentForm({ onSuccess }: DocumentFormProps) {
         throw error;
       }
       
-      // الحصول على رابط عام للملف
-      const { data: urlData } = await supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-        
-      return urlData.publicUrl;
+      // Store the file path instead of public URL for security
+      // Signed URLs will be generated when viewing documents
+      return filePath;
     } catch (error) {
       console.error('Error uploading file:', error);
       toast({

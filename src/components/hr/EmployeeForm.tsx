@@ -123,40 +123,34 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
         return;
       }
 
-      let photoUrl = '';
+      let photoPath = '';
       let documentUrls = [];
 
       if (photo) {
-        const photoPath = `${crypto.randomUUID()}-${photo.name}`;
+        const photoFileName = `${crypto.randomUUID()}-${photo.name}`;
         const { error: uploadError } = await supabase.storage
           .from('employee-photos')
-          .upload(photoPath, photo);
+          .upload(photoFileName, photo);
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('employee-photos')
-          .getPublicUrl(photoPath);
-
-        photoUrl = publicUrl;
+        // Store file path instead of public URL for security
+        photoPath = photoFileName;
       }
 
       if (documents.length > 0) {
         for (const doc of documents) {
-          const docPath = `${crypto.randomUUID()}-${doc.name}`;
+          const docFileName = `${crypto.randomUUID()}-${doc.name}`;
           const { error: uploadError } = await supabase.storage
             .from('employee-files')
-            .upload(docPath, doc);
+            .upload(docFileName, doc);
 
           if (uploadError) throw uploadError;
 
-          const { data: { publicUrl } } = supabase.storage
-            .from('employee-files')
-            .getPublicUrl(docPath);
-
+          // Store file path instead of public URL for security
           documentUrls.push({
             name: doc.name,
-            url: publicUrl,
+            url: docFileName, // Store path, not URL
             type: doc.type
           });
         }
@@ -176,7 +170,7 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
           contract_type: employee.contractType,
           email: employee.email,
           phone: employee.phone,
-          photo_url: photoUrl,
+          photo_url: photoPath,
           documents: documentUrls,
           base_salary: employee.baseSalary,
           housing_allowance: employee.housingAllowance,

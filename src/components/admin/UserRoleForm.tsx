@@ -5,9 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { createUser } from '@/services/adminUsersService';
 import { useToast } from '@/hooks/use-toast';
 import { DEFAULT_ROLE_PERMISSIONS, Permission } from '@/types/permissions';
+import { z } from 'zod';
 
 interface User {
   id: string;
@@ -22,9 +23,17 @@ interface UserRoleFormProps {
   onCancel: () => void;
 }
 
+// Password validation schema
+const passwordSchema = z.string()
+  .min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل')
+  .regex(/[A-Z]/, 'كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل')
+  .regex(/[a-z]/, 'كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل')
+  .regex(/[0-9]/, 'كلمة المرور يجب أن تحتوي على رقم واحد على الأقل');
+
 export function UserRoleForm({ user, onSave, onCancel }: UserRoleFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [role, setRole] = useState<string>('employee');
   const [customPermissions, setCustomPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -38,6 +47,7 @@ export function UserRoleForm({ user, onSave, onCancel }: UserRoleFormProps) {
     } else {
       setEmail('');
       setPassword('');
+      setPasswordError(null);
       setRole('employee');
       setCustomPermissions([]);
     }
@@ -88,23 +98,59 @@ export function UserRoleForm({ user, onSave, onCancel }: UserRoleFormProps) {
     'employee': 'موظف'
   };
 
+  const validatePassword = (pwd: string): boolean => {
+    try {
+      passwordSchema.parse(pwd);
+      setPasswordError(null);
+      return true;
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setPasswordError(err.errors[0].message);
+      }
+      return false;
+    }
+  };
+
+  const calculatePasswordStrength = (pwd: string): number => {
+    let strength = 0;
+    if (pwd.length >= 8) strength++;
+    if (pwd.length >= 12) strength++;
+    if (/[A-Z]/.test(pwd)) strength++;
+    if (/[a-z]/.test(pwd)) strength++;
+    if (/[0-9]/.test(pwd)) strength++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) strength++;
+    return strength;
+  };
+
+  const getPasswordStrengthLabel = (strength: number): string => {
+    if (strength <= 2) return 'ضعيفة';
+    if (strength <= 4) return 'متوسطة';
+    return 'قوية';
+  };
+
+  const getPasswordStrengthColor = (strength: number): string => {
+    if (strength <= 2) return 'bg-destructive';
+    if (strength <= 4) return 'bg-warning';
+    return 'bg-success';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (!user) {
-        // إنشاء مستخدم جديد
-        const { data: newUser, error: signUpError } = await supabase.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: true
-        });
+        // Validate password for new users
+        if (!validatePassword(password)) {
+          setLoading(false);
+          return;
+        }
 
-        if (signUpError) throw signUpError;
+        // إنشاء مستخدم جديد عبر Edge Function
+        const newUser = await createUser(email, password);
 
-        if (newUser.user) {
-          await onSave(newUser.user.id, role, customPermissions);
+        if (newUser) {
+          await onSave(newUser.id, role, customPermissions);
         }
       } else {
         // تحديث المستخدم الحالي
@@ -166,6 +212,8 @@ export function UserRoleForm({ user, onSave, onCancel }: UserRoleFormProps) {
     }
   ];
 
+  const passwordStrength = calculatePasswordStrength(password);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -188,10 +236,35 @@ export function UserRoleForm({ user, onSave, onCancel }: UserRoleFormProps) {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (e.target.value) {
+                  validatePassword(e.target.value);
+                }
+              }}
               required
               minLength={8}
             />
+            {password && (
+              <div className="space-y-1">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1 flex-1 rounded ${
+                        i <= passwordStrength ? getPasswordStrengthColor(passwordStrength) : 'bg-muted'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  قوة كلمة المرور: {getPasswordStrengthLabel(passwordStrength)}
+                </p>
+              </div>
+            )}
+            {passwordError && (
+              <p className="text-xs text-destructive">{passwordError}</p>
+            )}
           </div>
         )}
 
