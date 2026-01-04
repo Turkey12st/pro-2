@@ -20,11 +20,9 @@ export const useDocumentStorage = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-
-      return publicUrl;
+      // Return the file path instead of public URL for security
+      // Signed URLs will be generated when accessing the document
+      return filePath;
     } catch (error) {
       console.error('Error uploading document:', error);
       toast({
@@ -35,6 +33,25 @@ export const useDocumentStorage = () => {
       return null;
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const getSignedUrl = async (path: string, expiresIn: number = 3600): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(path, expiresIn);
+
+      if (error) throw error;
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error getting signed URL:', error);
+      toast({
+        title: "خطأ في الوصول للمستند",
+        description: "حدث خطأ أثناء محاولة الوصول للمستند",
+        variant: "destructive",
+      });
+      return null;
     }
   };
 
@@ -60,6 +77,7 @@ export const useDocumentStorage = () => {
   return {
     uploadDocument,
     deleteDocument,
+    getSignedUrl,
     isUploading,
   };
 };

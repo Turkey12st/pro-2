@@ -3,12 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
+import { listUsers } from '@/services/adminUsersService';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Key, 
@@ -63,24 +64,30 @@ export function PermissionManagementPanel() {
 
       if (permissionsError) throw permissionsError;
 
-      // Then get user emails separately
-      const userIds = [...new Set([
-        ...permissionsData?.map(p => p.user_id).filter(Boolean) || [],
-        ...permissionsData?.map(p => p.granted_by).filter(Boolean) || []
-      ])];
+      // Then get user emails via Edge Function
+      try {
+        const usersData = await listUsers();
+        const userEmailMap = new Map<string, string>(
+          usersData.map((user): [string, string] => [user.id, user.email || ''])
+        );
 
-      const { data: usersData } = await supabase.auth.admin.listUsers();
-      const userEmailMap = new Map<string, string>(
-        usersData.users.map((user): [string, string] => [user.id, user.email || ''])
-      );
+        const enrichedPermissions: CustomPermission[] = permissionsData?.map(permission => ({
+          ...permission,
+          userEmail: userEmailMap.get(permission.user_id) || 'غير محدد',
+          grantedByEmail: userEmailMap.get(permission.granted_by) || 'النظام'
+        })) || [];
 
-      const enrichedPermissions: CustomPermission[] = permissionsData?.map(permission => ({
-        ...permission,
-        userEmail: userEmailMap.get(permission.user_id) || 'غير محدد',
-        grantedByEmail: userEmailMap.get(permission.granted_by) || 'النظام'
-      })) || [];
-
-      setPermissions(enrichedPermissions);
+        setPermissions(enrichedPermissions);
+      } catch (userError) {
+        // If we can't get users (not admin), just show permissions without emails
+        console.warn('Could not fetch user emails:', userError);
+        const enrichedPermissions: CustomPermission[] = permissionsData?.map(permission => ({
+          ...permission,
+          userEmail: permission.user_id.substring(0, 8) + '...',
+          grantedByEmail: 'النظام'
+        })) || [];
+        setPermissions(enrichedPermissions);
+      }
     } catch (error) {
       console.error('Error loading permissions:', error);
       toast({
@@ -97,12 +104,9 @@ export function PermissionManagementPanel() {
     e.preventDefault();
     
     try {
-      // البحث عن المستخدم بالبريد الإلكتروني
-      const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
-      
-      if (usersError) throw usersError;
-      
-      const targetUser = users.find((user: any) => user.email === formData.userEmail);
+      // البحث عن المستخدم بالبريد الإلكتروني عبر Edge Function
+      const users = await listUsers();
+      const targetUser = users.find((user) => user.email === formData.userEmail);
       
       if (!targetUser) {
         toast({
@@ -155,7 +159,7 @@ export function PermissionManagementPanel() {
       console.error('خطأ في حفظ الإذن:', error);
       toast({
         title: 'خطأ في الحفظ',
-        description: 'حدث خطأ أثناء حفظ الإذن',
+        description: error instanceof Error ? error.message : 'حدث خطأ أثناء حفظ الإذن',
         variant: 'destructive',
       });
     }
