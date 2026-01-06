@@ -38,10 +38,13 @@ enable_confirmations = false
 verify_jwt = false
 
 [functions.saudi-gov-integration]
-verify_jwt = true
+verify_jwt = false
 
 [functions.accounting-automation]
-verify_jwt = true
+verify_jwt = false
 
 [functions.admin-users]
+verify_jwt = false
+
+[functions.gosi-integration]
 verify_jwt = false

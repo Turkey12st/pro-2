@@ -2612,11 +2612,17 @@ export type Database = {
         Args: { company_id: string }
         Returns: string
       }
+      has_any_role: {
+        Args: { _roles: string[]; _user_id: string }
+        Returns: boolean
+      }
       has_permission: {
         Args: { _permission: string; _resource_id?: string; _user_id: string }
         Returns: boolean
       }
-      has_role: { Args: { _role: string }; Returns: boolean }
+      has_role:
+        | { Args: { _role: string }; Returns: boolean }
+        | { Args: { _role: string; _user_id: string }; Returns: boolean }
       log_integration_error: {
         Args: {
           error_msg: string

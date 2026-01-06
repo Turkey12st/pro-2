@@ -6,6 +6,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function verifyUserRole(supabase: any, userId: string, allowedRoles: string[]): Promise<boolean> {
+  const { data: userRole, error } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !userRole) {
+    console.log('No role found for user:', userId);
+    return false;
+  }
+
+  return allowedRoles.includes(userRole.role);
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -13,14 +28,60 @@ serve(async (req) => {
   }
 
   try {
+    // التحقق من المصادقة
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.log('No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'المصادقة مطلوبة' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
+
+    // التحقق من صحة التوكن
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.log('Invalid token:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'رمز المصادقة غير صالح' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // التحقق من صلاحيات HR
+    const allowedRoles = ['admin', 'owner', 'hr_manager'];
+    const hasPermission = await verifyUserRole(supabaseClient, user.id, allowedRoles);
+    
+    if (!hasPermission) {
+      console.log('User does not have HR role:', user.id);
+      return new Response(
+        JSON.stringify({ error: 'ليس لديك صلاحية للوصول إلى بيانات التأمينات الاجتماعية' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const { action, employeeId, gosiNumber } = await req.json();
 
-    console.log('GOSI Integration request:', { action, employeeId, gosiNumber });
+    console.log('GOSI Integration request:', { action, employeeId, gosiNumber, userId: user.id });
+
+    // تسجيل العملية في سجل الأمان
+    await supabaseClient
+      .from('security_audit_log')
+      .insert({
+        user_id: user.id,
+        action: `gosi_${action}`,
+        resource_type: 'gosi_integration',
+        resource_id: employeeId,
+        details: { action, gosiNumber }
+      });
 
     switch (action) {
       case 'sync_employee':
@@ -56,7 +117,6 @@ serve(async (req) => {
 async function syncEmployeeWithGOSI(supabaseClient: any, employeeId: string, gosiNumber: string) {
   try {
     // محاكاة استدعاء API التأمينات الاجتماعية
-    // في الواقع، ستحتاج لاستخدام API الحقيقي للتأمينات
     const mockGOSIResponse = {
       success: true,
       data: {
@@ -64,7 +124,7 @@ async function syncEmployeeWithGOSI(supabaseClient: any, employeeId: string, gos
         gosi_number: gosiNumber,
         subscription_status: 'active',
         subscription_date: '2024-01-15',
-        contribution_rate: 22, // 22% (10% موظف + 12% صاحب عمل)
+        contribution_rate: 22,
         last_contribution_date: '2024-12-01',
         outstanding_balance: 0,
         coverage_details: {
@@ -96,8 +156,8 @@ async function syncEmployeeWithGOSI(supabaseClient: any, employeeId: string, gos
       .from('employees')
       .update({
         gosi_subscription: mockGOSIResponse.data.contribution_rate,
-        employee_gosi_contribution: 10, // 10% حصة الموظف
-        company_gosi_contribution: 12, // 12% حصة الشركة
+        employee_gosi_contribution: 10,
+        company_gosi_contribution: 12,
         gosi_details: {
           gosi_number: gosiNumber,
           subscription_date: mockGOSIResponse.data.subscription_date,
@@ -127,7 +187,6 @@ async function syncEmployeeWithGOSI(supabaseClient: any, employeeId: string, gos
   } catch (error) {
     console.error('Error syncing with GOSI:', error);
     
-    // تسجيل الخطأ في قاعدة البيانات
     await supabaseClient
       .from('gosi_integration')
       .upsert({
@@ -154,7 +213,6 @@ async function syncEmployeeWithGOSI(supabaseClient: any, employeeId: string, gos
 
 async function syncAllEmployeesWithGOSI(supabaseClient: any) {
   try {
-    // جلب جميع الموظفين
     const { data: employees, error: employeesError } = await supabaseClient
       .from('employees')
       .select('id, name, identity_number');
@@ -166,7 +224,6 @@ async function syncAllEmployeesWithGOSI(supabaseClient: any) {
     const results = [];
     
     for (const employee of employees) {
-      // إنشاء رقم تأمينات افتراضي (في الواقع سيكون موجود)
       const mockGosiNumber = `GOSI${employee.identity_number}`;
       
       try {
@@ -223,7 +280,7 @@ async function getGOSIStatus(supabaseClient: any, employeeId: string) {
       .eq('employee_id', employeeId)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') {
       throw new Error(`Database error: ${error.message}`);
     }
 
