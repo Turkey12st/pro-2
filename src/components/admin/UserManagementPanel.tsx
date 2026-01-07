@@ -50,23 +50,20 @@ export function UserManagementPanel() {
       // جلب بيانات المستخدمين من Edge Function
       const authUsers = await listUsers();
 
-      // جلب أدوار المستخدمين من user_roles
+      // جلب أدوار المستخدمين من user_roles (الهيكل الجديد بدون permissions)
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('user_id, role, permissions');
+        .select('user_id, role, company_id');
 
       if (rolesError) throw rolesError;
 
       // دمج البيانات
       const usersWithRoles: User[] = authUsers.map(user => {
         const roleData = userRoles?.find(r => r.user_id === user.id);
-        const permissions = Array.isArray(roleData?.permissions) 
-          ? roleData.permissions.filter((p): p is string => typeof p === 'string')
-          : [];
         return {
           ...user,
-          role: roleData?.role || 'employee',
-          permissions
+          role: roleData?.role || 'viewer',
+          permissions: [] // الصلاحيات الآن محددة بناءً على الدور فقط
         };
       });
 
@@ -83,15 +80,16 @@ export function UserManagementPanel() {
     }
   };
 
-  const handleRoleUpdate = async (userId: string, newRole: string, permissions: string[]) => {
+  const handleRoleUpdate = async (userId: string, newRole: string, _permissions: string[]) => {
     try {
-      // تحديث أو إدراج دور المستخدم
+      // تحديث أو إدراج دور المستخدم (الهيكل الجديد بدون permissions)
       const { error } = await supabase
         .from('user_roles')
         .upsert({
           user_id: userId,
-          role: newRole,
-          permissions: permissions
+          role: newRole as any // النوع app_role
+        }, {
+          onConflict: 'user_id,company_id,role'
         });
 
       if (error) throw error;

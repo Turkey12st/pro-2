@@ -61,8 +61,8 @@ export function UserRoleManager({ employeeId }: UserRoleManagerProps) {
         },
         {
           id: '3',
-          email: 'hr.officer@company.com',
-          user_metadata: { full_name: 'موظف الموارد البشرية', role: 'hr_officer' },
+          email: 'accountant@company.com',
+          user_metadata: { full_name: 'المحاسب', role: 'accountant' },
           created_at: new Date().toISOString()
         }
       ];
@@ -110,37 +110,42 @@ export function UserRoleManager({ employeeId }: UserRoleManagerProps) {
     }
   };
 
-  const getRoleText = (role: UserRole) => {
-    const roleMap = {
+  const getRoleText = (role: UserRole | string) => {
+    const roleMap: Record<string, string> = {
       admin: 'مدير النظام',
+      owner: 'مالك الشركة',
+      accountant: 'محاسب',
       hr_manager: 'مدير الموارد البشرية',
-      hr_officer: 'موظف الموارد البشرية',
-      finance_manager: 'مدير المالية',
-      department_manager: 'مدير القسم',
-      employee: 'موظف'
+      sales_manager: 'مدير المبيعات',
+      viewer: 'مشاهد'
     };
     return roleMap[role] || role;
   };
 
-  const getRoleBadge = (role: UserRole) => {
-    const roleColors = {
+  const getRoleBadge = (role: UserRole | string) => {
+    const roleColors: Record<string, string> = {
       admin: 'bg-red-100 text-red-800 hover:bg-red-200',
+      owner: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
+      accountant: 'bg-green-100 text-green-800 hover:bg-green-200',
       hr_manager: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
-      hr_officer: 'bg-green-100 text-green-800 hover:bg-green-200',
-      finance_manager: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
-      department_manager: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
-      employee: 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+      sales_manager: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
+      viewer: 'bg-gray-100 text-gray-800 hover:bg-gray-200'
     };
     
     return (
-      <Badge className={roleColors[role]}>
+      <Badge className={roleColors[role] || 'bg-gray-100 text-gray-800'}>
         {getRoleText(role)}
       </Badge>
     );
   };
 
-  const getPermissionCount = (role: UserRole) => {
+  const getPermissionCount = (role: UserRole | string) => {
     return DEFAULT_ROLE_PERMISSIONS[role]?.length || 0;
+  };
+
+  const getValidRole = (role?: UserRole | string): UserRole => {
+    const validRoles: UserRole[] = ['admin', 'owner', 'accountant', 'hr_manager', 'sales_manager', 'viewer'];
+    return (role && validRoles.includes(role as UserRole)) ? (role as UserRole) : 'viewer';
   };
 
   if (!hasPermission('manage_users')) {
@@ -191,10 +196,10 @@ export function UserRoleManager({ employeeId }: UserRoleManagerProps) {
                       {user.email}
                     </TableCell>
                     <TableCell>
-                      {getRoleBadge(user.user_metadata?.role || 'employee')}
+                      {getRoleBadge(getValidRole(user.user_metadata?.role))}
                     </TableCell>
                     <TableCell>
-                      {getPermissionCount(user.user_metadata?.role || 'employee')} صلاحية
+                      {getPermissionCount(getValidRole(user.user_metadata?.role))} صلاحية
                     </TableCell>
                     <TableCell>
                       {new Date(user.created_at).toLocaleDateString('ar-SA')}
@@ -275,12 +280,12 @@ export function UserRoleManager({ employeeId }: UserRoleManagerProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-2">الدور الحالي</p>
-                {getRoleBadge(selectedUser.user_metadata?.role || 'employee')}
+                {getRoleBadge(getValidRole(selectedUser.user_metadata?.role))}
               </div>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">الدور الجديد</p>
                 <Select
-                  defaultValue={selectedUser.user_metadata?.role || 'employee'}
+                  defaultValue={getValidRole(selectedUser.user_metadata?.role)}
                   onValueChange={(value) => updateUserRole(selectedUser.id, value as UserRole)}
                 >
                   <SelectTrigger>
@@ -288,11 +293,11 @@ export function UserRoleManager({ employeeId }: UserRoleManagerProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="admin">مدير النظام</SelectItem>
+                    <SelectItem value="owner">مالك الشركة</SelectItem>
+                    <SelectItem value="accountant">محاسب</SelectItem>
                     <SelectItem value="hr_manager">مدير الموارد البشرية</SelectItem>
-                    <SelectItem value="hr_officer">موظف الموارد البشرية</SelectItem>
-                    <SelectItem value="finance_manager">مدير المالية</SelectItem>
-                    <SelectItem value="department_manager">مدير القسم</SelectItem>
-                    <SelectItem value="employee">موظف</SelectItem>
+                    <SelectItem value="sales_manager">مدير المبيعات</SelectItem>
+                    <SelectItem value="viewer">مشاهد</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

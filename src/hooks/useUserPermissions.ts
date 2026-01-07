@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -12,6 +11,58 @@ export interface UserPermissions {
   canManageUsers: boolean;
 }
 
+// تحديد الصلاحيات بناءً على الدور
+const ROLE_PERMISSIONS: Record<string, UserPermissions> = {
+  admin: {
+    isMainAccount: true,
+    canCreate: true,
+    canUpdate: true,
+    canDelete: true,
+    canViewFinancials: true,
+    canManageUsers: true
+  },
+  owner: {
+    isMainAccount: true,
+    canCreate: true,
+    canUpdate: true,
+    canDelete: true,
+    canViewFinancials: true,
+    canManageUsers: true
+  },
+  accountant: {
+    isMainAccount: false,
+    canCreate: true,
+    canUpdate: true,
+    canDelete: false,
+    canViewFinancials: true,
+    canManageUsers: false
+  },
+  hr_manager: {
+    isMainAccount: false,
+    canCreate: true,
+    canUpdate: true,
+    canDelete: false,
+    canViewFinancials: false,
+    canManageUsers: false
+  },
+  sales_manager: {
+    isMainAccount: false,
+    canCreate: true,
+    canUpdate: true,
+    canDelete: false,
+    canViewFinancials: false,
+    canManageUsers: false
+  },
+  viewer: {
+    isMainAccount: false,
+    canCreate: false,
+    canUpdate: false,
+    canDelete: false,
+    canViewFinancials: false,
+    canManageUsers: false
+  }
+};
+
 export function useUserPermissions() {
   const [permissions, setPermissions] = useState<UserPermissions>({
     isMainAccount: false,
@@ -21,6 +72,8 @@ export function useUserPermissions() {
     canViewFinancials: false,
     canManageUsers: false
   });
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -36,10 +89,10 @@ export function useUserPermissions() {
         return;
       }
 
-      // التحقق من دور المستخدم باستخدام .maybeSingle() لتجنب أخطاء البيانات المفقودة
-      const { data: userRole, error } = await supabase
+      // جلب دور المستخدم من الهيكل الجديد (بدون عمود permissions)
+      const { data: userRoleData, error } = await supabase
         .from('user_roles')
-        .select('role, permissions')
+        .select('role, company_id')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -48,32 +101,17 @@ export function useUserPermissions() {
         throw error;
       }
 
-      if (userRole) {
-        const isMainAccount = userRole.role === 'admin' || userRole.role === 'owner';
+      if (userRoleData) {
+        const role = userRoleData.role || 'viewer';
+        setUserRole(role);
+        setCompanyId(userRoleData.company_id);
         
-        // تحويل permissions إلى مصفوفة إذا لم تكن كذلك
-        const permissionsArray = Array.isArray(userRole.permissions) 
-          ? userRole.permissions 
-          : [];
-        
-        setPermissions({
-          isMainAccount,
-          canCreate: isMainAccount || permissionsArray.includes('create'),
-          canUpdate: isMainAccount || permissionsArray.includes('update'),
-          canDelete: isMainAccount,
-          canViewFinancials: isMainAccount || permissionsArray.includes('view_financials'),
-          canManageUsers: isMainAccount
-        });
+        // استخدام الصلاحيات المحددة مسبقاً للدور
+        const rolePermissions = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.viewer;
+        setPermissions(rolePermissions);
       } else {
-        // إذا لم يوجد دور محدد، يُعتبر مستخدم عادي بدون صلاحيات
-        setPermissions({
-          isMainAccount: false,
-          canCreate: false,
-          canUpdate: false,
-          canDelete: false,
-          canViewFinancials: false,
-          canManageUsers: false
-        });
+        // إذا لم يوجد دور محدد، يُعتبر مشاهد بدون صلاحيات
+        setPermissions(ROLE_PERMISSIONS.viewer);
       }
     } catch (error) {
       console.error('Error loading user permissions:', error);
@@ -83,15 +121,7 @@ export function useUserPermissions() {
         variant: 'destructive',
       });
       
-      // في حالة الخطأ، تعيين صلاحيات آمنة (بدون صلاحيات)
-      setPermissions({
-        isMainAccount: false,
-        canCreate: false,
-        canUpdate: false,
-        canDelete: false,
-        canViewFinancials: false,
-        canManageUsers: false
-      });
+      setPermissions(ROLE_PERMISSIONS.viewer);
     } finally {
       setLoading(false);
     }
@@ -99,6 +129,8 @@ export function useUserPermissions() {
 
   return {
     permissions,
+    userRole,
+    companyId,
     loading,
     refreshPermissions: loadUserPermissions
   };
