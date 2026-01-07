@@ -1,5 +1,5 @@
-
-export type UserRole = 'admin' | 'hr_manager' | 'hr_officer' | 'finance_manager' | 'employee' | 'department_manager';
+// الأدوار المتوافقة مع قاعدة البيانات (app_role enum)
+export type UserRole = 'admin' | 'owner' | 'accountant' | 'hr_manager' | 'sales_manager' | 'viewer';
 
 export type Permission = 
   // Employee permissions
@@ -31,7 +31,19 @@ export type Permission =
   // System administration
   | 'manage_users' 
   | 'configure_system' 
-  | 'view_audit_logs';
+  | 'view_audit_logs'
+  // Accounting permissions
+  | 'view_accounts'
+  | 'manage_accounts'
+  | 'view_journal_entries'
+  | 'create_journal_entries'
+  | 'post_journal_entries'
+  | 'view_financials'
+  // Client/Supplier permissions
+  | 'view_clients'
+  | 'manage_clients'
+  | 'view_suppliers'
+  | 'manage_suppliers';
 
 export interface RolePermissions {
   [key: string]: Permission[];
@@ -45,7 +57,27 @@ export const DEFAULT_ROLE_PERMISSIONS: RolePermissions = {
     'manage_benefits', 'manage_deductions', 'approve_benefits',
     'view_violations', 'add_violations', 'approve_violations',
     'configure_hr_rules', 'view_reports', 'export_data',
-    'manage_users', 'configure_system', 'view_audit_logs'
+    'manage_users', 'configure_system', 'view_audit_logs',
+    'view_accounts', 'manage_accounts', 'view_journal_entries', 'create_journal_entries', 'post_journal_entries', 'view_financials',
+    'view_clients', 'manage_clients', 'view_suppliers', 'manage_suppliers'
+  ],
+  owner: [
+    'view_employees', 'add_employees', 'edit_employees', 'delete_employees',
+    'view_attendance', 'add_attendance', 'edit_attendance', 'approve_attendance',
+    'view_salaries', 'process_salaries', 'approve_salaries',
+    'manage_benefits', 'manage_deductions', 'approve_benefits',
+    'view_violations', 'add_violations', 'approve_violations',
+    'configure_hr_rules', 'view_reports', 'export_data',
+    'manage_users', 'configure_system', 'view_audit_logs',
+    'view_accounts', 'manage_accounts', 'view_journal_entries', 'create_journal_entries', 'post_journal_entries', 'view_financials',
+    'view_clients', 'manage_clients', 'view_suppliers', 'manage_suppliers'
+  ],
+  accountant: [
+    'view_employees',
+    'view_salaries', 'process_salaries',
+    'view_reports', 'export_data',
+    'view_accounts', 'manage_accounts', 'view_journal_entries', 'create_journal_entries', 'post_journal_entries', 'view_financials',
+    'view_clients', 'view_suppliers'
   ],
   hr_manager: [
     'view_employees', 'add_employees', 'edit_employees',
@@ -55,28 +87,20 @@ export const DEFAULT_ROLE_PERMISSIONS: RolePermissions = {
     'view_violations', 'add_violations', 'approve_violations',
     'configure_hr_rules', 'view_reports', 'export_data'
   ],
-  hr_officer: [
-    'view_employees', 'add_employees', 'edit_employees',
-    'view_attendance', 'add_attendance', 'edit_attendance',
-    'view_salaries',
-    'manage_benefits', 'manage_deductions',
-    'view_violations', 'add_violations',
-    'view_reports'
+  sales_manager: [
+    'view_employees',
+    'view_reports', 'export_data',
+    'view_clients', 'manage_clients',
+    'view_suppliers', 'manage_suppliers'
   ],
-  finance_manager: [
+  viewer: [
     'view_employees',
     'view_attendance',
-    'view_salaries', 'process_salaries', 'approve_salaries',
-    'view_reports', 'export_data'
-  ],
-  department_manager: [
-    'view_employees',
-    'view_attendance', 'add_attendance',
-    'view_violations', 'add_violations',
+    'view_accounts',
+    'view_journal_entries',
+    'view_clients',
+    'view_suppliers',
     'view_reports'
-  ],
-  employee: [
-    'view_attendance'
   ]
 };
 

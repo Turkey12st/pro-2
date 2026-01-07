@@ -60,10 +60,12 @@ export function UserRoleForm({ user, onSave, onCancel }: UserRoleFormProps) {
     'manage_benefits', 'manage_deductions', 'approve_benefits',
     'view_violations', 'add_violations', 'approve_violations',
     'configure_hr_rules', 'view_reports', 'export_data',
-    'manage_users', 'configure_system', 'view_audit_logs'
+    'manage_users', 'configure_system', 'view_audit_logs',
+    'view_accounts', 'manage_accounts', 'view_journal_entries', 'create_journal_entries', 'post_journal_entries', 'view_financials',
+    'view_clients', 'manage_clients', 'view_suppliers', 'manage_suppliers'
   ];
 
-  const permissionLabels: Record<Permission, string> = {
+  const permissionLabels: Partial<Record<Permission, string>> = {
     'view_employees': 'عرض الموظفين',
     'add_employees': 'إضافة موظفين',
     'edit_employees': 'تعديل الموظفين',
@@ -86,16 +88,26 @@ export function UserRoleForm({ user, onSave, onCancel }: UserRoleFormProps) {
     'export_data': 'تصدير البيانات',
     'manage_users': 'إدارة المستخدمين',
     'configure_system': 'إعداد النظام',
-    'view_audit_logs': 'عرض سجلات التدقيق'
+    'view_audit_logs': 'عرض سجلات التدقيق',
+    'view_accounts': 'عرض الحسابات',
+    'manage_accounts': 'إدارة الحسابات',
+    'view_journal_entries': 'عرض القيود',
+    'create_journal_entries': 'إنشاء قيود',
+    'post_journal_entries': 'ترحيل القيود',
+    'view_financials': 'عرض البيانات المالية',
+    'view_clients': 'عرض العملاء',
+    'manage_clients': 'إدارة العملاء',
+    'view_suppliers': 'عرض الموردين',
+    'manage_suppliers': 'إدارة الموردين'
   };
 
   const roleLabels = {
     'admin': 'مدير النظام',
+    'owner': 'مالك الشركة',
+    'accountant': 'محاسب',
     'hr_manager': 'مدير الموارد البشرية',
-    'hr_officer': 'موظف موارد بشرية',
-    'finance_manager': 'مدير مالي',
-    'department_manager': 'مدير قسم',
-    'employee': 'موظف'
+    'sales_manager': 'مدير المبيعات',
+    'viewer': 'مشاهد'
   };
 
   const validatePassword = (pwd: string): boolean => {

@@ -1,12 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { Permission, UserRole, DEFAULT_ROLE_PERMISSIONS } from '@/types/permissions';
 import { supabase } from '@/integrations/supabase/client';
 
 export function usePermissions() {
-  const [userRole, setUserRole] = useState<UserRole>('employee');
+  const [userRole, setUserRole] = useState<UserRole>('viewer');
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
   useEffect(() => {
     loadUserPermissions();
@@ -20,10 +20,10 @@ export function usePermissions() {
         return;
       }
 
-      // جلب دور المستخدم من جدول user_roles
-      const { data: userRole, error } = await supabase
+      // جلب دور المستخدم من جدول user_roles (الهيكل الجديد بدون permissions)
+      const { data: userRoleData, error } = await supabase
         .from('user_roles')
-        .select('role, permissions')
+        .select('role, company_id')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -31,17 +31,18 @@ export function usePermissions() {
         console.error('Error fetching user role:', error);
       }
 
-      const role = (userRole?.role as UserRole) || 'employee';
+      // تحويل الدور للنوع الصحيح، واستخدام viewer كقيمة افتراضية
+      const roleValue = userRoleData?.role;
+      const validRoles: UserRole[] = ['admin', 'owner', 'accountant', 'hr_manager', 'sales_manager', 'viewer'];
+      const role: UserRole = (roleValue && validRoles.includes(roleValue as UserRole)) 
+        ? (roleValue as UserRole) 
+        : 'viewer';
       setUserRole(role);
+      setCompanyId(userRoleData?.company_id || null);
       
-      // دمج الأذونات الافتراضية مع الأذونات المخصصة
+      // استخدام الأذونات الافتراضية للدور فقط
       const defaultPermissions = DEFAULT_ROLE_PERMISSIONS[role] || [];
-      const customPermissions = Array.isArray(userRole?.permissions) 
-        ? userRole.permissions.filter((p): p is Permission => typeof p === 'string')
-        : [];
-      
-      const allPermissions = [...new Set([...defaultPermissions, ...customPermissions])];
-      setPermissions(allPermissions);
+      setPermissions(defaultPermissions);
     } catch (error) {
       console.error('Error loading user permissions:', error);
     } finally {
@@ -64,6 +65,7 @@ export function usePermissions() {
   return {
     userRole,
     permissions,
+    companyId,
     isLoading,
     hasPermission,
     hasAnyPermission,
