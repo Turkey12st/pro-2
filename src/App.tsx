@@ -27,6 +27,7 @@ import FinancialPage from "./pages/financial/Index";
 import ProjectDetails from "./pages/projects/ProjectDetails";
 import LoginPage from "./pages/auth/Login";
 import UnauthorizedPage from "./pages/Unauthorized";
+import BankReconciliationPage from "./pages/bank-reconciliation/Index";
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
               <Route path="/accounting" element={<ProtectedRoute><AccountingPage /></ProtectedRoute>} />
               <Route path="/financial" element={<ProtectedRoute><FinancialPage /></ProtectedRoute>} />
+              <Route path="/bank-reconciliation" element={<ProtectedRoute><BankReconciliationPage /></ProtectedRoute>} />
               <Route path="/capital" element={<ProtectedRoute><CapitalManagementPage /></ProtectedRoute>} />
               <Route path="/hr" element={<ProtectedRoute><HRPage /></ProtectedRoute>} />
               <Route path="/hr/employee/:id" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
