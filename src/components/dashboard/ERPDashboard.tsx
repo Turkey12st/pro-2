@@ -30,32 +30,32 @@ export function ERPDashboard() {
   const onHoldProjects = data.projects.filter(p => p.status === 'on_hold').length;
   return <div className="space-y-6">
       {/* التبويبات التفصيلية */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 bg-gray-50 p-1 rounded-lg">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            <Activity className="h-3 w-3 mr-1" />
-            نظرة عامة
+      <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+        <TabsList className="flex flex-wrap justify-start gap-1 sm:grid sm:grid-cols-5 w-full bg-muted/50 p-1 rounded-lg overflow-x-auto">
+          <TabsTrigger value="overview" className="flex-1 min-w-fit text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <Activity className="h-3 w-3 sm:mr-1" />
+            <span className="hidden sm:inline">نظرة عامة</span>
           </TabsTrigger>
-          <TabsTrigger value="hr" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            <Users2 className="h-3 w-3 mr-1" />
-            الموارد البشرية
+          <TabsTrigger value="hr" className="flex-1 min-w-fit text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <Users2 className="h-3 w-3 sm:mr-1" />
+            <span className="hidden sm:inline">الموارد البشرية</span>
           </TabsTrigger>
-          <TabsTrigger value="projects" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            <Target className="h-3 w-3 mr-1" />
-            المشاريع
+          <TabsTrigger value="projects" className="flex-1 min-w-fit text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <Target className="h-3 w-3 sm:mr-1" />
+            <span className="hidden sm:inline">المشاريع</span>
           </TabsTrigger>
-          <TabsTrigger value="financial" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            <DollarSign className="h-3 w-3 mr-1" />
-            المالية
+          <TabsTrigger value="financial" className="flex-1 min-w-fit text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <DollarSign className="h-3 w-3 sm:mr-1" />
+            <span className="hidden sm:inline">المالية</span>
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-            <BarChart3 className="h-3 w-3 mr-1" />
-            التحليلات
+          <TabsTrigger value="analytics" className="flex-1 min-w-fit text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-2 sm:px-3 py-1.5 sm:py-2">
+            <BarChart3 className="h-3 w-3 sm:mr-1" />
+            <span className="hidden sm:inline">التحليلات</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+          <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {/* معدل الأداء المختصر */}
             <Card className="bg-white border shadow-sm">
               <CardHeader>
@@ -128,8 +128,8 @@ export function ERPDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="hr" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+        <TabsContent value="hr" className="space-y-4 sm:space-y-6">
+          <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
             {/* توزيع الموظفين حسب الأقسام */}
             <Card className="shadow-sm">
               <CardHeader>
@@ -240,7 +240,7 @@ export function ERPDashboard() {
         </TabsContent>
 
         <TabsContent value="projects" className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-4 sm:mb-6">
             {/* إحصائيات المشاريع */}
             <Card className="shadow-sm">
               <CardHeader>
@@ -282,7 +282,7 @@ export function ERPDashboard() {
             </Card>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {data.projects.slice(0, 6).map(project => <Card key={project.id} className="shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center justify-between">
