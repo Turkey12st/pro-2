@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Home,
   Shield,
+  Landmark,
 } from "lucide-react";
 import { MenuItem } from "@/types/navigation";
 
@@ -46,6 +47,12 @@ export function getNavigationMenu(): MenuItem[] {
       name: "إدارة رأس المال",
       href: "/capital",
       icon: Building2,
+      group: "المالية"
+    },
+    {
+      name: "المطابقة البنكية",
+      href: "/bank-reconciliation",
+      icon: Landmark,
       group: "المالية"
     },
     {

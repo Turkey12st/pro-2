@@ -194,20 +194,92 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
         </div>
       )}
       
-      <div className="overflow-x-auto">
+      {/* Mobile Card View */}
+      <div className="block md:hidden space-y-3">
+        {filteredEntries.length > 0 ? (
+          filteredEntries.map((entry) => (
+            <div 
+              key={entry.id} 
+              className={`p-4 rounded-lg border bg-card shadow-sm ${entry.is_approved ? 'border-success/30 bg-success/5' : 'border-border'}`}
+            >
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-foreground truncate">{entry.entry_name || "قيد بدون اسم"}</h4>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{entry.description}</p>
+                </div>
+                <Badge variant={entry.entry_type === "income" ? "default" : "destructive"} className="shrink-0 text-xs">
+                  {entry.entry_type === "income" ? "إيراد" : "مصروف"}
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                <div className="flex justify-between p-2 bg-muted/50 rounded">
+                  <span className="text-muted-foreground">المدين</span>
+                  <span className="font-medium text-success" dir="ltr">{formatAmount(entry.total_debit)}</span>
+                </div>
+                <div className="flex justify-between p-2 bg-muted/50 rounded">
+                  <span className="text-muted-foreground">الدائن</span>
+                  <span className="font-medium text-destructive" dir="ltr">{formatAmount(entry.total_credit)}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                <span>{formatEntryDate(entry.entry_date)}</span>
+                <span>{entry.currency || "SAR"}</span>
+                {entry.is_approved ? (
+                  <Badge variant="default" className="text-xs">معتمد</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs">بانتظار</Badge>
+                )}
+              </div>
+              
+              <div className="flex gap-1 pt-2 border-t">
+                {!entry.is_approved && (
+                  <>
+                    <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={() => onEdit(entry)}>
+                      <Edit className="h-3 w-3 ml-1" />
+                      تعديل
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1 h-8 text-xs text-success" onClick={() => handleApproveEntry(entry.id)}>
+                      <FileText className="h-3 w-3 ml-1" />
+                      اعتماد
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8 text-xs text-destructive" onClick={() => onDelete(entry.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </>
+                )}
+                {entry.is_approved && (
+                  <Button variant="ghost" size="sm" className="flex-1 h-8 text-xs" onClick={() => onEdit(entry)}>
+                    <FileText className="h-3 w-3 ml-1" />
+                    عرض التفاصيل
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            لا توجد نتائج تطابق معايير البحث
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>اسم القيد</TableHead>
-              <TableHead>الوصف</TableHead>
-              <TableHead>التاريخ</TableHead>
-              <TableHead>النوع</TableHead>
-              <TableHead>المدين</TableHead>
-              <TableHead>الدائن</TableHead>
-              <TableHead>العملة</TableHead>
-              <TableHead>القائمة المالية</TableHead>
-              <TableHead>الحالة</TableHead>
-              <TableHead>الإجراءات</TableHead>
+              <TableHead className="text-xs lg:text-sm">اسم القيد</TableHead>
+              <TableHead className="text-xs lg:text-sm">الوصف</TableHead>
+              <TableHead className="text-xs lg:text-sm">التاريخ</TableHead>
+              <TableHead className="text-xs lg:text-sm">النوع</TableHead>
+              <TableHead className="text-xs lg:text-sm">المدين</TableHead>
+              <TableHead className="text-xs lg:text-sm">الدائن</TableHead>
+              <TableHead className="text-xs lg:text-sm hidden xl:table-cell">العملة</TableHead>
+              <TableHead className="text-xs lg:text-sm hidden lg:table-cell">القائمة المالية</TableHead>
+              <TableHead className="text-xs lg:text-sm">الحالة</TableHead>
+              <TableHead className="text-xs lg:text-sm">الإجراءات</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -232,8 +304,8 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                   <TableCell className="font-medium text-left" dir="ltr">
                     {formatAmount(entry.total_credit)}
                   </TableCell>
-                  <TableCell>{entry.currency || "SAR"}</TableCell>
-                  <TableCell>
+                  <TableCell className="hidden xl:table-cell">{entry.currency || "SAR"}</TableCell>
+                  <TableCell className="hidden lg:table-cell">
                     {getFinancialSectionName(entry.financial_statement_section)}
                   </TableCell>
                   <TableCell>
