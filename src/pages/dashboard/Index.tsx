@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { QuickNavMenu } from "@/components/dashboard/QuickNavMenu";
@@ -7,6 +6,8 @@ import { IntegratedDashboardStats } from "@/components/dashboard/IntegratedDashb
 import { CompactNotificationsPanel } from "@/components/dashboard/CompactNotificationsPanel";
 import { FinancialMetricsCard } from "@/components/dashboard/FinancialMetricsCard";
 import { ERPDashboard } from "@/components/dashboard/ERPDashboard";
+import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
+import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
 
 // Security enhancement: Route validation
 const VALID_ROUTES = ['/hr', '/projects', '/documents', '/financial', '/partners'];
@@ -17,6 +18,7 @@ const validateRoute = (route: string): boolean => {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { isComplete: onboardingComplete, loading: onboardingLoading } = useOnboardingStatus();
 
   // Security enhancement: Safe navigation with route validation
   const handleStatClick = (type: string) => {
@@ -65,6 +67,9 @@ export default function DashboardPage() {
           </div>
           <QuickNavMenu />
         </div>
+
+        {/* نظام الإرشاد للتفعيل الصحيح */}
+        <OnboardingBanner showWhenComplete={!onboardingComplete} />
 
         {/* Main Content Area */}
         <div className="space-y-6">

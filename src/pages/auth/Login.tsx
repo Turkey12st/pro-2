@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { Lock, Mail, AlertCircle, CheckCircle } from 'lucide-react';
+import { Lock, Mail, AlertCircle, CheckCircle, Building2 } from 'lucide-react';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -21,20 +22,75 @@ const signupSchema = z.object({
   email: z.string().email('البريد الإلكتروني غير صالح'),
   password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
   confirmPassword: z.string(),
+  companyName: z.string().min(2, 'اسم الشركة يجب أن يكون حرفين على الأقل'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'كلمات المرور غير متطابقة',
   path: ['confirmPassword'],
 });
 
+// Helper function to create company and link user
+async function setupNewUserCompany(userId: string, companyName: string): Promise<boolean> {
+  try {
+    // Create a new company
+    const { data: newCompany, error: companyError } = await supabase
+      .from('companies')
+      .insert({
+        name: companyName,
+        is_active: true,
+      })
+      .select('id')
+      .single();
+
+    if (companyError || !newCompany) {
+      console.error('Error creating company:', companyError);
+      return false;
+    }
+
+    // Link the user to the company
+    const { error: linkError } = await supabase
+      .from('users_companies')
+      .insert({
+        user_id: userId,
+        company_id: newCompany.id,
+        is_default: true,
+      });
+
+    if (linkError) {
+      console.error('Error linking user to company:', linkError);
+      return false;
+    }
+
+    // Assign admin role to the user for this company
+    const { error: roleError } = await supabase
+      .from('user_roles')
+      .insert({
+        user_id: userId,
+        company_id: newCompany.id,
+        role: 'admin',
+      });
+
+    if (roleError) {
+      console.error('Error assigning role:', roleError);
+      // Continue anyway
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in setupNewUserCompany:', error);
+    return false;
+  }
+}
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signUp, isAuthenticated, loading } = useAuth();
+  const { signIn, signUp, isAuthenticated, loading, user } = useAuth();
   
   const [activeTab, setActiveTab] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,10 +138,10 @@ export default function LoginPage() {
     setSuccess(null);
     
     try {
-      const validated = signupSchema.parse({ email, password, confirmPassword });
+      const validated = signupSchema.parse({ email, password, confirmPassword, companyName });
       setIsSubmitting(true);
       
-      const { error } = await signUp(validated.email, validated.password);
+      const { data, error } = await signUp(validated.email, validated.password);
       
       if (error) {
         if (error.message.includes('User already registered')) {
@@ -93,11 +149,20 @@ export default function LoginPage() {
         } else {
           setError(error.message);
         }
-      } else {
-        setSuccess('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب.');
+      } else if (data?.user) {
+        // Setup company for new user
+        const setupSuccess = await setupNewUserCompany(data.user.id, validated.companyName);
+        
+        if (setupSuccess) {
+          setSuccess('تم إنشاء الحساب والشركة بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب.');
+        } else {
+          setSuccess('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب. يمكنك إعداد الشركة لاحقاً.');
+        }
+        
         setEmail('');
         setPassword('');
         setConfirmPassword('');
+        setCompanyName('');
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -195,6 +260,23 @@ export default function LoginPage() {
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="company-name">اسم الشركة</Label>
+                  <div className="relative">
+                    <Building2 className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="company-name"
+                      type="text"
+                      placeholder="اسم شركتك"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      className="pr-10"
+                      required
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
                   <Label htmlFor="signup-email">البريد الإلكتروني</Label>
                   <div className="relative">
                     <Mail className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -248,6 +330,10 @@ export default function LoginPage() {
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
                 </Button>
+                
+                <p className="text-xs text-center text-muted-foreground">
+                  بتسجيلك، سيتم إنشاء شركة جديدة مرتبطة بحسابك
+                </p>
               </form>
             </TabsContent>
           </Tabs>
