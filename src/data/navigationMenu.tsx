@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   Receipt,
@@ -14,6 +13,7 @@ import {
   Home,
   Shield,
   Landmark,
+  UserCircle,
 } from "lucide-react";
 import { MenuItem } from "@/types/navigation";
 
@@ -101,6 +101,12 @@ export function getNavigationMenu(): MenuItem[] {
       name: "الإعدادات",
       href: "/settings",
       icon: Settings,
+      group: "إدارة النظام"
+    },
+    {
+      name: "حسابي",
+      href: "/account",
+      icon: UserCircle,
       group: "إدارة النظام"
     },
     {
