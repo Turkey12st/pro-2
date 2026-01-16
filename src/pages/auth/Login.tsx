@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { Lock, Mail, AlertCircle, CheckCircle, Building2 } from 'lucide-react';
+import { Lock, Mail, AlertCircle, CheckCircle, Building2, KeyRound } from 'lucide-react';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -28,10 +28,13 @@ const signupSchema = z.object({
   path: ['confirmPassword'],
 });
 
+const resetSchema = z.object({
+  email: z.string().email('البريد الإلكتروني غير صالح'),
+});
+
 // Helper function to create company and link user
 async function setupNewUserCompany(userId: string, companyName: string): Promise<boolean> {
   try {
-    // Create a new company
     const { data: newCompany, error: companyError } = await supabase
       .from('companies')
       .insert({
@@ -46,7 +49,6 @@ async function setupNewUserCompany(userId: string, companyName: string): Promise
       return false;
     }
 
-    // Link the user to the company
     const { error: linkError } = await supabase
       .from('users_companies')
       .insert({
@@ -60,7 +62,6 @@ async function setupNewUserCompany(userId: string, companyName: string): Promise
       return false;
     }
 
-    // Assign admin role to the user for this company
     const { error: roleError } = await supabase
       .from('user_roles')
       .insert({
@@ -71,7 +72,6 @@ async function setupNewUserCompany(userId: string, companyName: string): Promise
 
     if (roleError) {
       console.error('Error assigning role:', roleError);
-      // Continue anyway
     }
 
     return true;
@@ -84,7 +84,7 @@ async function setupNewUserCompany(userId: string, companyName: string): Promise
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signUp, isAuthenticated, loading, user } = useAuth();
+  const { signIn, signUp, isAuthenticated, loading } = useAuth();
   
   const [activeTab, setActiveTab] = useState('login');
   const [email, setEmail] = useState('');
@@ -94,8 +94,8 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && !loading) {
       const from = (location.state as any)?.from?.pathname || '/dashboard';
@@ -150,13 +150,12 @@ export default function LoginPage() {
           setError(error.message);
         }
       } else if (data?.user) {
-        // Setup company for new user
         const setupSuccess = await setupNewUserCompany(data.user.id, validated.companyName);
         
         if (setupSuccess) {
           setSuccess('تم إنشاء الحساب والشركة بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب.');
         } else {
-          setSuccess('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب. يمكنك إعداد الشركة لاحقاً.');
+          setSuccess('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب.');
         }
         
         setEmail('');
@@ -173,10 +172,109 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    
+    try {
+      const validated = resetSchema.parse({ email });
+      setIsSubmitting(true);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(validated.email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+      
+      if (error) {
+        setError('حدث خطأ أثناء إرسال رابط الاستعادة. حاول مرة أخرى.');
+      } else {
+        setSuccess('تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني.');
+        setEmail('');
+      }
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setError(err.errors[0].message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // Forgot Password View
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4" dir="rtl">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="text-center space-y-2">
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <KeyRound className="h-8 w-8 text-primary" />
+            </div>
+            <CardTitle className="text-2xl font-bold">استعادة كلمة المرور</CardTitle>
+            <CardDescription>
+              أدخل بريدك الإلكتروني لإرسال رابط الاستعادة
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            {success && (
+              <Alert className="mb-4 border-green-500 bg-green-50 text-green-700">
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
+            )}
+            
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">البريد الإلكتروني</Label>
+                <div className="relative">
+                  <Mail className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="example@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pr-10"
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+              
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'جاري الإرسال...' : 'إرسال رابط الاستعادة'}
+              </Button>
+              
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setError(null);
+                  setSuccess(null);
+                }}
+              >
+                العودة لتسجيل الدخول
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -235,7 +333,17 @@ export default function LoginPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">كلمة المرور</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="login-password">كلمة المرور</Label>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="px-0 text-xs h-auto"
+                      onClick={() => setShowForgotPassword(true)}
+                    >
+                      نسيت كلمة المرور؟
+                    </Button>
+                  </div>
                   <div className="relative">
                     <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input

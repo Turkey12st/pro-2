@@ -26,6 +26,8 @@ import CalendarPage from "./pages/calendar/Index";
 import FinancialPage from "./pages/financial/Index";
 import ProjectDetails from "./pages/projects/ProjectDetails";
 import LoginPage from "./pages/auth/Login";
+import ResetPasswordPage from "./pages/auth/ResetPassword";
+import AccountPage from "./pages/account/Index";
 import UnauthorizedPage from "./pages/Unauthorized";
 import BankReconciliationPage from "./pages/bank-reconciliation/Index";
 
@@ -42,9 +44,11 @@ function App() {
               <Route path="/" element={<Navigate to="/main" replace />} />
               <Route path="/main" element={<MainPage />} />
               <Route path="/auth" element={<LoginPage />} />
+              <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
               
               {/* Protected routes */}
+              <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
               <Route path="/accounting" element={<ProtectedRoute><AccountingPage /></ProtectedRoute>} />
               <Route path="/financial" element={<ProtectedRoute><FinancialPage /></ProtectedRoute>} />
