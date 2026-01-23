@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import AppLayout from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -90,6 +91,7 @@ export function AdminDashboard() {
   };
 
   return (
+    <AppLayout>
     <div className="page-container" dir="rtl">
       {/* Header */}
       <div className="page-header">
@@ -294,5 +296,6 @@ export function AdminDashboard() {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 }

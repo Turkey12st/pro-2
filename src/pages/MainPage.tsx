@@ -22,14 +22,6 @@ import { useDataIntegration } from "@/hooks/useDataIntegration";
 export default function MainPage() {
   const navigate = useNavigate();
   const { isInitializing, hasInitialized, refreshDataIntegrity } = useDataIntegration();
-  
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigate("/dashboard");
-    }, 15000);
-    
-    return () => clearTimeout(timer);
-  }, [navigate]);
 
   const systemStats = [
     { 
