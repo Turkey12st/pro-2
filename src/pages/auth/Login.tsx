@@ -293,158 +293,80 @@ export default function LoginPage() {
         </CardHeader>
         
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">تسجيل الدخول</TabsTrigger>
-              <TabsTrigger value="signup">حساب جديد</TabsTrigger>
-            </TabsList>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
+          {success && (
+            <Alert className="mb-4 border-green-500 bg-green-50 text-green-700">
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription>{success}</AlertDescription>
+            </Alert>
+          )}
+          
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="login-email">البريد الإلكتروني</Label>
+              <div className="relative">
+                <Mail className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="login-email"
+                  type="email"
+                  placeholder="example@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pr-10"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
             
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
-            {success && (
-              <Alert className="mb-4 border-green-500 bg-green-50 text-green-700">
-                <CheckCircle className="h-4 w-4" />
-                <AlertDescription>{success}</AlertDescription>
-              </Alert>
-            )}
-            
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">البريد الإلكتروني</Label>
-                  <div className="relative">
-                    <Mail className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="login-email"
-                      type="email"
-                      placeholder="example@company.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pr-10"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="login-password">كلمة المرور</Label>
-                    <Button
-                      type="button"
-                      variant="link"
-                      className="px-0 text-xs h-auto"
-                      onClick={() => setShowForgotPassword(true)}
-                    >
-                      نسيت كلمة المرور؟
-                    </Button>
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pr-10"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-                
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="login-password">كلمة المرور</Label>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="px-0 text-xs h-auto"
+                  onClick={() => setShowForgotPassword(true)}
+                >
+                  نسيت كلمة المرور؟
                 </Button>
-              </form>
-            </TabsContent>
+              </div>
+              <div className="relative">
+                <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="login-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pr-10"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
             
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="company-name">اسم الشركة</Label>
-                  <div className="relative">
-                    <Building2 className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="company-name"
-                      type="text"
-                      placeholder="اسم شركتك"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      className="pr-10"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">البريد الإلكتروني</Label>
-                  <div className="relative">
-                    <Mail className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="example@company.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pr-10"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">كلمة المرور</Label>
-                  <div className="relative">
-                    <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="8 أحرف على الأقل"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pr-10"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">تأكيد كلمة المرور</Label>
-                  <div className="relative">
-                    <Lock className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="أعد كتابة كلمة المرور"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pr-10"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-                
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? 'جاري إنشاء الحساب...' : 'إنشاء حساب'}
-                </Button>
-                
-                <p className="text-xs text-center text-muted-foreground">
-                  بتسجيلك، سيتم إنشاء شركة جديدة مرتبطة بحسابك
-                </p>
-              </form>
-            </TabsContent>
-          </Tabs>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+            </Button>
+          </form>
+          
+          {/* Registration Disabled Notice */}
+          <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <AlertCircle className="h-5 w-5" />
+              <div>
+                <p className="font-medium text-foreground">التسجيل متوقف مؤقتاً</p>
+                <p className="text-sm">نعمل على تحسين النظام. سيتم فتح التسجيل قريباً.</p>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
