@@ -36,7 +36,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         title: "تم تسجيل الخروج",
         description: "تم تسجيل خروجك بنجاح",
       });
-      navigate("/auth/login");
+      navigate("/auth");
     } catch (error) {
       console.error("Error during logout:", error);
       toast({
@@ -172,9 +172,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/settings/profile" className="flex w-full items-center cursor-pointer">
+                    <Link to="/account" className="flex w-full items-center cursor-pointer">
                       <User className="ml-2 h-4 w-4" />
-                      <span>الملف الشخصي</span>
+                      <span>حسابي</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
