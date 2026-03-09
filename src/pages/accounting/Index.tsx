@@ -76,6 +76,6 @@ export default function AccountingPage() {
           </Tabs>
         </CardContent>
       </Card>
-    </AppLayout>
+    </>
   );
 }

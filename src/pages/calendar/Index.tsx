@@ -324,7 +324,7 @@ const CalendarPage = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </AppLayout>
+    </>
   );
 };
 

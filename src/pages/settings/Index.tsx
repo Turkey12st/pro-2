@@ -84,6 +84,6 @@ export default function SettingsPage() {
           </Card>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }
