@@ -10,7 +10,6 @@ import {
   Link,
   Building2,
   TrendingUp,
-  Home,
   Shield,
   Landmark,
   UserCircle,
@@ -23,13 +22,7 @@ export function getNavigationMenu(): MenuItem[] {
       name: "لوحة المعلومات",
       href: "/dashboard",
       icon: LayoutDashboard,
-      group: "إدارة النظام"
-    },
-    {
-      name: "الصفحة الرئيسية",
-      href: "/main",
-      icon: Home,
-      group: "إدارة النظام"
+      group: "الرئيسية"
     },
     {
       name: "المحاسبة",
@@ -56,64 +49,58 @@ export function getNavigationMenu(): MenuItem[] {
       group: "المالية"
     },
     {
-      name: "المشاريع",
-      href: "/projects",
-      icon: ListChecks,
-      group: "إدارة المشاريع"
-    },
-    {
-      name: "المستندات",
-      href: "/documents",
-      icon: FileText,
-      group: "إدارة النظام"
-    },
-    {
       name: "الموظفين",
       href: "/hr",
       icon: Users,
-      group: "إدارة الموارد البشرية"
+      group: "الموارد البشرية"
+    },
+    {
+      name: "المشاريع",
+      href: "/projects",
+      icon: ListChecks,
+      group: "العمليات"
     },
     {
       name: "العملاء",
       href: "/clients",
       icon: Store,
-      group: "إدارة العملاء"
+      group: "العمليات"
     },
     {
       name: "الشركاء",
       href: "/partners",
       icon: Link,
-      group: "إدارة النظام"
+      group: "العمليات"
+    },
+    {
+      name: "المستندات",
+      href: "/documents",
+      icon: FileText,
+      group: "النظام"
     },
     {
       name: "معلومات الشركة",
       href: "/company",
       icon: Building2,
-      group: "إدارة النظام"
+      group: "النظام"
     },
     {
       name: "التقويم",
       href: "/calendar",
       icon: CalendarIcon,
-      group: "إدارة النظام"
+      group: "النظام"
     },
     {
       name: "الإعدادات",
       href: "/settings",
       icon: Settings,
-      group: "إدارة النظام"
-    },
-    {
-      name: "حسابي",
-      href: "/account",
-      icon: UserCircle,
-      group: "إدارة النظام"
+      group: "النظام"
     },
     {
       name: "لوحة الإدارة",
       href: "/admin",
       icon: Shield,
-      group: "إدارة النظام"
+      group: "النظام"
     }
   ];
 }

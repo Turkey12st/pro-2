@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@/lib/queryClient";
 import { GlobalErrorBoundary } from "@/components/shared/GlobalErrorBoundary";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import AppLayout from "@/components/AppLayout";
 
 // Pages
 import MainPage from "./pages/MainPage";
@@ -41,34 +42,34 @@ function App() {
           <BrowserRouter>
             <Routes>
               {/* Public routes */}
-              <Route path="/" element={<Navigate to="/main" replace />} />
-              <Route path="/main" element={<MainPage />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/auth" element={<LoginPage />} />
               <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
               
-              {/* Protected routes */}
-              <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
-              <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-              <Route path="/accounting" element={<ProtectedRoute><AccountingPage /></ProtectedRoute>} />
-              <Route path="/financial" element={<ProtectedRoute><FinancialPage /></ProtectedRoute>} />
-              <Route path="/bank-reconciliation" element={<ProtectedRoute><BankReconciliationPage /></ProtectedRoute>} />
-              <Route path="/capital" element={<ProtectedRoute><CapitalManagementPage /></ProtectedRoute>} />
-              <Route path="/hr" element={<ProtectedRoute><HRPage /></ProtectedRoute>} />
-              <Route path="/hr/employee/:id" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
-              <Route path="/documents" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
-              <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
-              <Route path="/projects/:id" element={<ProtectedRoute><ProjectDetails /></ProtectedRoute>} />
-              <Route path="/clients" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
-              <Route path="/company" element={<ProtectedRoute><CompanyPage /></ProtectedRoute>} />
-              <Route path="/partners" element={<ProtectedRoute><PartnersPage /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-              <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+              {/* Protected routes with AppLayout */}
+              <Route path="/main" element={<ProtectedRoute><AppLayout><MainPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><AppLayout><DashboardPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/accounting" element={<ProtectedRoute><AppLayout><AccountingPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/financial" element={<ProtectedRoute><AppLayout><FinancialPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/bank-reconciliation" element={<ProtectedRoute><AppLayout><BankReconciliationPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/capital" element={<ProtectedRoute><AppLayout><CapitalManagementPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/hr" element={<ProtectedRoute><AppLayout><HRPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/hr/employee/:id" element={<ProtectedRoute><AppLayout><EmployeeProfile /></AppLayout></ProtectedRoute>} />
+              <Route path="/documents" element={<ProtectedRoute><AppLayout><DocumentsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/projects" element={<ProtectedRoute><AppLayout><ProjectsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/projects/:id" element={<ProtectedRoute><AppLayout><ProjectDetails /></AppLayout></ProtectedRoute>} />
+              <Route path="/clients" element={<ProtectedRoute><AppLayout><ClientsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/company" element={<ProtectedRoute><AppLayout><CompanyPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/partners" element={<ProtectedRoute><AppLayout><PartnersPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><AppLayout><SettingsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/calendar" element={<ProtectedRoute><AppLayout><CalendarPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/account" element={<ProtectedRoute><AppLayout><AccountPage /></AppLayout></ProtectedRoute>} />
               
               {/* Admin only routes */}
               <Route path="/admin" element={
                 <ProtectedRoute requiredRoles={['admin']}>
-                  <AdminPage />
+                  <AppLayout><AdminPage /></AppLayout>
                 </ProtectedRoute>
               } />
               

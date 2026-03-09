@@ -1,5 +1,3 @@
-
-import AppLayout from "@/components/AppLayout";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { HRPageHeader } from "./components/HRPageHeader";
 import { HRDashboardCards } from "./components/HRDashboardCards";
@@ -22,26 +20,24 @@ export default function HRPage() {
   } = useEmployeeData();
 
   return (
-    <AppLayout>
-      <div className="page-container">
-        <HRPageHeader
-          isDialogOpen={isDialogOpen}
-          setIsDialogOpen={setIsDialogOpen}
-          handleExportToExcel={handleExportToExcel}
-        />
+    <div className="page-container">
+      <HRPageHeader
+        isDialogOpen={isDialogOpen}
+        setIsDialogOpen={setIsDialogOpen}
+        handleExportToExcel={handleExportToExcel}
+      />
 
-        <HRDashboardCards
-          totalEmployees={totalEmployees}
-          newEmployeesCount={newEmployeesCount}
-          totalSalaries={totalSalaries}
-          totalGosi={totalGosi}
-        />
+      <HRDashboardCards
+        totalEmployees={totalEmployees}
+        newEmployeesCount={newEmployeesCount}
+        totalSalaries={totalSalaries}
+        totalGosi={totalGosi}
+      />
 
-        <HRTabsContent
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
-      </div>
-    </AppLayout>
+      <HRTabsContent
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
+    </div>
   );
 }

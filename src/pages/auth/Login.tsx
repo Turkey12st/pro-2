@@ -7,76 +7,41 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { Lock, Mail, AlertCircle, CheckCircle, Building2, KeyRound } from 'lucide-react';
+import { Lock, Mail, AlertCircle, CheckCircle, KeyRound } from 'lucide-react';
 
-// Validation schemas
 const loginSchema = z.object({
   email: z.string().email('البريد الإلكتروني غير صالح'),
   password: z.string().min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
-});
-
-const signupSchema = z.object({
-  email: z.string().email('البريد الإلكتروني غير صالح'),
-  password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
-  confirmPassword: z.string(),
-  companyName: z.string().min(2, 'اسم الشركة يجب أن يكون حرفين على الأقل'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'كلمات المرور غير متطابقة',
-  path: ['confirmPassword'],
 });
 
 const resetSchema = z.object({
   email: z.string().email('البريد الإلكتروني غير صالح'),
 });
 
-// Helper function to create company and link user
 async function setupNewUserCompany(userId: string, companyName: string): Promise<boolean> {
   try {
     const { data: newCompany, error: companyError } = await supabase
       .from('companies')
-      .insert({
-        name: companyName,
-        is_active: true,
-      })
+      .insert({ name: companyName, is_active: true })
       .select('id')
       .single();
 
-    if (companyError || !newCompany) {
-      console.error('Error creating company:', companyError);
-      return false;
-    }
+    if (companyError || !newCompany) return false;
 
     const { error: linkError } = await supabase
       .from('users_companies')
-      .insert({
-        user_id: userId,
-        company_id: newCompany.id,
-        is_default: true,
-      });
+      .insert({ user_id: userId, company_id: newCompany.id, is_default: true });
 
-    if (linkError) {
-      console.error('Error linking user to company:', linkError);
-      return false;
-    }
+    if (linkError) return false;
 
-    const { error: roleError } = await supabase
+    await supabase
       .from('user_roles')
-      .insert({
-        user_id: userId,
-        company_id: newCompany.id,
-        role: 'admin',
-      });
-
-    if (roleError) {
-      console.error('Error assigning role:', roleError);
-    }
+      .insert({ user_id: userId, company_id: newCompany.id, role: 'admin' });
 
     return true;
-  } catch (error) {
-    console.error('Error in setupNewUserCompany:', error);
+  } catch {
     return false;
   }
 }
@@ -84,13 +49,10 @@ async function setupNewUserCompany(userId: string, companyName: string): Promise
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, signUp, isAuthenticated, loading } = useAuth();
+  const { signIn, isAuthenticated, loading } = useAuth();
   
-  const [activeTab, setActiveTab] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [companyName, setCompanyName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,46 +84,6 @@ export default function LoginPage() {
         } else {
           setError(error.message);
         }
-      }
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        setError(err.errors[0].message);
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    
-    try {
-      const validated = signupSchema.parse({ email, password, confirmPassword, companyName });
-      setIsSubmitting(true);
-      
-      const { data, error } = await signUp(validated.email, validated.password);
-      
-      if (error) {
-        if (error.message.includes('User already registered')) {
-          setError('هذا البريد الإلكتروني مسجل بالفعل. جرب تسجيل الدخول.');
-        } else {
-          setError(error.message);
-        }
-      } else if (data?.user) {
-        const setupSuccess = await setupNewUserCompany(data.user.id, validated.companyName);
-        
-        if (setupSuccess) {
-          setSuccess('تم إنشاء الحساب والشركة بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب.');
-        } else {
-          setSuccess('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب.');
-        }
-        
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setCompanyName('');
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -208,19 +130,16 @@ export default function LoginPage() {
     );
   }
 
-  // Forgot Password View
   if (showForgotPassword) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4" dir="rtl">
-        <Card className="w-full max-w-md shadow-lg">
+        <Card className="w-full max-w-md shadow-lg border-border">
           <CardHeader className="text-center space-y-2">
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <KeyRound className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-2xl font-bold">استعادة كلمة المرور</CardTitle>
-            <CardDescription>
-              أدخل بريدك الإلكتروني لإرسال رابط الاستعادة
-            </CardDescription>
+            <CardDescription>أدخل بريدك الإلكتروني لإرسال رابط الاستعادة</CardDescription>
           </CardHeader>
           
           <CardContent>
@@ -232,7 +151,7 @@ export default function LoginPage() {
             )}
             
             {success && (
-              <Alert className="mb-4 border-green-500 bg-green-50 text-green-700">
+              <Alert className="mb-4 border-primary/30 bg-primary/5 text-primary">
                 <CheckCircle className="h-4 w-4" />
                 <AlertDescription>{success}</AlertDescription>
               </Alert>
@@ -281,15 +200,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4" dir="rtl">
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-md shadow-lg border-border">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <Lock className="h-8 w-8 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold">نظام إدارة الأعمال</CardTitle>
-          <CardDescription>
-            سجل دخولك للوصول إلى لوحة التحكم
-          </CardDescription>
+          <CardDescription>سجل دخولك للوصول إلى لوحة التحكم</CardDescription>
         </CardHeader>
         
         <CardContent>
@@ -301,7 +218,7 @@ export default function LoginPage() {
           )}
           
           {success && (
-            <Alert className="mb-4 border-green-500 bg-green-50 text-green-700">
+            <Alert className="mb-4 border-primary/30 bg-primary/5 text-primary">
               <CheckCircle className="h-4 w-4" />
               <AlertDescription>{success}</AlertDescription>
             </Alert>
@@ -357,10 +274,9 @@ export default function LoginPage() {
             </Button>
           </form>
           
-          {/* Registration Disabled Notice */}
           <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <AlertCircle className="h-5 w-5" />
+              <AlertCircle className="h-5 w-5 shrink-0" />
               <div>
                 <p className="font-medium text-foreground">التسجيل متوقف مؤقتاً</p>
                 <p className="text-sm">نعمل على تحسين النظام. سيتم فتح التسجيل قريباً.</p>
