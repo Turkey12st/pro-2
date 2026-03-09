@@ -177,6 +177,6 @@ export default function EmployeeProfile() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }
