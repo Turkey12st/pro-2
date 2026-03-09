@@ -25,11 +25,9 @@ export default function EmployeeProfile() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">جاري تحميل بيانات الموظف...</div>
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">جاري تحميل بيانات الموظف...</div>
+      </div>
     );
   }
 
