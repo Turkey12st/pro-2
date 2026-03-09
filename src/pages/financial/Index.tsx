@@ -16,7 +16,7 @@ export default function FinancialPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="max-w-6xl mx-auto space-y-6">
         <Card>
           <CardHeader>
