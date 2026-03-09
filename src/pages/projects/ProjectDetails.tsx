@@ -16,7 +16,7 @@ export default function ProjectDetails() {
   const { id } = useParams();
   
   return (
-    <AppLayout>
+    <>
       <div className="max-w-7xl mx-auto py-6">
         <Tabs defaultValue="overview" dir="rtl">
           <TabsList className="w-full justify-start mb-6">
