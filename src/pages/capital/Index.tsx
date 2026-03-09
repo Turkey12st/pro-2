@@ -60,7 +60,7 @@ export default function CapitalManagementPage() {
       return data || [];
     }
   });
-  return <AppLayout>
+  return <>
       <div className="container mx-auto p-4 space-y-6">
         <header className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">إدارة رأس المال</h1>
