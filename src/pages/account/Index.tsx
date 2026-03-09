@@ -293,6 +293,6 @@ export default function AccountPage() {
           </Card>
         </div>
       </div>
-    </AppLayout>
+    </>
   );
 }

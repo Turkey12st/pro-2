@@ -40,6 +40,6 @@ export default function AccountingIntegration() {
 
         <EmployeeAccountingOverview />
       </div>
-    </AppLayout>
+    </>
   );
 }

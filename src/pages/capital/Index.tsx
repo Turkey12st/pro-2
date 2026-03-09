@@ -232,5 +232,5 @@ export default function CapitalManagementPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>;
+    </>;
 }

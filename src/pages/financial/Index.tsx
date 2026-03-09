@@ -38,6 +38,6 @@ export default function FinancialPage() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    </>
   );
 }

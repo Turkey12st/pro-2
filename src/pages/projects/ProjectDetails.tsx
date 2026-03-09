@@ -64,6 +64,6 @@ export default function ProjectDetails() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }
