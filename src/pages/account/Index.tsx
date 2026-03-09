@@ -156,7 +156,7 @@ export default function AccountPage() {
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="page-container max-w-4xl mx-auto">
         <div className="space-y-1 mb-6">
           <h1 className="page-title">إعدادات الحساب</h1>
