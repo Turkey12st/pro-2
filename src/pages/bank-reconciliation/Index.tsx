@@ -11,7 +11,7 @@ export default function BankReconciliationPage() {
   const [activeTab, setActiveTab] = useState("import");
 
   return (
-    <AppLayout>
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
