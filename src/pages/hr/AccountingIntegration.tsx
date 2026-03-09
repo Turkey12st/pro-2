@@ -7,7 +7,7 @@ import { Calculator, Info } from 'lucide-react';
 
 export default function AccountingIntegration() {
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
