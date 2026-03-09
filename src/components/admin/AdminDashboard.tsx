@@ -296,6 +296,6 @@ export function AdminDashboard() {
         </TabsContent>
       </Tabs>
     </div>
-    </AppLayout>
+    </>
   );
 }
