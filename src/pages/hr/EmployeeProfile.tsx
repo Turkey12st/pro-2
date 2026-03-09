@@ -33,13 +33,11 @@ export default function EmployeeProfile() {
 
   if (error || !employee) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-red-600">
-            {error || "لم يتم العثور على بيانات الموظف"}
-          </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-destructive">
+          {error || "لم يتم العثور على بيانات الموظف"}
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
