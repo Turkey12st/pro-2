@@ -149,11 +149,9 @@ export default function AccountPage() {
 
   if (authLoading || loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <LoadingSpinner />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center h-64">
+        <LoadingSpinner />
+      </div>
     );
   }
 
