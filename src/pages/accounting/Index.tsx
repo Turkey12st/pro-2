@@ -30,7 +30,7 @@ export default function AccountingPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
