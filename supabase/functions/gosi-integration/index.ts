@@ -200,8 +200,7 @@ async function syncEmployeeWithGOSI(supabaseClient: any, employeeId: string, gos
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'فشل في مزامنة البيانات مع التأمينات الاجتماعية',
-        details: error.message
+        error: 'فشل في مزامنة البيانات مع التأمينات الاجتماعية'
       }),
       { 
         status: 500,
