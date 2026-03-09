@@ -6,6 +6,8 @@ import { IntegratedDashboardStats } from "@/components/dashboard/IntegratedDashb
 import { CompactNotificationsPanel } from "@/components/dashboard/CompactNotificationsPanel";
 import { FinancialMetricsCard } from "@/components/dashboard/FinancialMetricsCard";
 import { ERPDashboard } from "@/components/dashboard/ERPDashboard";
+import { IntegratedKPIWidgets } from "@/components/dashboard/IntegratedKPIWidgets";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
 import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
 
