@@ -67,6 +67,8 @@ export default function LoginPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [fullName, setFullName] = useState('');
 
   useEffect(() => {
     if (isAuthenticated && !loading) {
