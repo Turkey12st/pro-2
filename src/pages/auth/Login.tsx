@@ -59,7 +59,7 @@ const features = [
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, isAuthenticated, loading } = useAuth();
+  const { signIn, signUp, isAuthenticated, loading } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -67,6 +67,8 @@ export default function LoginPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [fullName, setFullName] = useState('');
 
   useEffect(() => {
     if (isAuthenticated && !loading) {
@@ -75,7 +77,7 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, loading, navigate, location]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -84,15 +86,24 @@ export default function LoginPage() {
       const validated = loginSchema.parse({ email, password });
       setIsSubmitting(true);
       
-      const { error } = await signIn(validated.email, validated.password);
-      
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          setError('بيانات الدخول غير صحيحة. تحقق من البريد الإلكتروني وكلمة المرور.');
-        } else if (error.message.includes('Email not confirmed')) {
-          setError('لم يتم تأكيد البريد الإلكتروني. يرجى التحقق من بريدك الوارد.');
-        } else {
+      if (isSignUp) {
+        const { error } = await signUp(validated.email, validated.password);
+        if (error) {
           setError(error.message);
+        } else {
+          setSuccess('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول أو تحقق من بريدك الإلكتروني.');
+          setIsSignUp(false);
+        }
+      } else {
+        const { error } = await signIn(validated.email, validated.password);
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            setError('بيانات الدخول غير صحيحة. تحقق من البريد الإلكتروني وكلمة المرور.');
+          } else if (error.message.includes('Email not confirmed')) {
+            setError('لم يتم تأكيد البريد الإلكتروني. يرجى التحقق من بريدك الوارد.');
+          } else {
+            setError(error.message);
+          }
         }
       }
     } catch (err) {
@@ -292,8 +303,12 @@ export default function LoginPage() {
               <div className="mx-auto w-16 h-16 rounded-2xl gradient-primary shadow-primary flex items-center justify-center animate-bounce-subtle">
                 <Lock className="h-8 w-8 text-primary-foreground" />
               </div>
-              <CardTitle className="text-2xl font-bold">مرحباً بعودتك</CardTitle>
-              <CardDescription className="text-base">سجل دخولك للوصول إلى لوحة التحكم</CardDescription>
+              <CardTitle className="text-2xl font-bold">
+                {isSignUp ? 'إنشاء حساب جديد' : 'مرحباً بعودتك'}
+              </CardTitle>
+              <CardDescription className="text-base">
+                {isSignUp ? 'أنشئ حسابك للبدء في إدارة أعمالك' : 'سجل دخولك للوصول إلى لوحة التحكم'}
+              </CardDescription>
             </CardHeader>
             
             <CardContent className="pt-2">
@@ -311,7 +326,7 @@ export default function LoginPage() {
                 </Alert>
               )}
               
-              <form onSubmit={handleLogin} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="login-email" className="text-sm font-medium">البريد الإلكتروني</Label>
                   <div className="relative">
@@ -332,14 +347,16 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="login-password" className="text-sm font-medium">كلمة المرور</Label>
-                    <Button
-                      type="button"
-                      variant="link"
-                      className="px-0 text-xs h-auto text-primary hover:text-primary/80"
-                      onClick={() => setShowForgotPassword(true)}
-                    >
-                      نسيت كلمة المرور؟
-                    </Button>
+                    {!isSignUp && (
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="px-0 text-xs h-auto text-primary hover:text-primary/80"
+                        onClick={() => setShowForgotPassword(true)}
+                      >
+                        نسيت كلمة المرور؟
+                      </Button>
+                    )}
                   </div>
                   <div className="relative">
                     <Lock className="absolute right-3 top-3.5 h-5 w-5 text-muted-foreground" />
@@ -364,20 +381,25 @@ export default function LoginPage() {
                   {isSubmitting ? (
                     <span className="flex items-center gap-2">
                       <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      جاري تسجيل الدخول...
+                      {isSignUp ? 'جاري إنشاء الحساب...' : 'جاري تسجيل الدخول...'}
                     </span>
-                  ) : 'تسجيل الدخول'}
+                  ) : isSignUp ? 'إنشاء الحساب' : 'تسجيل الدخول'}
                 </Button>
               </form>
               
-              <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-border/50">
-                <div className="flex items-start gap-3 text-muted-foreground">
-                  <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-foreground text-sm">التسجيل متوقف مؤقتاً</p>
-                    <p className="text-xs mt-1">نعمل على تحسين النظام. سيتم فتح التسجيل قريباً.</p>
-                  </div>
-                </div>
+              <div className="mt-6 text-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-sm text-muted-foreground hover:text-primary"
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                >
+                  {isSignUp ? 'لديك حساب بالفعل؟ سجل دخولك' : 'ليس لديك حساب؟ أنشئ حساباً جديداً'}
+                </Button>
               </div>
             </CardContent>
           </Card>
