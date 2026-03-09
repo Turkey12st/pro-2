@@ -37,6 +37,6 @@ export default function CompanyPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }
