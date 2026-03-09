@@ -300,8 +300,7 @@ async function getGOSIStatus(supabaseClient: any, employeeId: string) {
     return new Response(
       JSON.stringify({
         success: false,
-        error: 'فشل في جلب بيانات التأمينات الاجتماعية',
-        details: error.message
+        error: 'فشل في جلب بيانات التأمينات الاجتماعية'
       }),
       { 
         status: 500,
