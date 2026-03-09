@@ -11,7 +11,7 @@ export default function DocumentsPage() {
   const [activeTab, setActiveTab] = useState("list");
 
   return (
-    <AppLayout>
+    <>
       <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
