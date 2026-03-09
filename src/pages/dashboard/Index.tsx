@@ -22,41 +22,23 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { isComplete: onboardingComplete, loading: onboardingLoading } = useOnboardingStatus();
 
+  // تفعيل المزامنة الفورية على الجداول الحرجة
+  useRealtimeSync({
+    tables: ['employees', 'employee_salaries', 'journal_entries', 'data_sync_log'],
+    showNotifications: true,
+  });
+
   // Security enhancement: Safe navigation with route validation
   const handleStatClick = (type: string) => {
-    try {
-      let route = '';
-      
-      switch (type) {
-        case 'employees':
-          route = '/hr';
-          break;
-        case 'projects':
-          route = '/projects';
-          break;
-        case 'documents':
-          route = '/documents';
-          break;
-        case 'financial':
-          route = '/financial';
-          break;
-        case 'partners':
-          route = '/partners';
-          break;
-        default:
-          console.warn('Invalid navigation type:', type);
-          return;
-      }
-
-      // Security: Validate route before navigation
-      if (validateRoute(route)) {
-        navigate(route);
-      } else {
-        console.error('Attempted to navigate to invalid route:', route);
-      }
-    } catch (error) {
-      console.error('Navigation error:', error);
-    }
+    const routes: Record<string, string> = {
+      employees: '/hr',
+      projects: '/projects',
+      documents: '/documents',
+      financial: '/financial',
+      partners: '/partners',
+    };
+    const route = routes[type];
+    if (route) navigate(route);
   };
 
   return (
@@ -70,21 +52,15 @@ export default function DashboardPage() {
           <QuickNavMenu />
         </div>
 
-        {/* نظام الإرشاد للتفعيل الصحيح */}
         <OnboardingBanner showWhenComplete={!onboardingComplete} />
 
-        {/* Main Content Area */}
         <div className="space-y-6">
-          {/* مؤشرات الأداء الأساسية */}
+          {/* المؤشرات المترابطة HR → Payroll → Finance */}
+          <IntegratedKPIWidgets />
+
           <IntegratedDashboardStats onStatClick={handleStatClick} />
-
-          {/* لوحة التنبيهات المدمجة */}
           <CompactNotificationsPanel />
-
-          {/* المؤشرات المالية المتقدمة */}
           <FinancialMetricsCard />
-
-          {/* لوحة التحكم الشاملة */}
           <ERPDashboard />
         </div>
       </div>
