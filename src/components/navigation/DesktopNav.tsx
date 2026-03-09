@@ -1,73 +1,112 @@
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Settings, LogOut, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import type { MenuItem } from "@/types/navigation";
+
 interface DesktopNavProps {
   menuItems: MenuItem[];
   groupedMenuItems: Record<string, MenuItem[]>;
   isActive: (href: string) => boolean;
   user: any;
 }
+
 export function DesktopNav({
   menuItems,
   groupedMenuItems,
   isActive,
   user
 }: DesktopNavProps) {
-  return <nav className="hidden md:flex flex-col h-full bg-card">
-      <div className="p-4 border-b flex items-center">
-        <Link to="/">
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "تم تسجيل الخروج",
+        description: "تم تسجيل خروجك بنجاح",
+      });
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast({
+        title: "حدث خطأ",
+        description: "لم نتمكن من تسجيل خروجك",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <nav className="hidden md:flex flex-col h-full bg-card">
+      <div className="p-4 border-b flex items-center gap-2">
+        <Link to="/dashboard">
           <img alt="Logo" className="h-8" src="/lovable-uploads/49d69fd3-c3cc-4e37-9511-9a847e622f60.png" />
         </Link>
-        <Link to="/" className="no-underline">
-          <span className="font-bold text-xl mr-2">نظام الشركة</span>
+        <Link to="/dashboard" className="no-underline">
+          <span className="font-bold text-xl">نظام الشركة</span>
         </Link>
       </div>
       
       <div className="flex-1 overflow-auto p-2">
         <div className="space-y-1">
-          {Object.entries(groupedMenuItems).map(([group, items]) => <div key={group} className="mb-4">
+          {Object.entries(groupedMenuItems).map(([group, items]) => (
+            <div key={group} className="mb-4">
               <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground">{group}</h3>
-              {items.map(item => <div key={item.name}>
-                  {item.children ? <DropdownMenu>
+              {items.map(item => (
+                <div key={item.name}>
+                  {item.children ? (
+                    <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className={cn("w-full justify-start gap-2 my-1", isActive(item.href) && "bg-accent")} disabled={item.disabled}>
+                        <Button variant="ghost" className={cn("w-full justify-start gap-2 my-0.5", isActive(item.href) && "bg-accent text-accent-foreground")} disabled={item.disabled}>
                           {item.icon && <item.icon className="h-4 w-4" />}
                           <span>{item.name}</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-56 bg-card" side="right" sideOffset={5}>
-                        {item.children.map(child => <DropdownMenuItem key={child.name} className={cn("gap-2", isActive(child.href) && "bg-accent")} disabled={child.disabled} asChild>
+                      <DropdownMenuContent align="start" className="w-56" side="right" sideOffset={5}>
+                        {item.children.map(child => (
+                          <DropdownMenuItem key={child.name} className={cn("gap-2", isActive(child.href) && "bg-accent")} disabled={child.disabled} asChild>
                             <Link to={child.href} className="w-full flex items-center">
                               {child.icon && <child.icon className="h-4 w-4" />}
                               <span>{child.name}</span>
                             </Link>
-                          </DropdownMenuItem>)}
+                          </DropdownMenuItem>
+                        ))}
                       </DropdownMenuContent>
-                    </DropdownMenu> : <Button asChild variant="ghost" className={cn("w-full justify-start gap-2 my-1", isActive(item.href) && "bg-accent")} disabled={item.disabled}>
+                    </DropdownMenu>
+                  ) : (
+                    <Button asChild variant="ghost" className={cn("w-full justify-start gap-2 my-0.5", isActive(item.href) && "bg-accent text-accent-foreground")} disabled={item.disabled}>
                       <Link to={item.href}>
                         {item.icon && <item.icon className="h-4 w-4" />}
                         <span>{item.name}</span>
-                        {item.new && <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
+                        {item.new && (
+                          <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full mr-2">
                             جديد
-                          </span>}
+                          </span>
+                        )}
                       </Link>
-                    </Button>}
-                </div>)}
-            </div>)}
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
       
       <div className="p-4 border-t">
-        {user && <DropdownMenu>
+        {user && (
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="w-full justify-start gap-2">
                 <Avatar className="h-6 w-6">
                   <AvatarImage src={user.imageUrl} alt={user.firstName || "مستخدم"} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
                     {user.firstName?.charAt(0) || user.username?.charAt(0) || "م"}
                   </AvatarFallback>
                 </Avatar>
@@ -80,7 +119,7 @@ export function DesktopNav({
               <DropdownMenuLabel>حسابي</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="gap-2 cursor-pointer">
-                <Link to="/settings/profile" className="w-full">
+                <Link to="/account" className="w-full">
                   <User className="h-4 w-4 ml-2" />
                   <span>الملف الشخصي</span>
                 </Link>
@@ -92,12 +131,14 @@ export function DesktopNav({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="gap-2 text-destructive cursor-pointer">
+              <DropdownMenuItem className="gap-2 text-destructive cursor-pointer" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 ml-2" />
                 <span>تسجيل الخروج</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>}
+          </DropdownMenu>
+        )}
       </div>
-    </nav>;
+    </nav>
+  );
 }

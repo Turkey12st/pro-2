@@ -8,7 +8,7 @@ import { CapitalIncreaseDialog } from '@/components/dashboard/capital/CapitalInc
 import { Button } from '@/components/ui/button';
 import { Building2, Wallet, ArrowUpDown, LineChart, Download, Upload } from 'lucide-react';
 import { CapitalManagement } from '@/types/database';
-import AppLayout from '@/components/AppLayout';
+
 export default function CapitalManagementPage() {
   const [activeTab, setActiveTab] = React.useState('overview');
   const {
@@ -60,7 +60,7 @@ export default function CapitalManagementPage() {
       return data || [];
     }
   });
-  return <AppLayout>
+  return <>
       <div className="container mx-auto p-4 space-y-6">
         <header className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">إدارة رأس المال</h1>
@@ -232,5 +232,5 @@ export default function CapitalManagementPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>;
+    </>;
 }

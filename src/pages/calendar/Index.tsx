@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import AppLayout from "@/components/AppLayout";
+
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -140,7 +140,7 @@ const CalendarPage = () => {
   );
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">التقويم</h1>
@@ -324,7 +324,7 @@ const CalendarPage = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </AppLayout>
+    </>
   );
 };
 

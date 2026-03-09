@@ -10,13 +10,13 @@ import ProjectInvoices from "@/components/projects/details/ProjectInvoices";
 import ProjectExpenses from "@/components/projects/details/ProjectExpenses";
 import ProjectFiles from "@/components/projects/details/ProjectFiles";
 import ProjectActivities from "@/components/projects/details/ProjectActivities";
-import AppLayout from "@/components/AppLayout";
+
 
 export default function ProjectDetails() {
   const { id } = useParams();
   
   return (
-    <AppLayout>
+    <>
       <div className="max-w-7xl mx-auto py-6">
         <Tabs defaultValue="overview" dir="rtl">
           <TabsList className="w-full justify-start mb-6">
@@ -64,6 +64,6 @@ export default function ProjectDetails() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

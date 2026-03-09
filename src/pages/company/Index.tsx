@@ -1,6 +1,6 @@
 
 import React from "react";
-import AppLayout from "@/components/AppLayout";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CompanyInfoForm } from "@/components/company/CompanyInfoForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,7 +9,7 @@ import DocumentsList from "@/components/documents/DocumentsList";
 
 export default function CompanyPage() {
   return (
-    <AppLayout>
+    <>
       <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold">بيانات الشركة</h1>
@@ -37,6 +37,6 @@ export default function CompanyPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

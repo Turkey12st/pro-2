@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import AppLayout from "@/components/AppLayout";
+
 import { useToast } from "@/hooks/use-toast";
 import { Users2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ export default function PartnersPage() {
   const [activeTab, setActiveTab] = useState("list");
 
   return (
-    <AppLayout>
+    <>
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">إدارة الشركاء</h1>
@@ -41,6 +41,6 @@ export default function PartnersPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

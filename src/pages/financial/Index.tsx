@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import AppLayout from "@/components/AppLayout";
+
 import { useToast } from "@/components/ui/use-toast";
 import { FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ export default function FinancialPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="max-w-6xl mx-auto space-y-6">
         <Card>
           <CardHeader>
@@ -38,6 +38,6 @@ export default function FinancialPage() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    </>
   );
 }

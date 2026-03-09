@@ -11,24 +11,15 @@ import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
 import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
 
-// Security enhancement: Route validation
-const VALID_ROUTES = ['/hr', '/projects', '/documents', '/financial', '/partners'];
-
-const validateRoute = (route: string): boolean => {
-  return VALID_ROUTES.includes(route);
-};
-
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { isComplete: onboardingComplete, loading: onboardingLoading } = useOnboardingStatus();
 
-  // تفعيل المزامنة الفورية على الجداول الحرجة
   useRealtimeSync({
     tables: ['employees', 'employee_salaries', 'journal_entries', 'data_sync_log'],
     showNotifications: true,
   });
 
-  // Security enhancement: Safe navigation with route validation
   const handleStatClick = (type: string) => {
     const routes: Record<string, string> = {
       employees: '/hr',
@@ -55,9 +46,7 @@ export default function DashboardPage() {
         <OnboardingBanner showWhenComplete={!onboardingComplete} />
 
         <div className="space-y-6">
-          {/* المؤشرات المترابطة HR → Payroll → Finance */}
           <IntegratedKPIWidgets />
-
           <IntegratedDashboardStats onStatClick={handleStatClick} />
           <CompactNotificationsPanel />
           <FinancialMetricsCard />

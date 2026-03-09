@@ -1,13 +1,13 @@
 
 import React from 'react';
-import AppLayout from '@/components/AppLayout';
+
 import { EmployeeAccountingOverview } from '@/components/hr/EmployeeAccountingOverview';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, Info } from 'lucide-react';
 
 export default function AccountingIntegration() {
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
@@ -40,6 +40,6 @@ export default function AccountingIntegration() {
 
         <EmployeeAccountingOverview />
       </div>
-    </AppLayout>
+    </>
   );
 }

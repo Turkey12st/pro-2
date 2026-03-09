@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import AppLayout from '@/components/AppLayout';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -149,16 +149,14 @@ export default function AccountPage() {
 
   if (authLoading || loading) {
     return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <LoadingSpinner />
-        </div>
-      </AppLayout>
+      <div className="flex items-center justify-center h-64">
+        <LoadingSpinner />
+      </div>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="page-container max-w-4xl mx-auto">
         <div className="space-y-1 mb-6">
           <h1 className="page-title">إعدادات الحساب</h1>
@@ -295,6 +293,6 @@ export default function AccountPage() {
           </Card>
         </div>
       </div>
-    </AppLayout>
+    </>
   );
 }

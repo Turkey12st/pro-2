@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AppLayout from "@/components/AppLayout";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2 } from "lucide-react";
 import BankAccountsManager from "./components/BankAccountsManager";
@@ -11,7 +11,7 @@ export default function BankReconciliationPage() {
   const [activeTab, setActiveTab] = useState("import");
 
   return (
-    <AppLayout>
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -41,6 +41,6 @@ export default function BankReconciliationPage() {
           </Tabs>
         </CardContent>
       </Card>
-    </AppLayout>
+    </>
   );
 }

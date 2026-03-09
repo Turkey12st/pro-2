@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AppLayout from '@/components/AppLayout';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -200,7 +200,7 @@ const ClientsPage = () => {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">إدارة العملاء</h1>
@@ -384,7 +384,7 @@ const ClientsPage = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </AppLayout>
+    </>
   );
 };
 

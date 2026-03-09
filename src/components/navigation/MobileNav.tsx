@@ -1,33 +1,21 @@
-
 import { Button } from "@/components/ui/button";
 import { 
-  Sheet, 
-  SheetContent, 
-  SheetDescription, 
-  SheetHeader, 
-  SheetTitle, 
-  SheetTrigger 
+  Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger 
 } from "@/components/ui/sheet";
 import { 
-  Accordion, 
-  AccordionContent, 
-  AccordionItem, 
-  AccordionTrigger 
+  Accordion, AccordionContent, AccordionItem, AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Menu, User, Settings, LogOut } from "lucide-react";
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { MenuItem } from "@/types/navigation";
 import { useNavigate, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface MobileNavProps {
   menuItems: MenuItem[];
@@ -39,15 +27,33 @@ interface MobileNavProps {
 
 export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: MobileNavProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleMenuClick = (href: string) => {
     navigate(href);
-    if (window.innerWidth < 768) {
+    setIsOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
       setIsOpen(false);
+      toast({
+        title: "تم تسجيل الخروج",
+        description: "تم تسجيل خروجك بنجاح",
+      });
+      navigate("/auth");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast({
+        title: "حدث خطأ",
+        description: "لم نتمكن من تسجيل خروجك",
+        variant: "destructive",
+      });
     }
   };
 
-  // Group menu items by their group property
+  // Group menu items
   const groupedMenuItems: Record<string, MenuItem[]> = {};
   menuItems.forEach(item => {
     const group = item.group || "أخرى";
@@ -74,7 +80,6 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
         <Separator className="my-4" />
         
         <div className="flex flex-col space-y-1 mt-4">
-          {/* Group sections */}
           {Object.entries(groupedMenuItems).map(([group, items]) => (
             <div key={group} className="mb-4">
               <h3 className="px-3 mb-2 text-xs font-semibold text-muted-foreground">{group}</h3>
@@ -89,16 +94,6 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                         <div className="flex items-center gap-2">
                           {item.icon && <item.icon className="h-4 w-4" />}
                           <span>{item.name}</span>
-                          {item.new && (
-                            <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
-                              جديد
-                            </span>
-                          )}
-                          {item.badge && (
-                            <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
-                              {item.badge}
-                            </span>
-                          )}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="pr-8">
@@ -109,18 +104,13 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                               to={child.href}
                               onClick={() => setIsOpen(false)}
                               className={cn(
-                                "flex w-full items-center justify-start gap-2 py-2 px-2 text-sm transition-colors rounded-md",
-                                isActive(child.href) ? 'text-primary bg-primary/10' : 'hover:bg-muted',
+                                "flex w-full items-center gap-2 py-2 px-2 text-sm transition-colors rounded-md",
+                                isActive(child.href) ? 'text-primary bg-accent' : 'hover:bg-muted',
                                 child.disabled && "opacity-50 cursor-not-allowed"
                               )}
                             >
                               {child.icon && <child.icon className="h-4 w-4" />}
                               <span>{child.name}</span>
-                              {child.new && (
-                                <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
-                                  جديد
-                                </span>
-                              )}
                             </Link>
                           ))}
                         </div>
@@ -133,20 +123,15 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                     to={item.href}
                     onClick={() => setIsOpen(false)}
                     className={cn(
-                      "flex w-full items-center justify-start gap-2 py-2 px-2 text-sm transition-colors rounded-md",
-                      isActive(item.href) ? 'text-primary bg-primary/10' : 'hover:bg-muted',
+                      "flex w-full items-center gap-2 py-2 px-3 text-sm transition-colors rounded-md",
+                      isActive(item.href) ? 'text-primary bg-accent' : 'hover:bg-muted',
                       item.disabled && "opacity-50 cursor-not-allowed"
                     )}
                   >
                     {item.icon && <item.icon className="h-4 w-4" />}
                     <span>{item.name}</span>
                     {item.new && (
-                      <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">جديد</span>
-                    )}
-                    {item.badge && (
-                      <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full mr-2">
-                        {item.badge}
-                      </span>
+                      <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full mr-2">جديد</span>
                     )}
                   </Link>
                 )
@@ -156,42 +141,33 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
         </div>
         
         <Separator className="my-4" />
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2 w-full justify-start px-4">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user.imageUrl} alt={user.firstName || "مستخدم"} />
-                  <AvatarFallback>{user.firstName?.charAt(0) || user.username?.charAt(0) || "م"}</AvatarFallback>
-                </Avatar>
-                <span className="font-normal">
-                  {user.firstName || user.username || "حسابي"}
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56" sideOffset={5}>
-              <DropdownMenuLabel>حسابي</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="cursor-pointer">
-                <Link to="/settings/profile" className="w-full flex items-center">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>الملف الشخصي</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="cursor-pointer">
-                <Link to="/settings" className="w-full flex items-center">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>الإعدادات</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive cursor-pointer">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>تسجيل الخروج</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
+        {user && (
+          <div className="space-y-1">
+            <Link
+              to="/account"
+              onClick={() => setIsOpen(false)}
+              className="flex w-full items-center gap-2 py-2 px-3 text-sm transition-colors rounded-md hover:bg-muted"
+            >
+              <User className="h-4 w-4" />
+              <span>الملف الشخصي</span>
+            </Link>
+            <Link
+              to="/settings"
+              onClick={() => setIsOpen(false)}
+              className="flex w-full items-center gap-2 py-2 px-3 text-sm transition-colors rounded-md hover:bg-muted"
+            >
+              <Settings className="h-4 w-4" />
+              <span>الإعدادات</span>
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-2 py-2 px-3 text-sm transition-colors rounded-md hover:bg-destructive/10 text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>تسجيل الخروج</span>
+            </button>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );
