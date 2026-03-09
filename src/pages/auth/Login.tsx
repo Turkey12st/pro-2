@@ -59,7 +59,7 @@ const features = [
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, isAuthenticated, loading } = useAuth();
+  const { signIn, signUp, isAuthenticated, loading } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
