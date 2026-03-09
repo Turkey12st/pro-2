@@ -91,7 +91,7 @@ export function AdminDashboard() {
   };
 
   return (
-    <AppLayout>
+    <>
     <div className="page-container" dir="rtl">
       {/* Header */}
       <div className="page-header">
