@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import AppLayout from "@/components/AppLayout";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DocumentsList from "@/components/documents/DocumentsList";
 import DocumentForm from "@/components/documents/DocumentForm";
