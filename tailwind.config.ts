@@ -87,6 +87,12 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius) + 4px)",
+        "2xl": "calc(var(--radius) + 8px)",
+      },
+      boxShadow: {
+        'glow': 'var(--shadow-glow)',
+        'primary-glow': 'var(--shadow-primary)',
       },
       keyframes: {
         "accordion-down": {
