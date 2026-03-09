@@ -41,6 +41,6 @@ export default function BankReconciliationPage() {
           </Tabs>
         </CardContent>
       </Card>
-    </AppLayout>
+    </>
   );
 }

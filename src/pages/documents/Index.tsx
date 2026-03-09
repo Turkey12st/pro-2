@@ -44,6 +44,6 @@ export default function DocumentsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }

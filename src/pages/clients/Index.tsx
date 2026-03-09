@@ -384,7 +384,7 @@ const ClientsPage = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </AppLayout>
+    </>
   );
 };
 

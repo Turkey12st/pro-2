@@ -41,6 +41,6 @@ export default function PartnersPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }
