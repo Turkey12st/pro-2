@@ -14,7 +14,7 @@ export default function PartnersPage() {
   const [activeTab, setActiveTab] = useState("list");
 
   return (
-    <AppLayout>
+    <>
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">إدارة الشركاء</h1>
