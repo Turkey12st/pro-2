@@ -77,7 +77,7 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, loading, navigate, location]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
@@ -86,15 +86,24 @@ export default function LoginPage() {
       const validated = loginSchema.parse({ email, password });
       setIsSubmitting(true);
       
-      const { error } = await signIn(validated.email, validated.password);
-      
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          setError('بيانات الدخول غير صحيحة. تحقق من البريد الإلكتروني وكلمة المرور.');
-        } else if (error.message.includes('Email not confirmed')) {
-          setError('لم يتم تأكيد البريد الإلكتروني. يرجى التحقق من بريدك الوارد.');
-        } else {
+      if (isSignUp) {
+        const { error } = await signUp(validated.email, validated.password);
+        if (error) {
           setError(error.message);
+        } else {
+          setSuccess('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول أو تحقق من بريدك الإلكتروني.');
+          setIsSignUp(false);
+        }
+      } else {
+        const { error } = await signIn(validated.email, validated.password);
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            setError('بيانات الدخول غير صحيحة. تحقق من البريد الإلكتروني وكلمة المرور.');
+          } else if (error.message.includes('Email not confirmed')) {
+            setError('لم يتم تأكيد البريد الإلكتروني. يرجى التحقق من بريدك الوارد.');
+          } else {
+            setError(error.message);
+          }
         }
       }
     } catch (err) {
