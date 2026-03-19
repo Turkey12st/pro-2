@@ -30,8 +30,10 @@ export function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps)
   }
 
   // Check role-based access if requiredRoles is specified
+  // Admin and owner always have access to everything
   if (requiredRoles && requiredRoles.length > 0) {
-    const hasRequiredRole = requiredRoles.includes(userRole);
+    const isAdminOrOwner = userRole === 'admin' || userRole === 'owner';
+    const hasRequiredRole = isAdminOrOwner || requiredRoles.includes(userRole);
     
     if (!hasRequiredRole) {
       return <Navigate to="/unauthorized" replace />;
