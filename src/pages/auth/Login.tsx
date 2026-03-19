@@ -91,7 +91,8 @@ export default function LoginPage() {
         if (error) {
           setError(error.message);
         } else {
-          setSuccess('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول أو تحقق من بريدك الإلكتروني.');
+          // الشركة والصلاحيات تُنشأ تلقائياً عبر trigger في قاعدة البيانات
+          setSuccess('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.');
           setIsSignUp(false);
         }
       } else {

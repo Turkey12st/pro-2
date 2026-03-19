@@ -102,16 +102,16 @@ export function useUserPermissions() {
       }
 
       if (userRoleData) {
-        const role = userRoleData.role || 'viewer';
+        const role = userRoleData.role || 'admin';
         setUserRole(role);
         setCompanyId(userRoleData.company_id);
         
-        // استخدام الصلاحيات المحددة مسبقاً للدور
-        const rolePermissions = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.viewer;
+        const rolePermissions = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.admin;
         setPermissions(rolePermissions);
       } else {
-        // إذا لم يوجد دور محدد، يُعتبر مشاهد بدون صلاحيات
-        setPermissions(ROLE_PERMISSIONS.viewer);
+        // إذا لم يوجد دور محدد، يُعتبر مدير (المالك الأصلي)
+        setUserRole('admin');
+        setPermissions(ROLE_PERMISSIONS.admin);
       }
     } catch (error) {
       console.error('Error loading user permissions:', error);
