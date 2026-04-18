@@ -13,6 +13,9 @@ import {
   Shield,
   Landmark,
   UserCircle,
+  Briefcase,
+  DollarSign,
+  Bell,
 } from "lucide-react";
 import { MenuItem } from "@/types/navigation";
 
@@ -71,6 +74,24 @@ export function getNavigationMenu(): MenuItem[] {
       href: "/partners",
       icon: Link,
       group: "العمليات"
+    },
+    {
+      name: "المناقصات",
+      href: "/tenders",
+      icon: Briefcase,
+      group: "العمليات"
+    },
+    {
+      name: "العمولات",
+      href: "/commissions",
+      icon: DollarSign,
+      group: "المالية"
+    },
+    {
+      name: "الإشعارات والأتمتة",
+      href: "/notifications",
+      icon: Bell,
+      group: "النظام"
     },
     {
       name: "المستندات",
