@@ -31,6 +31,9 @@ import ResetPasswordPage from "./pages/auth/ResetPassword";
 import AccountPage from "./pages/account/Index";
 import UnauthorizedPage from "./pages/Unauthorized";
 import BankReconciliationPage from "./pages/bank-reconciliation/Index";
+import TendersPage from "./pages/tenders/Index";
+import CommissionsPage from "./pages/commissions/Index";
+import NotificationsPage from "./pages/notifications/Index";
 
 function App() {
   return (
@@ -65,6 +68,9 @@ function App() {
               <Route path="/settings" element={<ProtectedRoute><AppLayout><SettingsPage /></AppLayout></ProtectedRoute>} />
               <Route path="/calendar" element={<ProtectedRoute><AppLayout><CalendarPage /></AppLayout></ProtectedRoute>} />
               <Route path="/account" element={<ProtectedRoute><AppLayout><AccountPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/tenders" element={<ProtectedRoute><AppLayout><TendersPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/commissions" element={<ProtectedRoute><AppLayout><CommissionsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><AppLayout><NotificationsPage /></AppLayout></ProtectedRoute>} />
               
               {/* Admin only routes */}
               <Route path="/admin" element={

@@ -176,6 +176,65 @@ export type Database = {
         }
         Relationships: []
       }
+      attendance_automation_settings: {
+        Row: {
+          absence_day1_enabled: boolean
+          absence_day1_template: string
+          absence_day2_enabled: boolean
+          absence_day2_template: string
+          absence_day3_enabled: boolean
+          absence_day3_template: string
+          channels: string[]
+          company_id: string | null
+          created_at: string
+          id: string
+          late_alert_enabled: boolean
+          late_template: string
+          late_threshold_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          absence_day1_enabled?: boolean
+          absence_day1_template?: string
+          absence_day2_enabled?: boolean
+          absence_day2_template?: string
+          absence_day3_enabled?: boolean
+          absence_day3_template?: string
+          channels?: string[]
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          late_alert_enabled?: boolean
+          late_template?: string
+          late_threshold_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          absence_day1_enabled?: boolean
+          absence_day1_template?: string
+          absence_day2_enabled?: boolean
+          absence_day2_template?: string
+          absence_day3_enabled?: boolean
+          absence_day3_template?: string
+          channels?: string[]
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          late_alert_enabled?: boolean
+          late_template?: string
+          late_threshold_minutes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_automation_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_files: {
         Row: {
           created_at: string | null
@@ -815,6 +874,146 @@ export type Database = {
           },
           {
             foreignKeyName: "clients_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_rules: {
+        Row: {
+          applies_to_employee_id: string | null
+          applies_to_role: string | null
+          calculation_type: string
+          company_id: string | null
+          created_at: string
+          fixed_amount: number | null
+          fixed_percent: number | null
+          id: string
+          is_active: boolean
+          name: string
+          rule_type: string
+          tiers: Json | null
+          trigger_event: string
+          updated_at: string
+        }
+        Insert: {
+          applies_to_employee_id?: string | null
+          applies_to_role?: string | null
+          calculation_type: string
+          company_id?: string | null
+          created_at?: string
+          fixed_amount?: number | null
+          fixed_percent?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          rule_type: string
+          tiers?: Json | null
+          trigger_event?: string
+          updated_at?: string
+        }
+        Update: {
+          applies_to_employee_id?: string | null
+          applies_to_role?: string | null
+          calculation_type?: string
+          company_id?: string | null
+          created_at?: string
+          fixed_amount?: number | null
+          fixed_percent?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          rule_type?: string
+          tiers?: Json | null
+          trigger_event?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commissions: {
+        Row: {
+          approval_date: string | null
+          approved_by: string | null
+          base_amount: number
+          collection_date: string | null
+          commission_amount: number
+          commission_rule_id: string | null
+          company_id: string | null
+          created_at: string
+          employee_id: string
+          id: string
+          journal_entry_id: string | null
+          notes: string | null
+          paid_date: string | null
+          reference_id: string
+          reference_type: string
+          rule_type: string
+          status: string
+          triggered_by_event: string | null
+          updated_at: string
+        }
+        Insert: {
+          approval_date?: string | null
+          approved_by?: string | null
+          base_amount: number
+          collection_date?: string | null
+          commission_amount: number
+          commission_rule_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          employee_id: string
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          reference_id: string
+          reference_type: string
+          rule_type: string
+          status?: string
+          triggered_by_event?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approval_date?: string | null
+          approved_by?: string | null
+          base_amount?: number
+          collection_date?: string | null
+          commission_amount?: number
+          commission_rule_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          employee_id?: string
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          reference_id?: string
+          reference_type?: string
+          rule_type?: string
+          status?: string
+          triggered_by_event?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_commission_rule_id_fkey"
+            columns: ["commission_rule_id"]
+            isOneToOne: false
+            referencedRelation: "commission_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -2383,6 +2582,69 @@ export type Database = {
           },
         ]
       }
+      notification_logs: {
+        Row: {
+          body: string
+          channel: string
+          company_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          notification_type: string
+          read_at: string | null
+          recipient_email: string | null
+          recipient_employee_id: string | null
+          recipient_phone: string | null
+          recipient_user_id: string | null
+          reference_id: string | null
+          reference_type: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          body: string
+          channel: string
+          company_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_type: string
+          read_at?: string | null
+          recipient_email?: string | null
+          recipient_employee_id?: string | null
+          recipient_phone?: string | null
+          recipient_user_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          body?: string
+          channel?: string
+          company_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
+          read_at?: string | null
+          recipient_email?: string | null
+          recipient_employee_id?: string | null
+          recipient_phone?: string | null
+          recipient_user_id?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -3268,6 +3530,142 @@ export type Database = {
         }
         Relationships: []
       }
+      tender_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          created_by: string | null
+          from_stage: Database["public"]["Enums"]["tender_stage"] | null
+          id: string
+          notes: string | null
+          tender_id: string
+          to_stage: Database["public"]["Enums"]["tender_stage"] | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          created_by?: string | null
+          from_stage?: Database["public"]["Enums"]["tender_stage"] | null
+          id?: string
+          notes?: string | null
+          tender_id: string
+          to_stage?: Database["public"]["Enums"]["tender_stage"] | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          created_by?: string | null
+          from_stage?: Database["public"]["Enums"]["tender_stage"] | null
+          id?: string
+          notes?: string | null
+          tender_id?: string
+          to_stage?: Database["public"]["Enums"]["tender_stage"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tender_activities_tender_id_fkey"
+            columns: ["tender_id"]
+            isOneToOne: false
+            referencedRelation: "tenders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenders: {
+        Row: {
+          assigned_to: string | null
+          award_date: string | null
+          client_id: string | null
+          client_name: string | null
+          company_id: string | null
+          contract_value: number | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          estimated_value: number | null
+          go_decision: boolean | null
+          go_decision_notes: string | null
+          id: string
+          metadata: Json | null
+          project_id: string | null
+          proposed_pm_id: string | null
+          rejection_reason: string | null
+          stage: Database["public"]["Enums"]["tender_stage"]
+          submission_date: string | null
+          submission_deadline: string | null
+          tender_number: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          win_probability: number | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          award_date?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          company_id?: string | null
+          contract_value?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          description?: string | null
+          estimated_value?: number | null
+          go_decision?: boolean | null
+          go_decision_notes?: string | null
+          id?: string
+          metadata?: Json | null
+          project_id?: string | null
+          proposed_pm_id?: string | null
+          rejection_reason?: string | null
+          stage?: Database["public"]["Enums"]["tender_stage"]
+          submission_date?: string | null
+          submission_deadline?: string | null
+          tender_number: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          win_probability?: number | null
+        }
+        Update: {
+          assigned_to?: string | null
+          award_date?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          company_id?: string | null
+          contract_value?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          description?: string | null
+          estimated_value?: number | null
+          go_decision?: boolean | null
+          go_decision_notes?: string | null
+          id?: string
+          metadata?: Json | null
+          project_id?: string | null
+          proposed_pm_id?: string | null
+          rejection_reason?: string | null
+          stage?: Database["public"]["Enums"]["tender_stage"]
+          submission_date?: string | null
+          submission_deadline?: string | null
+          tender_number?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          win_probability?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           company_id: string | null
@@ -3699,6 +4097,15 @@ export type Database = {
         | "viewer"
       entry_status: "draft" | "posted" | "reversed" | "cancelled"
       match_status: "pending" | "matched" | "manual" | "ignored"
+      tender_stage:
+        | "lead"
+        | "qualification"
+        | "go_no_go"
+        | "proposal"
+        | "submitted"
+        | "awarded"
+        | "rejected"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3836,6 +4243,16 @@ export const Constants = {
       ],
       entry_status: ["draft", "posted", "reversed", "cancelled"],
       match_status: ["pending", "matched", "manual", "ignored"],
+      tender_stage: [
+        "lead",
+        "qualification",
+        "go_no_go",
+        "proposal",
+        "submitted",
+        "awarded",
+        "rejected",
+        "cancelled",
+      ],
     },
   },
 } as const
