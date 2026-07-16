@@ -41,9 +41,3 @@ export default function PartnersPage() {
     </PageShell>
   );
 }
-          </TabsContent>
-        </Tabs>
-      </div>
-    </>
-  );
-}
