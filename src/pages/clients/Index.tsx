@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Mail, Phone, User, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, Phone, User, Loader2, Store, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyContext } from '@/hooks/useCompanyContext';
+import { PageShell } from '@/components/shared/PageShell';
 
 interface Client {
   id: string;
@@ -30,6 +31,7 @@ const ClientsPage = () => {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [search, setSearch] = useState('');
   const { toast } = useToast();
   const { getCompanyId } = useCompanyContext();
 
@@ -199,34 +201,60 @@ const ClientsPage = () => {
     setShowDialog(true);
   };
 
-  return (
-    <>
-      <div className="container mx-auto p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">إدارة العملاء</h1>
-          <Button onClick={() => setShowDialog(true)} className="flex items-center gap-2">
-            <Plus size={16} />
-            إضافة عميل جديد
-          </Button>
-        </div>
+  const filtered = clients.filter((c) => {
+    if (!search.trim()) return true;
+    const q = search.trim().toLowerCase();
+    return (
+      c.name?.toLowerCase().includes(q) ||
+      c.phone?.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q) ||
+      c.cr_number?.toLowerCase().includes(q)
+    );
+  });
 
-        {/* Clients Grid */}
-        {isLoading ? (
+  return (
+    <PageShell
+      title="إدارة العملاء"
+      description={`${clients.length} عميل مسجل في النظام`}
+      icon={Store}
+      actions={
+        <Button onClick={() => setShowDialog(true)} className="gap-2">
+          <Plus className="h-4 w-4" /> إضافة عميل جديد
+        </Button>
+      }
+    >
+      <div className="relative max-w-md">
+        <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="ابحث بالاسم أو الهاتف أو البريد أو السجل التجاري…"
+          className="pe-9"
+        />
+      </div>
+
+      {isLoading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clients.length === 0 ? (
+            {filtered.length === 0 ? (
               <Card className="col-span-full">
                 <CardContent className="p-8 text-center">
                   <User size={48} className="mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">لا توجد عملاء مضافين بعد</p>
-                  <p className="text-sm text-muted-foreground mt-2">ابدأ بإضافة عميل جديد</p>
+                  <p className="text-muted-foreground">
+                    {clients.length === 0
+                      ? 'لا توجد عملاء مضافين بعد'
+                      : 'لا توجد نتائج مطابقة لبحثك'}
+                  </p>
+                  {clients.length === 0 && (
+                    <p className="text-sm text-muted-foreground mt-2">ابدأ بإضافة عميل جديد</p>
+                  )}
                 </CardContent>
               </Card>
             ) : (
-              clients.map((client) => (
+              filtered.map((client) => (
                 <Card key={client.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
@@ -372,7 +400,7 @@ const ClientsPage = () => {
                 <Button type="submit" disabled={isSaving}>
                   {isSaving ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
                       جاري الحفظ...
                     </>
                   ) : (
@@ -383,8 +411,7 @@ const ClientsPage = () => {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
-    </>
+    </PageShell>
   );
 };
 
