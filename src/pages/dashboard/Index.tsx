@@ -11,9 +11,14 @@ import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
 import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
 import { LayoutDashboard } from "lucide-react";
 import { PageShell } from "@/components/shared/PageShell";
+import { useTranslation } from "react-i18next";
+import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const { isComplete: onboardingComplete, loading: onboardingLoading } = useOnboardingStatus();
 
   useRealtimeSync({
@@ -33,7 +38,7 @@ export default function DashboardPage() {
     if (route) navigate(route);
   };
 
-  const currentDate = new Date().toLocaleDateString('ar-SA', {
+  const currentDate = new Date().toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -43,7 +48,7 @@ export default function DashboardPage() {
   return (
     <AutoSaveProvider>
       <PageShell
-        title="لوحة التحكم"
+        title={t("pages.dashboard.title")}
         description={currentDate}
         icon={LayoutDashboard}
       >
@@ -59,9 +64,14 @@ export default function DashboardPage() {
           <section className="animate-slide-up stagger-1">
             <IntegratedDashboardStats onStatClick={handleStatClick} />
           </section>
-          
+
+          {/* Cash Flow Chart — main financial visual */}
+          <section className="animate-slide-up stagger-2">
+            <CashFlowChart />
+          </section>
+
           {/* Two Column Layout for Notifications & Metrics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up stagger-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up stagger-3">
             <section>
               <CompactNotificationsPanel />
             </section>
@@ -71,7 +81,7 @@ export default function DashboardPage() {
           </div>
           
           {/* ERP Dashboard - Full Width */}
-          <section className="animate-slide-up stagger-3">
+          <section className="animate-slide-up stagger-4">
             <ERPDashboard />
           </section>
         </div>
