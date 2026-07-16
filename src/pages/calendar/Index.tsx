@@ -11,6 +11,7 @@ import { DatePicker } from "@/components/ui/date-picker-fixed";
 import { ar } from "date-fns/locale";
 import { Plus, Calendar as CalendarIcon, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PageShell } from "@/components/shared/PageShell";
 
 interface Event {
   id: string;
@@ -140,17 +141,18 @@ const CalendarPage = () => {
   );
 
   return (
-    <>
-      <div className="container mx-auto p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">التقويم</h1>
-          <Button onClick={() => setShowDialog(true)} className="flex items-center gap-2">
-            <Plus size={16} />
-            إضافة حدث جديد
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <PageShell
+      title="التقويم"
+      description="إدارة الاجتماعات والمواعيد والتذكيرات"
+      icon={CalendarIcon}
+      actions={
+        <Button onClick={() => setShowDialog(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          إضافة حدث جديد
+        </Button>
+      }
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Calendar */}
           <Card className="lg:col-span-2">
             <CardHeader>
