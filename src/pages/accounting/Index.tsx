@@ -1,9 +1,10 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Plus, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageShell } from "@/components/shared/PageShell";
 
 import JournalEntryTable from "./components/JournalEntryTable";
 import JournalEntryDialog from "./components/JournalEntryDialog";
@@ -30,52 +31,52 @@ export default function AccountingPage() {
   };
 
   return (
-    <>
+    <PageShell
+      title="النظام المحاسبي"
+      description="إدارة القيود المحاسبية وشجرة الحسابات والتقارير المالية"
+      icon={Receipt}
+      actions={
+        currentTab === "journal-entries" ? (
+          <Button onClick={handleAddEntry} className="gap-2">
+            <Plus className="h-4 w-4" /> إضافة قيد محاسبي
+          </Button>
+        ) : null
+      }
+    >
       <Card>
-        <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            النظام المحاسبي
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           <Tabs value={currentTab} onValueChange={setCurrentTab}>
-            <TabsList className="mb-4">
+            <TabsList className="mb-6">
               <TabsTrigger value="journal-entries">القيود المحاسبية</TabsTrigger>
               <TabsTrigger value="chart-of-accounts">شجرة الحسابات</TabsTrigger>
               <TabsTrigger value="reports">التقارير المالية</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="journal-entries">
-              <Button className="mb-4" onClick={handleAddEntry}>
-                <Plus className="mr-2" /> إضافة قيد محاسبي
-              </Button>
-              
-              <JournalEntryTable 
-                entries={journalEntries} 
-                isLoading={isLoading} 
+              <JournalEntryTable
+                entries={journalEntries}
+                isLoading={isLoading}
                 onEdit={handleEditEntry}
                 onDelete={handleDeleteEntry}
               />
-              
-              {/* Dialog for adding/editing journal entries */}
-              <JournalEntryDialog 
+              <JournalEntryDialog
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
                 editingEntry={editingEntry}
                 onSuccess={fetchJournalEntries}
               />
             </TabsContent>
-            
+
             <TabsContent value="chart-of-accounts">
               <ChartOfAccountsManager />
             </TabsContent>
-            
+
             <TabsContent value="reports">
               <FinancialReports />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
-    </>
+    </PageShell>
   );
 }
