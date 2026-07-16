@@ -325,8 +325,7 @@ const CalendarPage = () => {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
-    </>
+    </PageShell>
   );
 };
 
