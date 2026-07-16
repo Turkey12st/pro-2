@@ -1,9 +1,9 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageShell } from "@/components/shared/PageShell";
 
 export default function FinancialPage() {
   const { toast } = useToast();
@@ -16,28 +16,22 @@ export default function FinancialPage() {
   };
 
   return (
-    <>
-      <div className="max-w-6xl mx-auto space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              التقارير المالية
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Button 
-                className="w-full flex items-center gap-2"
-                onClick={handleGenerateReport}
-              >
-                <Download className="h-4 w-4" />
-                إنشاء تقرير مالي جديد
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+    <PageShell
+      title="التقارير المالية"
+      description="إنشاء وتصدير التقارير المالية الشاملة"
+      icon={FileText}
+      actions={
+        <Button onClick={handleGenerateReport} className="gap-2">
+          <Download className="h-4 w-4" />
+          إنشاء تقرير مالي جديد
+        </Button>
+      }
+    >
+      <Card>
+        <CardContent className="p-8 text-center text-muted-foreground">
+          استخدم الزر أعلاه لإنشاء تقرير مالي جديد. سيتم عرض التقارير المُنشأة هنا.
+        </CardContent>
+      </Card>
     </>
   );
 }
