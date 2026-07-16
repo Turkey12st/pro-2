@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, DollarSign, CheckCircle, Clock } from "lucide-react";
+import { PageShell } from "@/components/shared/PageShell";
 
 export default function CommissionsPage() {
   const [rules, setRules] = useState<any[]>([]);
@@ -73,7 +74,11 @@ export default function CommissionsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageShell
+      title="نظام العمولات"
+      description="قواعد الاحتساب، اعتماد العمولات، وسجل المدفوعات للموظفين"
+      icon={DollarSign}
+    >
       <div className="grid gap-4 md:grid-cols-3">
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">معلقة</p><p className="text-2xl font-bold">{stats.pending.toLocaleString()} ر.س</p></div><Clock className="h-8 w-8 text-amber-500" /></div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">معتمدة</p><p className="text-2xl font-bold">{stats.approved.toLocaleString()} ر.س</p></div><CheckCircle className="h-8 w-8 text-blue-500" /></div></CardContent></Card>
@@ -120,7 +125,7 @@ export default function CommissionsPage() {
             <TabsContent value="rules" className="mt-4">
               <div className="flex justify-end mb-4">
                 <Dialog open={open} onOpenChange={setOpen}>
-                  <DialogTrigger asChild><Button><Plus className="ml-2 h-4 w-4" />قاعدة جديدة</Button></DialogTrigger>
+                  <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" />قاعدة جديدة</Button></DialogTrigger>
                   <DialogContent>
                     <DialogHeader><DialogTitle>قاعدة عمولة جديدة</DialogTitle></DialogHeader>
                     <div className="space-y-3">
@@ -189,6 +194,6 @@ export default function CommissionsPage() {
           </Tabs>
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 }
