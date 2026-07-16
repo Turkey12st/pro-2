@@ -1,6 +1,6 @@
 
 import { SidebarProvider, Sidebar, SidebarContent, SidebarTrigger } from "@/components/ui/sidebar";
-import { Menu, User, Settings, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, User, Settings, LogOut, Search } from "lucide-react";
 import { useState } from "react";
 import { AppNavigation } from "./AppNavigation";
 import { 
@@ -16,8 +16,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { getNavigationMenu } from "@/data/navigationMenu";
 import { RealTimeNotificationBell } from "@/components/shared/RealTimeNotificationBell";
+import { CommandPalette, useCommandPalette } from "@/components/shared/CommandPalette";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [user] = useState({
@@ -27,7 +27,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   });
   const { toast } = useToast();
   const navigate = useNavigate();
-  const menuItems = getNavigationMenu();
+  const { open: cmdOpen, setOpen: setCmdOpen } = useCommandPalette();
 
   const handleLogout = async () => {
     try {
@@ -47,56 +47,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // إنشاء قائمة الانتقال السريع
-  const organizeQuickLinks = () => {
-    const navItems = getNavigationMenu();
-    const categories: Record<string, { icon: any, label: string, href: string }[]> = {
-      "نظرة عامة": [],
-      "العمليات المالية": [],
-      "العمليات الأساسية": [],
-      "الوثائق والمستندات": [],
-      "الأدوات والإعدادات": [],
-    };
-    
-    navItems.forEach(item => {
-      if (item.group === "إدارة النظام" && (item.href === "/dashboard")) {
-        categories["نظرة عامة"].push({
-          icon: item.icon,
-          label: item.name,
-          href: item.href
-        });
-      } else if (item.group === "المالية") {
-        categories["العمليات المالية"].push({
-          icon: item.icon,
-          label: item.name,
-          href: item.href
-        });
-      } else if (["إدارة المشاريع", "إدارة الموارد البشرية", "إدارة العملاء"].includes(item.group || "")) {
-        categories["العمليات الأساسية"].push({
-          icon: item.icon,
-          label: item.name,
-          href: item.href
-        });
-      } else if (item.href === "/documents" || item.href === "/company") {
-        categories["الوثائق والمستندات"].push({
-          icon: item.icon,
-          label: item.name,
-          href: item.href
-        });
-      } else if (item.href === "/calendar" || item.href === "/settings") {
-        categories["الأدوات والإعدادات"].push({
-          icon: item.icon,
-          label: item.name,
-          href: item.href
-        });
-      }
-    });
-    
-    return categories;
-  };
-  
-  const quickLinksCategories = organizeQuickLinks();
-
   return (
     <SidebarProvider>
       <div dir="rtl" className="min-h-screen flex w-full bg-background">
@@ -115,40 +65,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <Menu className="h-5 w-5 text-foreground" />
                   </div>
                 </SidebarTrigger>
-                
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-9 gap-2 hidden sm:flex">
-                      <LayoutDashboard className="h-4 w-4" />
-                      الانتقال السريع
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56" sideOffset={5}>
-                    <DropdownMenuLabel>الانتقال السريع</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    
-                    {Object.entries(quickLinksCategories).map(([category, links]) => (
-                      links.length > 0 && (
-                        <div key={category}>
-                          <DropdownMenuLabel className="text-xs text-muted-foreground py-1">
-                            {category}
-                          </DropdownMenuLabel>
-                          {links.map((link) => (
-                            <DropdownMenuItem key={link.href} asChild>
-                              <Link to={link.href} className="flex w-full items-center gap-2 cursor-pointer">
-                                {link.icon && <link.icon className="h-4 w-4" />}
-                                <span>{link.label}</span>
-                              </Link>
-                            </DropdownMenuItem>
-                          ))}
-                          <DropdownMenuSeparator />
-                        </div>
-                      )
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 text-muted-foreground w-64 justify-start"
+                  onClick={() => setCmdOpen(true)}
+                >
+                  <Search className="h-4 w-4" />
+                  <span className="hidden sm:inline">ابحث أو انتقل بسرعة…</span>
+                  <span className="sm:hidden">بحث</span>
+                  <kbd className="ms-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                    ⌘K
+                  </kbd>
+                </Button>
               </div>
-              
+
+              <div className="flex items-center gap-2">
+                <RealTimeNotificationBell />
+
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -173,13 +108,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/account" className="flex w-full items-center cursor-pointer">
-                      <User className="ml-2 h-4 w-4" />
+                      <User className="me-2 h-4 w-4" />
                       <span>حسابي</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/settings" className="flex w-full items-center cursor-pointer">
-                      <Settings className="ml-2 h-4 w-4" />
+                      <Settings className="me-2 h-4 w-4" />
                       <span>الإعدادات</span>
                     </Link>
                   </DropdownMenuItem>
@@ -188,11 +123,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     className="cursor-pointer text-destructive focus:text-destructive" 
                     onClick={handleLogout}
                   >
-                    <LogOut className="ml-2 h-4 w-4" />
+                    <LogOut className="me-2 h-4 w-4" />
                     <span>تسجيل الخروج</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </div>
             </div>
           </header>
           
@@ -201,6 +137,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </div>
         </main>
+        <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
       </div>
     </SidebarProvider>
   );
