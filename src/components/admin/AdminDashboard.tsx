@@ -91,16 +91,8 @@ export function AdminDashboard() {
   };
 
   return (
-    <>
-    <div className="page-container" dir="rtl">
-      {/* Header */}
-      <div className="page-header">
-        <div className="space-y-1">
-          <h1 className="page-title">لوحة تحكم الإدارة</h1>
-          <p className="page-description">
-            إدارة النظام والأذونات والمستخدمين
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-end">
         <Badge variant="outline" className="flex items-center gap-2 px-3 py-1.5">
           <Shield className="h-4 w-4 text-primary" />
           {getRoleLabel(userRole)}
@@ -296,6 +288,5 @@ export function AdminDashboard() {
         </TabsContent>
       </Tabs>
     </div>
-    </>
   );
 }

@@ -8,41 +8,37 @@ import { LoanCalculator } from "@/components/settings/LoanCalculator";
 import { BusinessPlanner } from "@/components/settings/BusinessPlanner";
 import { ActivityLog } from "@/components/settings/ActivityLog";
 import { APIIntegrationManager } from "@/components/settings/APIIntegrationManager";
-
+import { PageShell } from "@/components/shared/PageShell";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("task-scheduler");
 
   return (
-    <>
-      <div className="container mx-auto py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold flex items-center">
-            <Settings className="mr-2 h-6 w-6" />
-            الأدوات والإعدادات
-          </h1>
-        </div>
-
+    <PageShell
+      title="الأدوات والإعدادات"
+      description="أدوات مساعدة وتكاملات خارجية وإعدادات النظام"
+      icon={Settings}
+    >
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid grid-cols-2 lg:grid-cols-5 h-auto">
-            <TabsTrigger value="task-scheduler" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
-              <CalendarClock className="h-4 w-4 ml-2" />
+            <TabsTrigger value="task-scheduler" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+              <CalendarClock className="h-4 w-4" />
               جدولة المهام
             </TabsTrigger>
-            <TabsTrigger value="loan-calculator" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
-              <Calculator className="h-4 w-4 ml-2" />
+            <TabsTrigger value="loan-calculator" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+              <Calculator className="h-4 w-4" />
               حاسبة القروض
             </TabsTrigger>
-            <TabsTrigger value="business-planner" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
-              <LineChart className="h-4 w-4 ml-2" />
+            <TabsTrigger value="business-planner" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+              <LineChart className="h-4 w-4" />
               مخطط الأعمال
             </TabsTrigger>
-            <TabsTrigger value="activity-log" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
-              <ClipboardList className="h-4 w-4 ml-2" />
+            <TabsTrigger value="activity-log" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+              <ClipboardList className="h-4 w-4" />
               سجل الأنشطة
             </TabsTrigger>
-            <TabsTrigger value="api-integrations" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
-              <Settings className="h-4 w-4 ml-2" />
+            <TabsTrigger value="api-integrations" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+              <Settings className="h-4 w-4" />
               تكاملات API
             </TabsTrigger>
           </TabsList>
@@ -83,7 +79,6 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </Tabs>
-      </div>
-    </>
+    </PageShell>
   );
 }
