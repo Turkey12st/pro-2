@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Briefcase, TrendingUp, Award, XCircle } from "lucide-react";
+import { PageShell } from "@/components/shared/PageShell";
 
 const STAGES = [
   { value: "lead", label: "عميل محتمل", color: "bg-slate-500" },
@@ -103,7 +104,36 @@ export default function TendersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageShell
+      title="المناقصات والعطاءات"
+      description="إدارة خط أنابيب المناقصات ومتابعة مراحل التقديم واحتمالية الفوز"
+      icon={Briefcase}
+      actions={
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              مناقصة جديدة
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>إنشاء مناقصة جديدة</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div><Label>رقم المناقصة *</Label><Input value={form.tender_number} onChange={(e) => setForm({ ...form, tender_number: e.target.value })} placeholder="TND-2026-001" /></div>
+              <div><Label>العنوان *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+              <div><Label>الوصف</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+              <div><Label>اسم العميل</Label><Input value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label>القيمة التقديرية</Label><Input type="number" value={form.estimated_value} onChange={(e) => setForm({ ...form, estimated_value: e.target.value })} /></div>
+                <div><Label>احتمالية الفوز %</Label><Input type="number" min="0" max="100" value={form.win_probability} onChange={(e) => setForm({ ...form, win_probability: e.target.value })} /></div>
+              </div>
+              <div><Label>الموعد النهائي للتقديم</Label><Input type="date" value={form.submission_deadline} onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })} /></div>
+            </div>
+            <DialogFooter><Button onClick={handleCreate}>إنشاء</Button></DialogFooter>
+          </DialogContent>
+        </Dialog>
+      }
+    >
       <div className="grid gap-4 md:grid-cols-4">
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">إجمالي المناقصات</p><p className="text-2xl font-bold">{stats.total}</p></div><Briefcase className="h-8 w-8 text-primary" /></div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">نشطة</p><p className="text-2xl font-bold">{stats.active}</p></div><TrendingUp className="h-8 w-8 text-blue-500" /></div></CardContent></Card>
@@ -113,27 +143,7 @@ export default function TendersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            <span>المناقصات والعطاءات</span>
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild><Button><Plus className="ml-2 h-4 w-4" />مناقصة جديدة</Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>إنشاء مناقصة جديدة</DialogTitle></DialogHeader>
-                <div className="space-y-3">
-                  <div><Label>رقم المناقصة *</Label><Input value={form.tender_number} onChange={(e) => setForm({ ...form, tender_number: e.target.value })} placeholder="TND-2026-001" /></div>
-                  <div><Label>العنوان *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-                  <div><Label>الوصف</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-                  <div><Label>اسم العميل</Label><Input value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} /></div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div><Label>القيمة التقديرية</Label><Input type="number" value={form.estimated_value} onChange={(e) => setForm({ ...form, estimated_value: e.target.value })} /></div>
-                    <div><Label>احتمالية الفوز %</Label><Input type="number" min="0" max="100" value={form.win_probability} onChange={(e) => setForm({ ...form, win_probability: e.target.value })} /></div>
-                  </div>
-                  <div><Label>الموعد النهائي للتقديم</Label><Input type="date" value={form.submission_deadline} onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })} /></div>
-                </div>
-                <DialogFooter><Button onClick={handleCreate}>إنشاء</Button></DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </CardTitle>
+          <CardTitle>خط أنابيب المناقصات</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? <p className="text-center py-8">جاري التحميل...</p> : tenders.length === 0 ? (
@@ -176,6 +186,6 @@ export default function TendersPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 }

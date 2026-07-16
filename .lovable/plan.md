@@ -1,119 +1,154 @@
 
-# تقرير مراجعة التصميم وخطة إعادة البناء البصري
+# تقرير المراجعة الشاملة وخطة إعادة تصميم نظام ERP
 
-هذه الخطة تعالج **طبقة العرض (Design System + UX)** فقط دون المساس بمنطق الأعمال أو قاعدة البيانات.
+> نطاق هذه الخطة: **طبقة العرض فقط** (Design System + UX + Layout + i18n/RTL). لن نمس منطق الأعمال، المصادقة، قاعدة البيانات، أو التكاملات الحالية.
 
 ---
 
-## أولاً: المشاكل المكتشفة
+## القسم 1 — المشاكل المكتشفة
 
-### 1) تناقض بنية الصفحات (Layout Inconsistency)
-- **Dashboard / HR** يستخدمان `.page-container` (max-w-7xl مع padding مدروس).
-- **Company / Documents** يستخدمان `max-w-7xl mx-auto p-4 sm:p-6` يدوياً.
-- **Clients** يستخدم `container mx-auto p-6` (بدون RTL، بدون glass).
-- **Accounting** ملفوف داخل `Card` بلا `page-header` ولا عنوان وصفي.
+### 1.1 تناقض بنية الصفحات (Layout drift)
+- `Dashboard` / `HR` يستخدمان `.page-container` عبر `PageShell`.
+- `Company` / `Documents` يستخدمان `max-w-7xl mx-auto p-4 sm:p-6` يدوياً.
+- `Clients` يستخدم `container mx-auto p-6` بلا RTL ولا Header.
+- `Accounting` ملفوف داخل `Card` بلا عنوان وصفي.
+- `Admin` تم لفه بـ `PageShell` لكن الداخل `AdminDashboard` يعيد رسم Header آخر.
 → كل صفحة تبدو من عالم مختلف.
 
-### 2) عدم اتساق الهوية البصرية
-- تعريف نظام ألوان غني في `index.css` (teal/emerald، gradients، shadows) لكن معظم الصفحات لا تستخدمه.
-- بعض المكونات تستخدم `bg-gradient-to-br from-primary/5` مباشرة، وأخرى `bg-card` عادي، وأخرى بلا خلفية.
-- الأيقونات: بعضها داخل مربع ملون (HR)، بعضها بدون حاوية (Clients)، بعضها بأحجام مختلفة (14px/16px/18px).
-- العناوين: `text-3xl` في Clients، `text-2xl` في HR، بلا عنوان في Accounting.
+### 1.2 هوية بصرية غير موحدة
+- `index.css` يعرّف نظام tokens غني (teal/emerald + gradients + shadows) لكن معظم الصفحات لا تستخدمه.
+- الأيقونات: بعضها داخل مربع ملون، بعضها عارٍ، أحجام مختلطة (14/16/18px).
+- الخطوط: `text-3xl` هنا، `text-2xl` هناك، وأحياناً لا عنوان.
+- أوزان مختلطة `font-bold` / `font-semibold` / `font-medium` بلا سلم واضح.
+- Cards: `premium-card` + `glass-card` + `stat-card` + `bg-card` — أربعة أنماط لنفس الغرض.
 
-### 3) قوائم التنقل مكررة ومتضاربة
-- `AppLayout` يعرض Sidebar عبر `AppNavigation` + قائمة **الانتقال السريع** في الهيدر + `QuickNavMenu` داخل `DashboardPage` نفسه → **ثلاث قوائم تنقل** على نفس الشاشة.
-- تجميع القوائم في `navigationMenu.tsx` (المالية/العمليات/النظام) لا يطابق تجميع `AppLayout.organizeQuickLinks` (نظرة عامة/العمليات المالية/…).
-- 17 عنصر قائمة بدون تسلسل هرمي واضح؛ "الإشعارات والأتمتة" و"المستندات" و"لوحة الإدارة" كلها في مجموعة "النظام".
+### 1.3 قوائم تنقل مكررة
+- `AppLayout` كان يعرض ثلاث قوائم في نفس الوقت (Sidebar + قائمة الانتقال السريع + `QuickNavMenu` داخل Dashboard). تم تنظيف جزء منها في Sprint 1 لكن:
+  - `AppNavigation` لا تستخدم `collapsible="icon"` بشكل كامل.
+  - لا توجد إشارة للـ Group النشط.
+  - 17 عنصر بدون فواصل بصرية بين المجموعات.
 
-### 4) RTL غير موحد
-- بعض الصفحات تضيف `dir="rtl"` محلياً (HR)، وبعضها يعتمد على الغلاف (Dashboard)، وبعضها بدون RTL على الإطلاق (Clients).
-- استخدام `mr-2` و`ml-2` مختلط بدل `me-2`/`ms-2` المنطقية، مما يكسر مع تبديل اللغة.
-- لا توجد بنية i18n (لا `react-i18next`، النصوص Hard-coded بالعربية في كل مكان).
+### 1.4 RTL/i18n غير مكتمل
+- بعض الصفحات تضيف `dir="rtl"` محلياً، بعضها يعتمد على الغلاف.
+- استعمال `mr-*` / `ml-*` مختلط بدل `me-*` / `ms-*` المنطقية → يكسر عند تبديل اللغة.
+- لا يوجد `react-i18next`، النصوص Hard-coded عربية.
+- `TabNavigation.tsx` لا يزال يستخدم `space-x-reverse` و`ml-2`.
 
-### 5) الاستجابة (Responsive)
-- جداول المحاسبة والموظفين تفيض أفقياً على الجوال بدون بديل بطاقات.
-- `Sidebar` تعمل جيداً لكن `AppLayout` header يخفي أزرار سريعة على الشاشات الصغيرة (`hidden sm:flex`) بلا بديل.
-- Dialogs بعرض ثابت `sm:max-w-[600px]` بدون `max-h` sensible على الشاشات المنخفضة.
+### 1.5 الاستجابة (Responsive)
+- جداول المحاسبة/الموظفين تفيض أفقياً على الجوال بدون بديل بطاقات.
+- Dialogs بعرض ثابت `sm:max-w-[600px]` بدون `max-h` معقول.
+- Sidebar لا تنهار بشكل نظيف على الشاشات المتوسطة.
 
-### 6) عناصر ناقصة/معطوبة وظيفياً (بصرياً)
-- **Accounting**: زر "إضافة" بأيقونة `mr-2` تظهر ملتصقة خطأً في RTL؛ لا يوجد Header صفحة موحد.
-- **Clients**: بطاقات بدون حالة (نشط/متأخر السداد)، بدون فلتر أو بحث، بدون Pagination.
-- **Documents**: تبويب "إضافة" داخل نفس الصفحة بدل Dialog → تجربة غير معتادة.
-- **Company**: تبويبان فقط بلا Overview، والفورم طويل بلا أقسام مرئية واضحة.
-- **Dashboard**: تكرار بصري (IntegratedKPIWidgets + IntegratedDashboardStats + ERPDashboard + FinancialMetricsCard) بدون تدرج معلوماتي.
-- **Admin**: `<AdminDashboard />` مجرد wrapper بلا page header.
+### 1.6 عناصر ناقصة أو معطوبة بصرياً
+| الصفحة | المشكلة |
+|---|---|
+| Dashboard | تكرار بصري: `IntegratedKPIWidgets` + `IntegratedDashboardStats` + `ERPDashboard` + `FinancialMetricsCard` بدون تدرج معلوماتي. |
+| Accounting | أيقونة "إضافة" ملتصقة (`mr-2` في RTL)، لا Header، لا Filter Bar. |
+| Clients | بلا حالة عميل (نشط/متأخر)، بلا Pagination، بحث بسيط فقط. |
+| Documents | تبويب "إضافة" داخل الصفحة بدل Dialog (تم إصلاحه جزئياً). |
+| Company | تبويبان بلا Overview، فورم طويل بلا أقسام مرئية. |
+| Admin | KPIs غائبة قبل التبويبات. |
+| Notifications/Tenders/Commissions | حديثة الإنشاء لكن بدون نفس نمط `PageShell`. |
 
-### 7) لوحة التحكم المالية
-- لا يوجد Chart رئيسي أعلى الصفحة (Cash Flow / Revenue vs Expenses).
-- KPIs معروضة كأرقام مجردة بدون trend arrows أو مقارنة بالفترة السابقة.
-- الإشعارات والملخص المالي جنباً إلى جنب بدون تسلسل بصري.
+### 1.7 لوحة التحكم المالية
+- لا يوجد Chart رئيسي (Cash Flow / Revenue vs Expenses) أعلى الصفحة.
+- KPIs أرقام مجردة بدون trend arrows أو مقارنة بالفترة السابقة.
+- لا يوجد تسلسل بصري بين الملخص المالي والإشعارات.
 
-### 8) الطباعة والمسافات
-- IBM Plex Sans Arabic محمّل جيد، لكن أوزان الخطوط مختلطة (`font-bold` / `font-semibold` / `font-medium`) بلا سلم واضح.
-- المسافات بين الأقسام تتراوح من `space-y-4` إلى `space-y-8` عشوائياً.
-
----
-
-## ثانياً: خطة إعادة التصميم (5 مراحل)
-
-### المرحلة 1 — تثبيت نظام التصميم (Design System Lock)
-- إنشاء `docs/design-system.md` يوثق: سلم الطباعة، سلم المسافات (4/8/12/16/24/32)، أوزان الخطوط، ألوان الحالة.
-- تنظيف `index.css`: إبقاء tokens فقط، حذف classes المكررة (`premium-card` vs `glass-card` vs `stat-card` — نبقي واحداً لكل غرض).
-- إضافة `--font-display` منفصل عن `--font-body` لو أراد المستخدم تمييز العناوين.
-- إضافة classes منطقية RTL: `.ps-*`، `.pe-*`، `.ms-*`، `.me-*` عبر Tailwind logical properties plugin.
-
-### المرحلة 2 — Shell موحد (Layout + Navigation)
-- إنشاء مكون `<PageShell title description actions breadcrumbs>` يستخدم في كل صفحة → يقتل الفروقات في `.page-container` vs `container`.
-- إعادة هيكلة Sidebar إلى 5 مجموعات واضحة:
-  1. **نظرة عامة**: Dashboard
-  2. **المحاسبة والمالية**: Accounting, Financial, Capital, Bank Recon, Commissions
-  3. **الموارد البشرية**: HR, Attendance
-  4. **العمليات**: Projects, Clients, Partners, Tenders
-  5. **النظام**: Documents, Company, Notifications, Calendar, Settings, Admin
-- حذف قائمة "الانتقال السريع" من الهيدر (مكررة مع Sidebar).
-- حذف `QuickNavMenu` من داخل `DashboardPage` (Sidebar تكفي).
-- Sidebar collapsible بأيقونات فقط + Command Palette (`⌘K`) للتنقل السريع بدل القوائم المتعددة.
-
-### المرحلة 3 — تجهيز البنية التحتية للغتين
-- إضافة `react-i18next` مع ملفَي `ar.json` / `en.json`.
-- HOC `<LanguageProvider>` يضبط `<html dir lang>` تلقائياً + يحفظ الاختيار في localStorage.
-- استخراج كل النصوص من الصفحات الرئيسية (Dashboard, HR, Accounting, Clients, Documents, Company, Admin) إلى مفاتيح i18n.
-- استبدال `mr-*`/`ml-*` بـ `me-*`/`ms-*` في المكونات الأساسية.
-
-### المرحلة 4 — إعادة تصميم الصفحات (Page-by-page)
-لكل صفحة: تطبيق `<PageShell>`، ضبط RTL، تحويل الجداول لبطاقات على الجوال، إضافة Empty States احترافية.
-
-- **Dashboard**: تدرج بصري واضح — Hero KPIs (4 بطاقات مع trend) → Chart رئيسي (Cash Flow 12 شهر) → صفان (Notifications | Alerts) → ERP Modules Grid.
-- **Accounting**: PageShell + tabs محسنة + جدول قيود بأعمدة sticky + Filter Bar.
-- **HR**: نفس البنية الحالية لكن مع QuickActions Bar موحد + Chart Saudization دائري.
-- **Clients**: List/Grid Toggle + بحث + فلتر النوع + بطاقة أنيقة بحالة العميل.
-- **Documents**: تحويل التبويب "إضافة" إلى Dialog + عرض تنبيهات انتهاء الصلاحية أعلى الصفحة.
-- **Company**: تقسيم الفورم إلى 4 أقسام مرئية (أساسي/تسجيل/بنكي/نشاط) مع Progress Indicator.
-- **Admin**: PageShell + KPIs (مستخدمين/صلاحيات/audit) قبل التبويبات.
-
-### المرحلة 5 — الصقل (Polish)
-- Loading Skeletons موحدة لكل الصفحات (بدل `Loader2` spinner).
-- Empty States بصور SVG (لا يوجد بيانات بعد + CTA).
-- Toast styling موحد مع أيقونات حالة.
-- Focus rings واضحة لـ a11y.
-- Dark Mode audit: زيارة كل صفحة والتأكد من التباين.
+### 1.8 حالات فارغة و Loading
+- `Loader2` spinner في كل مكان بلا Skeletons.
+- Empty states نصية فقط (لا SVG، لا CTA واضح).
+- Toasts بلا styling موحد للحالة.
 
 ---
 
-## ثالثاً: التسلسل الزمني المقترح
+## القسم 2 — تقييم اتساق نظام التصميم
+
+| المحور | الحالة | الملاحظة |
+|---|---|---|
+| Tokens الألوان | ✅ معرّفة | ❌ غير مستخدمة بانتظام |
+| الطباعة | ⚠️ IBM Plex محمّل | ❌ لا سلم واضح (h1..h4) |
+| المسافات | ❌ عشوائية | `space-y-4/6/8` بلا قاعدة |
+| المكونات | ⚠️ shadcn كامل | ❌ 4 أنماط cards متكررة |
+| الأيقونات | ⚠️ lucide موحد | ❌ أحجام/حاويات مختلطة |
+| RTL | ⚠️ جزئي | `mr/ml` بدل `me/ms` |
+| Dark mode | ⚠️ tokens موجودة | لم يُدقّق التباين في كل الصفحات |
+
+---
+
+## القسم 3 — خطة إعادة التصميم (5 مراحل / 4 Sprints)
+
+### Sprint 1 — تثبيت النظام البصري (Foundation)
+**الهدف**: مصدر حقيقة واحد للألوان/الطباعة/المسافات.
+- توثيق `docs/design-system.md`: سلم الطباعة (h1..h4, body, caption)، سلم المسافات (4/8/12/16/24/32)، ألوان الحالة (success/warning/danger/info).
+- تنظيف `index.css`: إبقاء tokens فقط + class واحد لكل غرض (`.surface-card`, `.surface-elevated`, `.surface-glass`) وحذف المكرر.
+- إضافة `--font-display` منفصلاً عن `--font-body`.
+- تفعيل Tailwind logical properties (`me-*`, `ms-*`, `pe-*`, `ps-*`).
+- توحيد Skeletons + Empty states + Toast variants.
+
+### Sprint 2 — Shell موحد + تنقل نظيف
+- توسعة `<PageShell>` ليشمل: `<PageToolbar>` (بحث/فلاتر/إجراءات) + `<PageTabs>` مع RTL صحيح.
+- تطبيقه على كل الصفحات المتبقية: `Accounting`, `Clients`, `Documents`, `Company`, `Tenders`, `Commissions`, `Notifications`, `Projects`, `Partners`, `Calendar`, `Settings`.
+- Sidebar `collapsible="icon"` مع 5 مجموعات:
+  1. نظرة عامة (Dashboard)
+  2. المحاسبة والمالية
+  3. الموارد البشرية
+  4. العمليات
+  5. النظام
+- حذف كل قوائم "الانتقال السريع" المتبقية (تُغني عنها `⌘K`).
+
+### Sprint 3 — بنية اللغتين (i18n + RTL منطقي)
+- تركيب `react-i18next` + ملفَي `ar.json` / `en.json`.
+- `<LanguageProvider>` يضبط `<html dir lang>` ويحفظ الاختيار.
+- استخراج نصوص الصفحات الرئيسية إلى مفاتيح i18n (مرحلة أولى: Dashboard, HR, Accounting, Clients, Documents, Company, Admin).
+- استبدال شامل لـ `mr-*/ml-*` → `me-*/ms-*` عبر codemod.
+- Language switcher في الهيدر.
+
+### Sprint 4 — إعادة تصميم الصفحات
+**Dashboard**:
+```text
+[Hero KPIs × 4 مع trend arrows]
+[Chart رئيسي: Cash Flow 12 شهر]
+[Notifications | Alerts]
+[ERP Modules Grid]
+```
+- **Accounting**: PageShell + Filter Bar + جدول قيود بأعمدة sticky + عمود Actions موحد.
+- **HR**: QuickActions Bar + Chart Saudization دائري + بطاقات موظف على الجوال.
+- **Clients**: List/Grid Toggle + بحث/فلتر + بطاقة بحالة العميل.
+- **Documents**: تنبيهات انتهاء الصلاحية أعلى الصفحة + Dialog للإضافة.
+- **Company**: Progress Indicator + 4 أقسام مرئية (أساسي/تسجيل/بنكي/نشاط).
+- **Admin**: KPIs (users/roles/audit events) قبل التبويبات.
+- **Tenders/Commissions/Notifications**: تطبيق نفس اللغة البصرية.
+- تحويل كل الجداول الحرجة إلى Table-to-Card على `< md`.
+
+### Sprint 5 — الصقل (Polish)
+- Loading Skeletons موحدة لكل صفحة.
+- Empty States بصور SVG + CTA.
+- Focus rings واضحة لـ a11y (WCAG AA).
+- Dark Mode audit صفحة-صفحة (تباين + عبارات ألوان).
+- Micro-animations متسقة (`animate-fade-in`, `animate-slide-up`).
+
+---
+
+## القسم 4 — الجدول الزمني
 
 ```text
-Sprint 1 (يوم-يومان)   → المرحلة 1 + المرحلة 2  (النظام + Shell)
-Sprint 2 (يوم-يومان)   → المرحلة 3            (i18n + RTL منطقي)
-Sprint 3 (2-3 أيام)    → المرحلة 4            (إعادة تصميم الصفحات)
-Sprint 4 (يوم)         → المرحلة 5            (الصقل)
+Sprint 1  (يوم-يومان)  → Design tokens + docs + logical properties
+Sprint 2  (يوم-يومان)  → PageShell شامل + Sidebar جديدة
+Sprint 3  (2 يوم)      → i18n كامل + RTL منطقي
+Sprint 4  (3 أيام)     → إعادة تصميم كل صفحة
+Sprint 5  (يوم)        → Skeletons + Empty states + a11y + dark audit
 ```
 
 ---
 
-## قرارات تحتاج تأكيدك قبل البدء
+## القسم 5 — قرارات تحتاج تأكيدك قبل البدء
 
-1. **الهوية اللونية**: نبقي Teal/Emerald الحالي، أم تريد استكشاف اتجاه بديل (Deep Blue / Charcoal + Gold مثلاً يليق بأنظمة ERP الفاخرة)؟
-2. **دعم اللغة**: هل تريد ثنائية اللغة الآن (i18n كامل) أم عربي فقط الآن مع تجهيز البنية لاحقاً؟
-3. **نطاق التنفيذ الأولي**: هل نبدأ بـ **المرحلة 1+2** (النظام + Shell موحد) كأساس، ثم نعرض صفحة واحدة (Dashboard) كنموذج قبل الباقي — أم نغطي كل الصفحات في تنفيذ واحد كبير؟
-4. **Command Palette**: هل توافق على إضافة `⌘K` لبحث/تنقل سريع بدل قائمة الانتقال السريع الحالية؟
+1. **الاتجاه اللوني**: نُبقي **Teal/Emerald** الحالي، أم نستكشف اتجاه ERP فاخر بديل (Deep Navy + Gold / Charcoal + Emerald)؟
+2. **اللغة**: هل نبدأ i18n كامل (Sprint 3) الآن، أم نؤجل حتى تكتمل إعادة تصميم الصفحات؟
+3. **نطاق التنفيذ**: نبدأ بـ **Sprint 1 + 2** كأساس ثم نعرض Dashboard كنموذج قبل الباقي، أم ننفذ الكل دفعة واحدة؟
+4. **مسار الاعتماد**: هل تريد أن أعرض 3 اتجاهات بصرية مختلفة (مع Screenshots) لتختار واحداً قبل البدء الفعلي؟ (موصى به لتجنب إعادة العمل)
+
+---
+
+**التوصية**: البدء بـ Sprint 1 + 2 معاً، مع عرض 3 اتجاهات بصرية للـ Dashboard أولاً لاعتماد الهوية، ثم الانتقال للـ Sprints المتبقية.
