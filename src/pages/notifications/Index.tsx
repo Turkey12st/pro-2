@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Bell, Mail, MessageSquare, Smartphone, Settings as SettingsIcon } from "lucide-react";
+import { PageShell } from "@/components/shared/PageShell";
 
 export default function NotificationsPage() {
   const [logs, setLogs] = useState<any[]>([]);
@@ -55,7 +56,11 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageShell
+      title="محرك الإشعارات والأتمتة"
+      description="سجل الإشعارات المرسلة عبر البريد الإلكتروني والتنبيهات داخل النظام مع إعدادات الأتمتة"
+      icon={Bell}
+    >
       <div className="grid gap-4 md:grid-cols-3">
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">إجمالي الإشعارات</p><p className="text-2xl font-bold">{stats.total}</p></div><Bell className="h-8 w-8 text-primary" /></div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">مُرسَلة بنجاح</p><p className="text-2xl font-bold text-green-600">{stats.sent}</p></div><Mail className="h-8 w-8 text-green-500" /></div></CardContent></Card>
@@ -68,7 +73,7 @@ export default function NotificationsPage() {
           <Tabs defaultValue="logs">
             <TabsList>
               <TabsTrigger value="logs">السجل</TabsTrigger>
-              <TabsTrigger value="settings"><SettingsIcon className="ml-2 h-4 w-4" />إعدادات الحضور التلقائي</TabsTrigger>
+              <TabsTrigger value="settings" className="gap-2"><SettingsIcon className="h-4 w-4" />إعدادات الحضور التلقائي</TabsTrigger>
             </TabsList>
 
             <TabsContent value="logs" className="mt-4">
@@ -121,6 +126,6 @@ export default function NotificationsPage() {
           </Tabs>
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   );
 }
