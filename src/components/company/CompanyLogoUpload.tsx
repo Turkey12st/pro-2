@@ -137,7 +137,7 @@ export default function CompanyLogoUpload({ initialLogoUrl, onLogoChange }: Comp
           disabled={uploading}
         >
           {uploading ? "جاري الرفع..." : "تغيير الشعار"}
-          <Upload className="mr-2 h-4 w-4" />
+          <Upload className="me-2 h-4 w-4" />
         </Button>
       </div>
     </div>

@@ -104,7 +104,7 @@ export function DocumentExpiryNotifications() {
           المستندات المنتهية قريباً
         </CardTitle>
         <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => navigate("/documents")}>
-          <FileText className="h-3 w-3 mr-1" /> إدارة
+          <FileText className="h-3 w-3 me-1" /> إدارة
         </Button>
       </CardHeader>
       <CardContent className="space-y-2 pt-0">

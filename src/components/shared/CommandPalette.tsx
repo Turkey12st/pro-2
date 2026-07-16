@@ -10,6 +10,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { getNavigationMenu } from "@/data/navigationMenu";
+import { useTranslation } from "react-i18next";
 
 interface CommandPaletteProps {
   open: boolean;
@@ -21,7 +22,8 @@ interface CommandPaletteProps {
  */
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const navigate = useNavigate();
-  const menu = getNavigationMenu();
+  const { t } = useTranslation();
+  const menu = getNavigationMenu(t);
 
   const grouped = menu.reduce<Record<string, typeof menu>>((acc, item) => {
     const g = item.group || "أخرى";

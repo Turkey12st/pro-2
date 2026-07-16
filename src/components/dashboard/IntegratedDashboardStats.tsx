@@ -144,7 +144,7 @@ export function IntegratedDashboardStats({
                 className="w-full mt-3 h-8 text-xs opacity-0 group-hover:opacity-100 transition-all" 
                 onClick={() => onStatClick?.(stat.action)}
               >
-                <ChevronRight className="h-3 w-3 ml-1" />
+                <ChevronRight className="h-3 w-3 ms-1" />
                 {stat.actionLabel}
               </Button>
             </CardContent>

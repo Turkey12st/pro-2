@@ -98,7 +98,7 @@ export function EmployeeAccountingDashboard({ employeeId }: EmployeeAccountingDa
         </div>
         <div className="flex gap-2">
           <Button onClick={updateKPI} variant="outline">
-            <Calculator className="h-4 w-4 mr-2" />
+            <Calculator className="h-4 w-4 me-2" />
             تحديث مؤشرات الأداء
           </Button>
         </div>

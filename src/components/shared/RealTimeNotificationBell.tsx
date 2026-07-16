@@ -93,7 +93,7 @@ export function RealTimeNotificationBell() {
               onClick={markAllAsRead}
               className="text-xs h-7"
             >
-              <CheckCheck className="h-3 w-3 ml-1" />
+              <CheckCheck className="h-3 w-3 ms-1" />
               قراءة الكل
             </Button>
           )}

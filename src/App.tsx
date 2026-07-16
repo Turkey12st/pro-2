@@ -7,6 +7,7 @@ import { QueryClientProvider } from "@/lib/queryClient";
 import { GlobalErrorBoundary } from "@/components/shared/GlobalErrorBoundary";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 // Pages
 import MainPage from "./pages/MainPage";
@@ -39,6 +40,7 @@ function App() {
   return (
     <GlobalErrorBoundary>
       <QueryClientProvider>
+        <LanguageProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -83,6 +85,7 @@ function App() {
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
+        </LanguageProvider>
       </QueryClientProvider>
     </GlobalErrorBoundary>
   );

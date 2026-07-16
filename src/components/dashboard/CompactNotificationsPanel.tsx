@@ -150,7 +150,7 @@ export function CompactNotificationsPanel() {
                 <span>تعذر تحميل بعض البيانات</span>
               </div>
               <Button variant="ghost" size="sm" onClick={handleRefresh}>
-                <RefreshCw className="h-4 w-4 ml-1" />
+                <RefreshCw className="h-4 w-4 ms-1" />
                 إعادة المحاولة
               </Button>
             </div>
@@ -205,7 +205,7 @@ export function CompactNotificationsPanel() {
             className="w-full h-7 text-xs"
             onClick={() => handleSecureNavigation('/hr')}
           >
-            <ChevronRight className="h-3 w-3 mr-1" />
+            <ChevronRight className="h-3 w-3 me-1" />
             عرض جميع التنبيهات
           </Button>
         </CardContent>
@@ -233,7 +233,7 @@ export function CompactNotificationsPanel() {
                     {doc.days_remaining <= 0 ? 'منتهي' : `${doc.days_remaining} أيام`}
                   </p>
                 </div>
-                <AlertTriangle className="h-3 w-3 text-destructive ml-1" />
+                <AlertTriangle className="h-3 w-3 text-destructive ms-1" />
               </div>
             ))
           ) : (
@@ -247,7 +247,7 @@ export function CompactNotificationsPanel() {
             className="w-full h-7 text-xs"
             onClick={() => handleSecureNavigation('/documents')}
           >
-            <ChevronRight className="h-3 w-3 mr-1" />
+            <ChevronRight className="h-3 w-3 me-1" />
             إدارة المستندات
           </Button>
         </CardContent>

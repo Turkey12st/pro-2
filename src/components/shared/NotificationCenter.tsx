@@ -194,7 +194,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
                             </span>
                             {notification.due_date && (
                               <span className="text-xs text-warning">
-                                <Calendar className="h-3 w-3 inline mr-1" />
+                                <Calendar className="h-3 w-3 inline me-1" />
                                 {formatDate(notification.due_date)}
                               </span>
                             )}

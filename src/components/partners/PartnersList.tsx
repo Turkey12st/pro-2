@@ -149,7 +149,7 @@ export function PartnersList() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold tracking-tight">الشركاء والمساهمين</h2>
         <Button onClick={() => navigate("/partners/add")}>
-          <Plus className="mr-2 h-4 w-4" /> إضافة شريك
+          <Plus className="me-2 h-4 w-4" /> إضافة شريك
         </Button>
       </div>
 

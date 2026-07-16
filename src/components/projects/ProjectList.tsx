@@ -58,13 +58,13 @@ type Project = {
 const getStatusBadge = (status: string) => {
   switch (status) {
     case "planned":
-      return { label: "مخطط له", variant: "secondary", icon: <Clock className="h-3 w-3 mr-1" /> };
+      return { label: "مخطط له", variant: "secondary", icon: <Clock className="h-3 w-3 me-1" /> };
     case "in-progress":
-      return { label: "قيد التنفيذ", variant: "warning", icon: <AlertTriangle className="h-3 w-3 mr-1" /> };
+      return { label: "قيد التنفيذ", variant: "warning", icon: <AlertTriangle className="h-3 w-3 me-1" /> };
     case "completed":
-      return { label: "مكتمل", variant: "success", icon: <CheckCircle className="h-3 w-3 mr-1" /> };
+      return { label: "مكتمل", variant: "success", icon: <CheckCircle className="h-3 w-3 me-1" /> };
     case "cancelled":
-      return { label: "ملغي", variant: "destructive", icon: <XCircle className="h-3 w-3 mr-1" /> };
+      return { label: "ملغي", variant: "destructive", icon: <XCircle className="h-3 w-3 me-1" /> };
     default:
       return { label: status, variant: "outline", icon: null };
   }

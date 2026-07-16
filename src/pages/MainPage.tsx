@@ -73,9 +73,9 @@ export default function MainPage() {
             size="lg" 
             className="text-lg px-8 py-3"
           >
-            <LayoutDashboard className="h-5 w-5 ml-2" />
+            <LayoutDashboard className="h-5 w-5 ms-2" />
             الذهاب للوحة المعلومات
-            <ArrowRight className="h-5 w-5 mr-2" />
+            <ArrowRight className="h-5 w-5 me-2" />
           </Button>
           
           <Button 
@@ -85,7 +85,7 @@ export default function MainPage() {
             className="text-lg px-8 py-3"
             disabled={isInitializing}
           >
-            <RefreshCw className={`h-5 w-5 ml-2 ${isInitializing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-5 w-5 ms-2 ${isInitializing ? 'animate-spin' : ''}`} />
             تحديث ترابط البيانات
           </Button>
         </div>

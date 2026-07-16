@@ -74,15 +74,15 @@ export function BusinessPlanner() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid grid-cols-3 h-auto">
           <TabsTrigger value="goals" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
-            <Target className="h-4 w-4 ml-2" />
+            <Target className="h-4 w-4 ms-2" />
             الأهداف
           </TabsTrigger>
           <TabsTrigger value="add-goal" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
-            <BarChart className="h-4 w-4 ml-2" />
+            <BarChart className="h-4 w-4 ms-2" />
             إضافة هدف
           </TabsTrigger>
           <TabsTrigger value="planning" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
-            <CalendarRange className="h-4 w-4 ml-2" />
+            <CalendarRange className="h-4 w-4 ms-2" />
             التخطيط
           </TabsTrigger>
         </TabsList>

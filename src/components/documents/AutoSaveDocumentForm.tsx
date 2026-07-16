@@ -66,7 +66,7 @@ const AutoSaveDocumentForm: React.FC<AutoSaveDocumentFormProps> = ({
           {isLoading ? 'جاري الحفظ...' : 'يتم الحفظ تلقائيًا عند إدخال البيانات'}
         </div>
         <Button onClick={handleManualSave} disabled={isLoading}>
-          <SaveIcon className="ml-2 h-4 w-4" />
+          <SaveIcon className="ms-2 h-4 w-4" />
           حفظ
         </Button>
       </CardFooter>

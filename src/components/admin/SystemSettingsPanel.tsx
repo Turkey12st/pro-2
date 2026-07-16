@@ -235,11 +235,11 @@ export function SystemSettingsPanel() {
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={resetSettings}>
-                <RotateCcw className="h-4 w-4 mr-2" />
+                <RotateCcw className="h-4 w-4 me-2" />
                 إعادة تعيين
               </Button>
               <Button onClick={saveSettings} disabled={saving}>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="h-4 w-4 me-2" />
                 {saving ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
               </Button>
             </div>

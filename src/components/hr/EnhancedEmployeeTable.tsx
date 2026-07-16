@@ -162,11 +162,11 @@ const EnhancedEmployeeTable: React.FC<EnhancedEmployeeTableProps> = ({ employees
                 <TableCell>
                   <div className="space-y-1">
                     <div className="flex items-center text-sm">
-                      <Mail className="h-3 w-3 mr-1" />
+                      <Mail className="h-3 w-3 me-1" />
                       {employee.email}
                     </div>
                     <div className="flex items-center text-sm text-muted-foreground">
-                      <Phone className="h-3 w-3 mr-1" />
+                      <Phone className="h-3 w-3 me-1" />
                       {employee.phone}
                     </div>
                   </div>
@@ -242,7 +242,7 @@ const EnhancedEmployeeTable: React.FC<EnhancedEmployeeTableProps> = ({ employees
                       <DropdownMenuItem
                         onClick={() => navigate(`/hr/employee/${employee.id}`)}
                       >
-                        <Eye className="h-4 w-4 mr-2" />
+                        <Eye className="h-4 w-4 me-2" />
                         عرض التفاصيل
                       </DropdownMenuItem>
                       
@@ -250,7 +250,7 @@ const EnhancedEmployeeTable: React.FC<EnhancedEmployeeTableProps> = ({ employees
                         <DropdownMenuItem
                           onClick={() => navigate(`/hr/employee/${employee.id}/edit`)}
                         >
-                          <Edit className="h-4 w-4 mr-2" />
+                          <Edit className="h-4 w-4 me-2" />
                           تعديل
                         </DropdownMenuItem>
                       </HRPermissionGate>
@@ -258,7 +258,7 @@ const EnhancedEmployeeTable: React.FC<EnhancedEmployeeTableProps> = ({ employees
                       <DropdownMenuItem
                         onClick={() => navigate(`/hr/employee/${employee.id}/documents`)}
                       >
-                        <FileText className="h-4 w-4 mr-2" />
+                        <FileText className="h-4 w-4 me-2" />
                         المستندات
                       </DropdownMenuItem>
 
@@ -266,7 +266,7 @@ const EnhancedEmployeeTable: React.FC<EnhancedEmployeeTableProps> = ({ employees
                         <DropdownMenuItem
                           onClick={() => navigate(`/hr/employee/${employee.id}/salary`)}
                         >
-                          <DollarSign className="h-4 w-4 mr-2" />
+                          <DollarSign className="h-4 w-4 me-2" />
                           إدارة الراتب
                         </DropdownMenuItem>
                       </HRPermissionGate>
@@ -279,7 +279,7 @@ const EnhancedEmployeeTable: React.FC<EnhancedEmployeeTableProps> = ({ employees
                           disabled={deletingId === employee.id}
                           className="text-destructive focus:text-destructive"
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
+                          <Trash2 className="h-4 w-4 me-2" />
                           {deletingId === employee.id ? "جاري الحذف..." : "حذف"}
                         </DropdownMenuItem>
                       </HRPermissionGate>

@@ -200,7 +200,7 @@ export default function LoginPage() {
                     placeholder="example@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pr-11 h-12 rounded-xl input-premium"
+                    className="pe-11 h-12 rounded-xl input-premium"
                     required
                     disabled={isSubmitting}
                   />
@@ -221,7 +221,7 @@ export default function LoginPage() {
                   setSuccess(null);
                 }}
               >
-                <ArrowLeft className="h-4 w-4 ml-2" />
+                <ArrowLeft className="h-4 w-4 ms-2" />
                 العودة لتسجيل الدخول
               </Button>
             </form>
@@ -338,7 +338,7 @@ export default function LoginPage() {
                       placeholder="example@company.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pr-11 h-12 rounded-xl input-premium"
+                      className="pe-11 h-12 rounded-xl input-premium"
                       required
                       disabled={isSubmitting}
                     />
@@ -367,7 +367,7 @@ export default function LoginPage() {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pr-11 h-12 rounded-xl input-premium"
+                      className="pe-11 h-12 rounded-xl input-premium"
                       required
                       disabled={isSubmitting}
                     />

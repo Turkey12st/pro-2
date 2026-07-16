@@ -159,7 +159,7 @@ export function GoalsManagement({ goals, onAddGoal, onUpdateGoal }: GoalsManagem
               onClick={handleAddGoal} 
               className="w-full"
             >
-              <Save className="ml-2 h-4 w-4" />
+              <Save className="ms-2 h-4 w-4" />
               إضافة الهدف
             </Button>
           </div>

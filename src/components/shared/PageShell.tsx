@@ -39,7 +39,6 @@ export function PageShell({
 }: PageShellProps) {
   return (
     <div
-      dir="rtl"
       className={cn(
         fullWidth ? "w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" : "page-container",
         "space-y-6 sm:space-y-8",

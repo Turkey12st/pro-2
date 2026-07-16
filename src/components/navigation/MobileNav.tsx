@@ -96,7 +96,7 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                           <span>{item.name}</span>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="pr-8">
+                      <AccordionContent className="pe-8">
                         <div className="flex flex-col space-y-2">
                           {item.children.map((child) => (
                             <Link
@@ -131,7 +131,7 @@ export function MobileNav({ menuItems, isActive, user, isOpen, setIsOpen }: Mobi
                     {item.icon && <item.icon className="h-4 w-4" />}
                     <span>{item.name}</span>
                     {item.new && (
-                      <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full mr-2">جديد</span>
+                      <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full me-2">جديد</span>
                     )}
                   </Link>
                 )

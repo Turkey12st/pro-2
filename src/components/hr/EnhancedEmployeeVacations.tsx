@@ -231,7 +231,7 @@ export function EnhancedEmployeeVacations({ employeeId }: EnhancedEmployeeVacati
             سجل طلبات الإجازات
           </CardTitle>
           <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 me-2" />
             طلب إجازة جديدة
           </Button>
         </CardHeader>

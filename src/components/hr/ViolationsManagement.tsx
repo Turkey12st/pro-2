@@ -259,7 +259,7 @@ export function ViolationsManagement({ employeeId }: ViolationsManagementProps) 
           </CardTitle>
           {hasPermission('add_violations') && (
             <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 me-2" />
               إضافة مخالفة
             </Button>
           )}

@@ -18,8 +18,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RealTimeNotificationBell } from "@/components/shared/RealTimeNotificationBell";
 import { CommandPalette, useCommandPalette } from "@/components/shared/CommandPalette";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "react-i18next";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
+  const { isRtl } = useLanguage();
   const [user] = useState({
     name: "مستخدم النظام",
     email: "user@example.com",
@@ -33,15 +38,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
       toast({
-        title: "تم تسجيل الخروج",
-        description: "تم تسجيل خروجك بنجاح",
+        title: t("header.logoutSuccess"),
+        description: t("header.logoutSuccessDesc"),
       });
       navigate("/auth");
     } catch (error) {
       console.error("Error during logout:", error);
       toast({
-        title: "حدث خطأ",
-        description: "لم نتمكن من تسجيل خروجك. الرجاء المحاولة مرة أخرى.",
+        title: t("header.logoutError"),
+        description: t("header.logoutErrorDesc"),
         variant: "destructive",
       });
     }
@@ -49,8 +54,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div dir="rtl" className="min-h-screen flex w-full bg-background">
-        <Sidebar className="border-l border-sidebar-border bg-sidebar" side="right">
+      <div dir={isRtl ? "rtl" : "ltr"} className="min-h-screen flex w-full bg-background">
+        <Sidebar
+          className={isRtl ? "border-l border-sidebar-border bg-sidebar" : "border-r border-sidebar-border bg-sidebar"}
+          side={isRtl ? "right" : "left"}
+        >
           <SidebarContent>
             <AppNavigation />
           </SidebarContent>
@@ -73,8 +81,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   onClick={() => setCmdOpen(true)}
                 >
                   <Search className="h-4 w-4" />
-                  <span className="hidden sm:inline">ابحث أو انتقل بسرعة…</span>
-                  <span className="sm:hidden">بحث</span>
+                  <span className="hidden sm:inline">{t("header.searchPlaceholder")}</span>
+                  <span className="sm:hidden">{t("header.searchShort")}</span>
                   <kbd className="ms-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
                     ⌘K
                   </kbd>
@@ -82,6 +90,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
 
               <div className="flex items-center gap-2">
+                <LanguageSwitcher />
                 <RealTimeNotificationBell />
 
               {/* User Menu */}
@@ -109,13 +118,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <DropdownMenuItem asChild>
                     <Link to="/account" className="flex w-full items-center cursor-pointer">
                       <User className="me-2 h-4 w-4" />
-                      <span>حسابي</span>
+                      <span>{t("header.myAccount")}</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/settings" className="flex w-full items-center cursor-pointer">
                       <Settings className="me-2 h-4 w-4" />
-                      <span>الإعدادات</span>
+                      <span>{t("header.settings")}</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -124,7 +133,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     onClick={handleLogout}
                   >
                     <LogOut className="me-2 h-4 w-4" />
-                    <span>تسجيل الخروج</span>
+                    <span>{t("header.logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

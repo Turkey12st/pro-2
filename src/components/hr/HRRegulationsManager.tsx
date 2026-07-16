@@ -282,7 +282,7 @@ export function HRRegulationsManager({ employeeId }: HRRegulationsManagerProps) 
               </Button>
             )}
             <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 me-2" />
               إضافة لائحة
             </Button>
           </div>
@@ -476,7 +476,7 @@ export function HRRegulationsManager({ employeeId }: HRRegulationsManagerProps) 
               console.log('Saving new rule:', newRule);
               setIsDialogOpen(false);
             }}>
-              <Save className="h-4 w-4 mr-2" />
+              <Save className="h-4 w-4 me-2" />
               حفظ
             </Button>
           </DialogFooter>

@@ -1,0 +1,108 @@
+{
+  "app": {
+    "name": "نظام ERP المحاسبي",
+    "loading": "جاري التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "add": "إضافة",
+    "search": "بحث",
+    "filter": "تصفية",
+    "export": "تصدير",
+    "import": "استيراد",
+    "print": "طباعة",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "yes": "نعم",
+    "no": "لا",
+    "language": "اللغة",
+    "arabic": "العربية",
+    "english": "English"
+  },
+  "header": {
+    "searchPlaceholder": "ابحث أو انتقل بسرعة...",
+    "searchShort": "بحث",
+    "myAccount": "حسابي",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج",
+    "logoutSuccess": "تم تسجيل الخروج",
+    "logoutSuccessDesc": "تم تسجيل خروجك بنجاح",
+    "logoutError": "حدث خطأ",
+    "logoutErrorDesc": "لم نتمكن من تسجيل خروجك. الرجاء المحاولة مرة أخرى."
+  },
+  "nav": {
+    "groupOverview": "نظرة عامة",
+    "groupFinance": "المحاسبة والمالية",
+    "groupHR": "الموارد البشرية",
+    "groupOperations": "العمليات",
+    "groupSystem": "النظام",
+    "dashboard": "لوحة التحكم",
+    "accounting": "المحاسبة",
+    "financial": "التقارير المالية",
+    "capital": "رأس المال",
+    "bankReconciliation": "التسوية البنكية",
+    "commissions": "العمولات",
+    "hr": "الموارد البشرية",
+    "projects": "المشاريع",
+    "clients": "العملاء",
+    "partners": "الشركاء",
+    "tenders": "المناقصات",
+    "documents": "المستندات",
+    "company": "الشركة",
+    "calendar": "التقويم",
+    "notifications": "الإشعارات",
+    "settings": "الإعدادات",
+    "admin": "لوحة الإدارة"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "لوحة التحكم",
+      "cashFlowTitle": "التدفق النقدي — آخر 12 شهر",
+      "cashFlowDesc": "مقارنة الإيرادات والمصروفات وصافي التدفق النقدي",
+      "revenue": "الإيرادات",
+      "expenses": "المصروفات",
+      "netCashFlow": "صافي التدفق"
+    },
+    "accounting": {
+      "title": "النظام المحاسبي",
+      "description": "إدارة القيود المحاسبية وشجرة الحسابات والتقارير المالية",
+      "addEntry": "إضافة قيد محاسبي",
+      "tabJournal": "القيود المحاسبية",
+      "tabChart": "شجرة الحسابات",
+      "tabReports": "التقارير المالية"
+    },
+    "hr": {
+      "title": "الموارد البشرية",
+      "description": "إدارة الموظفين والحضور والرواتب والإجازات"
+    },
+    "clients": {
+      "title": "إدارة العملاء",
+      "descriptionCount": "{{count}} عميل مسجل في النظام",
+      "addNew": "إضافة عميل جديد",
+      "searchPlaceholder": "ابحث بالاسم أو الهاتف أو البريد أو السجل التجاري...",
+      "empty": "لا توجد عملاء مضافين بعد",
+      "emptyHint": "ابدأ بإضافة عميل جديد",
+      "noMatch": "لا توجد نتائج مطابقة لبحثك",
+      "contactPerson": "جهة الاتصال",
+      "crNumber": "السجل التجاري",
+      "createdAt": "تاريخ الإضافة"
+    },
+    "documents": {
+      "title": "المستندات والتراخيص",
+      "description": "إدارة المستندات والتراخيص الخاصة بالشركة ومتابعة تواريخ انتهاء الصلاحية",
+      "addDocument": "إضافة مستند"
+    },
+    "company": {
+      "title": "بيانات الشركة",
+      "description": "إدارة معلومات وبيانات الشركة الأساسية والتراخيص",
+      "tabInfo": "معلومات الشركة",
+      "tabDocuments": "المستندات والتراخيص"
+    },
+    "admin": {
+      "title": "لوحة الإدارة",
+      "description": "إدارة المستخدمين والصلاحيات ومراقبة أمان النظام"
+    }
+  }
+}

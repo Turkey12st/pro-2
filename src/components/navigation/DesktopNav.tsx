@@ -85,7 +85,7 @@ export function DesktopNav({
                         {item.icon && <item.icon className="h-4 w-4" />}
                         <span>{item.name}</span>
                         {item.new && (
-                          <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full mr-2">
+                          <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full me-2">
                             جديد
                           </span>
                         )}
@@ -120,19 +120,19 @@ export function DesktopNav({
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="gap-2 cursor-pointer">
                 <Link to="/account" className="w-full">
-                  <User className="h-4 w-4 ml-2" />
+                  <User className="h-4 w-4 ms-2" />
                   <span>الملف الشخصي</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="gap-2 cursor-pointer">
                 <Link to="/settings" className="w-full">
-                  <Settings className="h-4 w-4 ml-2" />
+                  <Settings className="h-4 w-4 ms-2" />
                   <span>الإعدادات</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="gap-2 text-destructive cursor-pointer" onClick={handleLogout}>
-                <LogOut className="h-4 w-4 ml-2" />
+                <LogOut className="h-4 w-4 ms-2" />
                 <span>تسجيل الخروج</span>
               </DropdownMenuItem>
             </DropdownMenuContent>

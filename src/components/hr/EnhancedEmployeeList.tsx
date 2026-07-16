@@ -171,7 +171,7 @@ const EnhancedEmployeeList = () => {
             </CardTitle>
             <HRPermissionGate action="create" resource="employees">
               <Button>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 me-2" />
                 إضافة موظف جديد
               </Button>
             </HRPermissionGate>
@@ -188,14 +188,14 @@ const EnhancedEmployeeList = () => {
                   placeholder="البحث في الموظفين (الاسم، البريد، المنصب، القسم، رقم الهوية)..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="ps-10"
                 />
               </div>
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
               >
-                <Filter className="h-4 w-4 mr-2" />
+                <Filter className="h-4 w-4 me-2" />
                 تصفية متقدمة
               </Button>
             </div>
@@ -279,7 +279,7 @@ const EnhancedEmployeeList = () => {
 
             <HRPermissionGate action="view" resource="employees">
               <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="h-4 w-4 me-2" />
                 تقرير مفصل
               </Button>
             </HRPermissionGate>

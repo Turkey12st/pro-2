@@ -58,9 +58,9 @@ export function FinancialSummary({ data, isLoading = false }: FinancialSummaryPr
                 {formatNumber(Math.abs(net_profit))} ريال
               </p>
               {isPositive ? (
-                <ArrowUpRight className="mr-2 h-5 w-5 text-green-600 dark:text-green-400" />
+                <ArrowUpRight className="me-2 h-5 w-5 text-green-600 dark:text-green-400" />
               ) : (
-                <ArrowDownRight className="mr-2 h-5 w-5 text-red-600 dark:text-red-400" />
+                <ArrowDownRight className="me-2 h-5 w-5 text-red-600 dark:text-red-400" />
               )}
             </div>
           </div>
@@ -72,9 +72,9 @@ export function FinancialSummary({ data, isLoading = false }: FinancialSummaryPr
                 {profit_margin.toFixed(1)}%
               </p>
               {profit_margin >= 0 ? (
-                <ArrowUpRight className="mr-2 h-5 w-5 text-green-600 dark:text-green-400" />
+                <ArrowUpRight className="me-2 h-5 w-5 text-green-600 dark:text-green-400" />
               ) : (
-                <ArrowDownRight className="mr-2 h-5 w-5 text-red-600 dark:text-red-400" />
+                <ArrowDownRight className="me-2 h-5 w-5 text-red-600 dark:text-red-400" />
               )}
             </div>
           </div>

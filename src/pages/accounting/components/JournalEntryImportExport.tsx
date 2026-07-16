@@ -154,17 +154,17 @@ export default function JournalEntryForm({
           type="submit" 
           disabled={isSubmitting} // تعطيل الزر أثناء الإرسال
         >
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
           {isSubmitting ? "جاري الحفظ..." : "حفظ"}
         </Button>
       </div>
       
       <div className="mt-4 flex justify-end gap-2 border-t pt-4">
         <Button onClick={exportData} variant="outline" type="button">
-          <Download className="mr-2 h-4 w-4" /> تصدير البيانات
+          <Download className="me-2 h-4 w-4" /> تصدير البيانات
         </Button>
         <Button variant="outline" type="button" className="relative">
-          <Upload className="mr-2 h-4 w-4" />
+          <Upload className="me-2 h-4 w-4" />
           <input
             type="file"
             accept=".json"

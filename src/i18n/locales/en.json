@@ -1,0 +1,108 @@
+{
+  "app": {
+    "name": "ERP Accounting System",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "print": "Print",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No",
+    "language": "Language",
+    "arabic": "العربية",
+    "english": "English"
+  },
+  "header": {
+    "searchPlaceholder": "Search or navigate quickly...",
+    "searchShort": "Search",
+    "myAccount": "My Account",
+    "settings": "Settings",
+    "logout": "Logout",
+    "logoutSuccess": "Signed out",
+    "logoutSuccessDesc": "You have been signed out successfully",
+    "logoutError": "Something went wrong",
+    "logoutErrorDesc": "We couldn't sign you out. Please try again."
+  },
+  "nav": {
+    "groupOverview": "Overview",
+    "groupFinance": "Accounting & Finance",
+    "groupHR": "Human Resources",
+    "groupOperations": "Operations",
+    "groupSystem": "System",
+    "dashboard": "Dashboard",
+    "accounting": "Accounting",
+    "financial": "Financial Reports",
+    "capital": "Capital",
+    "bankReconciliation": "Bank Reconciliation",
+    "commissions": "Commissions",
+    "hr": "Human Resources",
+    "projects": "Projects",
+    "clients": "Clients",
+    "partners": "Partners",
+    "tenders": "Tenders",
+    "documents": "Documents",
+    "company": "Company",
+    "calendar": "Calendar",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "admin": "Admin"
+  },
+  "pages": {
+    "dashboard": {
+      "title": "Dashboard",
+      "cashFlowTitle": "Cash Flow — last 12 months",
+      "cashFlowDesc": "Revenue vs expenses and net cash flow",
+      "revenue": "Revenue",
+      "expenses": "Expenses",
+      "netCashFlow": "Net Cash Flow"
+    },
+    "accounting": {
+      "title": "Accounting",
+      "description": "Manage journal entries, chart of accounts, and financial reports",
+      "addEntry": "Add Journal Entry",
+      "tabJournal": "Journal Entries",
+      "tabChart": "Chart of Accounts",
+      "tabReports": "Financial Reports"
+    },
+    "hr": {
+      "title": "Human Resources",
+      "description": "Manage employees, attendance, payroll, and leaves"
+    },
+    "clients": {
+      "title": "Clients",
+      "descriptionCount": "{{count}} clients registered",
+      "addNew": "Add New Client",
+      "searchPlaceholder": "Search by name, phone, email or CR number...",
+      "empty": "No clients yet",
+      "emptyHint": "Start by adding a new client",
+      "noMatch": "No results match your search",
+      "contactPerson": "Contact Person",
+      "crNumber": "CR Number",
+      "createdAt": "Added on"
+    },
+    "documents": {
+      "title": "Documents & Licenses",
+      "description": "Manage company documents and track expiry dates",
+      "addDocument": "Add Document"
+    },
+    "company": {
+      "title": "Company Info",
+      "description": "Manage company details, registration and banking data",
+      "tabInfo": "Company Info",
+      "tabDocuments": "Documents & Licenses"
+    },
+    "admin": {
+      "title": "Admin Panel",
+      "description": "Manage users, permissions, and monitor system security"
+    }
+  }
+}

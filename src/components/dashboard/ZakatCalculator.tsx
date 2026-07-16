@@ -183,7 +183,7 @@ export function ZakatCalculator({ companyInfo }: ZakatCalculatorProps) {
           <Tooltip>
             <TooltipTrigger>
               <Badge variant="outline" className="text-xs">
-                <Info className="h-3 w-3 mr-1" />
+                <Info className="h-3 w-3 me-1" />
                 هيئة الزكاة
               </Badge>
             </TooltipTrigger>
@@ -208,12 +208,12 @@ export function ZakatCalculator({ companyInfo }: ZakatCalculatorProps) {
                 <p className="font-mono text-sm">{companyInfo.tax_number || "غير مسجل"}</p>
                 {companyInfo.tax_number ? (
                   <Badge variant="default" className="text-xs mt-1">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    <CheckCircle2 className="h-3 w-3 me-1" />
                     مسجل
                   </Badge>
                 ) : (
                   <Badge variant="destructive" className="text-xs mt-1">
-                    <AlertCircle className="h-3 w-3 mr-1" />
+                    <AlertCircle className="h-3 w-3 me-1" />
                     غير مسجل
                   </Badge>
                 )}

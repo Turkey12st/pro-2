@@ -64,10 +64,10 @@ export function ChartOfAccountsManager() {
         <CardTitle>شجرة الحسابات</CardTitle>
         <div className="flex space-x-2 space-x-reverse">
           <Button variant="outline" onClick={() => handleAddAccount()}>
-            <Plus className="ml-2 h-4 w-4" /> إضافة حساب
+            <Plus className="ms-2 h-4 w-4" /> إضافة حساب
           </Button>
           <Button variant="outline">
-            <FileSpreadsheet className="ml-2 h-4 w-4" /> تصدير
+            <FileSpreadsheet className="ms-2 h-4 w-4" /> تصدير
           </Button>
         </div>
       </CardHeader>
@@ -77,7 +77,7 @@ export function ChartOfAccountsManager() {
             <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="البحث في شجرة الحسابات..."
-              className="pr-10"
+              className="pe-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

@@ -52,7 +52,7 @@ export function ChartOfAccountsTree({
             className="w-full text-primary"
             onClick={() => onAddAccount()}
           >
-            <PlusCircle className="ml-2 h-4 w-4" /> إضافة حساب رئيسي
+            <PlusCircle className="ms-2 h-4 w-4" /> إضافة حساب رئيسي
           </Button>
         </div>
       )}
@@ -122,7 +122,7 @@ function AccountNode({
             )}
           </div>
           
-          <div className="mr-2 flex-1">
+          <div className="me-2 flex-1">
             <div className="flex items-center">
               <span className="font-medium">{account.account_number}</span>
               <span className="mx-2">-</span>
@@ -178,7 +178,7 @@ function AccountNode({
       
       {/* عرض الحسابات الفرعية */}
       {expanded && hasChildren && (
-        <div className="mr-6 mt-1 border-r-2 border-gray-100 pr-2">
+        <div className="me-6 mt-1 border-r-2 border-gray-100 pe-2">
           {childAccounts.map(childAccount => (
             <AccountNode 
               key={childAccount.id}

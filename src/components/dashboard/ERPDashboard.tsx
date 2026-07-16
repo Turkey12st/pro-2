@@ -33,23 +33,23 @@ export function ERPDashboard() {
       <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
         <TabsList className="flex flex-wrap justify-start gap-1 sm:grid sm:grid-cols-5 w-full bg-muted/50 p-1 rounded-lg overflow-x-auto">
           <TabsTrigger value="overview" className="flex-1 min-w-fit text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-2 sm:px-3 py-1.5 sm:py-2">
-            <Activity className="h-3 w-3 sm:mr-1" />
+            <Activity className="h-3 w-3 sm:me-1" />
             <span className="hidden sm:inline">نظرة عامة</span>
           </TabsTrigger>
           <TabsTrigger value="hr" className="flex-1 min-w-fit text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-2 sm:px-3 py-1.5 sm:py-2">
-            <Users2 className="h-3 w-3 sm:mr-1" />
+            <Users2 className="h-3 w-3 sm:me-1" />
             <span className="hidden sm:inline">الموارد البشرية</span>
           </TabsTrigger>
           <TabsTrigger value="projects" className="flex-1 min-w-fit text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-2 sm:px-3 py-1.5 sm:py-2">
-            <Target className="h-3 w-3 sm:mr-1" />
+            <Target className="h-3 w-3 sm:me-1" />
             <span className="hidden sm:inline">المشاريع</span>
           </TabsTrigger>
           <TabsTrigger value="financial" className="flex-1 min-w-fit text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-2 sm:px-3 py-1.5 sm:py-2">
-            <DollarSign className="h-3 w-3 sm:mr-1" />
+            <DollarSign className="h-3 w-3 sm:me-1" />
             <span className="hidden sm:inline">المالية</span>
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex-1 min-w-fit text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-2 sm:px-3 py-1.5 sm:py-2">
-            <BarChart3 className="h-3 w-3 sm:mr-1" />
+            <BarChart3 className="h-3 w-3 sm:me-1" />
             <span className="hidden sm:inline">التحليلات</span>
           </TabsTrigger>
         </TabsList>
@@ -287,7 +287,7 @@ export function ERPDashboard() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center justify-between">
                     <span className="truncate">{project.title}</span>
-                    <Badge variant={project.status === 'completed' ? 'default' : project.status === 'in_progress' ? 'secondary' : 'outline'} className="ml-2">
+                    <Badge variant={project.status === 'completed' ? 'default' : project.status === 'in_progress' ? 'secondary' : 'outline'} className="ms-2">
                       {project.status === 'completed' ? 'مكتمل' : project.status === 'in_progress' ? 'جاري' : 'متوقف'}
                     </Badge>
                   </CardTitle>
