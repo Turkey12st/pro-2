@@ -213,17 +213,17 @@ export function EnhancedCapitalForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600">السنة المالية:</span>
-                    <span className="font-medium ml-2">{capitalData.fiscal_year}</span>
+                    <span className="font-medium ms-2">{capitalData.fiscal_year}</span>
                   </div>
                   <div>
                     <span className="text-gray-600">تاريخ بداية رأس المال:</span>
-                    <span className="font-medium ml-2">
+                    <span className="font-medium ms-2">
                       {capitalData.start_date ? format(new Date(capitalData.start_date), "yyyy/MM/dd") : "غير محدد"}
                     </span>
                   </div>
                   <div>
                     <span className="text-gray-600">آخر حركة:</span>
-                    <span className="font-medium ml-2">
+                    <span className="font-medium ms-2">
                       {capitalData.last_movement_date ? format(new Date(capitalData.last_movement_date), "yyyy/MM/dd") : "لا توجد حركات"}
                     </span>
                   </div>
@@ -235,7 +235,7 @@ export function EnhancedCapitalForm() {
                 <Dialog open={isMovementDialogOpen} onOpenChange={setIsMovementDialogOpen}>
                   <DialogTrigger asChild>
                     <Button>
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="h-4 w-4 me-2" />
                       حركة رأس مال
                     </Button>
                   </DialogTrigger>
@@ -300,7 +300,7 @@ export function EnhancedCapitalForm() {
                 <Dialog open={isPartnersDialogOpen} onOpenChange={setIsPartnersDialogOpen}>
                   <DialogTrigger asChild>
                     <Button variant="outline">
-                      <Users className="h-4 w-4 mr-2" />
+                      <Users className="h-4 w-4 me-2" />
                       توزيع الشركاء
                     </Button>
                   </DialogTrigger>

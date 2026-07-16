@@ -169,7 +169,7 @@ export function TaskScheduler() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Plus className="h-5 w-5 mr-2" />
+              <Plus className="h-5 w-5 me-2" />
               إضافة مهمة جديدة
             </CardTitle>
           </CardHeader>
@@ -246,7 +246,7 @@ export function TaskScheduler() {
           </CardContent>
           <CardFooter>
             <Button onClick={addTask} className="w-full">
-              <Plus className="h-4 w-4 ml-2" />
+              <Plus className="h-4 w-4 ms-2" />
               إضافة المهمة
             </Button>
           </CardFooter>
@@ -256,7 +256,7 @@ export function TaskScheduler() {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">المهام القادمة</h3>
             <Badge variant="outline" className="flex items-center">
-              <CalendarClock className="h-3 w-3 mr-1" />
+              <CalendarClock className="h-3 w-3 me-1" />
               {tasks.filter(task => task.status === "pending").length} مهام معلقة
             </Badge>
           </div>
@@ -269,7 +269,7 @@ export function TaskScheduler() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
+            <div className="space-y-4 max-h-96 overflow-y-auto pe-1">
               {tasks.map((task) => (
                 <Card key={task.id} className={`${task.status === "completed" ? "opacity-70" : ""}`}>
                   <CardContent className="p-4">
@@ -288,7 +288,7 @@ export function TaskScheduler() {
                             </p>
                             <div className="flex flex-wrap gap-2 text-xs">
                               <Badge variant="outline" className="flex items-center">
-                                <CalendarClock className="h-3 w-3 mr-1" />
+                                <CalendarClock className="h-3 w-3 me-1" />
                                 {formatDate(task.dueDate)}
                               </Badge>
                               {task.repeat !== "never" && (

@@ -217,7 +217,7 @@ export default function DocumentForm({ onSuccess }: DocumentFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <div className="flex items-center mb-6">
-          <FilePlus className="h-5 w-5 mr-2" />
+          <FilePlus className="h-5 w-5 me-2" />
           <h2 className="text-xl font-semibold">إضافة مستند جديد</h2>
         </div>
 
@@ -293,7 +293,7 @@ export default function DocumentForm({ onSuccess }: DocumentFormProps) {
             <div className="mt-1">
               {uploadedFile ? (
                 <div className="flex items-center p-2 border rounded-md bg-muted/20">
-                  <FileText className="h-5 w-5 mr-2 text-primary" />
+                  <FileText className="h-5 w-5 me-2 text-primary" />
                   <span className="text-sm flex-1">{uploadedFile.name}</span>
                   <Button
                     type="button"
@@ -320,9 +320,9 @@ export default function DocumentForm({ onSuccess }: DocumentFormProps) {
                     variant="outline"
                     size="sm"
                     onClick={() => fileInputRef.current?.click()}
-                    className="mr-2"
+                    className="me-2"
                   >
-                    <Upload className="h-4 w-4 ml-2" />
+                    <Upload className="h-4 w-4 ms-2" />
                     اختيار ملف
                   </Button>
                 </div>

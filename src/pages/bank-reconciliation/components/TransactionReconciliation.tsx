@@ -251,9 +251,9 @@ export default function TransactionReconciliation() {
               variant="outline"
             >
               {isLoading ? (
-                <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+                <Loader2 className="h-4 w-4 ms-2 animate-spin" />
               ) : (
-                <Search className="h-4 w-4 ml-2" />
+                <Search className="h-4 w-4 ms-2" />
               )}
               مطابقة تلقائية
             </Button>

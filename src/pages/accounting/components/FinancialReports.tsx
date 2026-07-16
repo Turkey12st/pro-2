@@ -461,15 +461,15 @@ export default function FinancialReports() {
           <CardTitle>{reportTitle}</CardTitle>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => handleExport('excel')}>
-              <FileSpreadsheet className="h-4 w-4 ml-2" />
+              <FileSpreadsheet className="h-4 w-4 ms-2" />
               Excel
             </Button>
             <Button variant="outline" size="sm" onClick={() => handleExport('csv')}>
-              <File className="h-4 w-4 ml-2" />
+              <File className="h-4 w-4 ms-2" />
               CSV
             </Button>
             <Button variant="outline" size="sm" onClick={() => handleExport('pdf')}>
-              <Download className="h-4 w-4 ml-2" />
+              <Download className="h-4 w-4 ms-2" />
               PDF
             </Button>
           </div>
@@ -595,9 +595,9 @@ export default function FinancialReports() {
             disabled={isLoading}
           >
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin ml-2" />
+              <Loader2 className="h-4 w-4 animate-spin ms-2" />
             ) : (
-              <FileText className="h-4 w-4 ml-2" />
+              <FileText className="h-4 w-4 ms-2" />
             )}
             إنشاء {getReportTypeName(reportType)}
           </Button>

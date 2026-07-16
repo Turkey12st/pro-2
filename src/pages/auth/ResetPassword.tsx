@@ -138,7 +138,7 @@ export default function ResetPasswordPage() {
                   placeholder="8 أحرف على الأقل"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pr-10"
+                  className="pe-10"
                   required
                   disabled={isSubmitting}
                 />
@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
                   placeholder="أعد كتابة كلمة المرور"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pr-10"
+                  className="pe-10"
                   required
                   disabled={isSubmitting}
                 />

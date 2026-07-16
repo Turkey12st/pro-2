@@ -157,7 +157,7 @@ export function EmployeeAccountingOverview() {
                     className="flex-1"
                     onClick={() => updateEmployeeKPI(employee.id)}
                   >
-                    <Calculator className="h-3 w-3 mr-1" />
+                    <Calculator className="h-3 w-3 me-1" />
                     تحديث KPI
                   </Button>
                   <Button 
@@ -165,7 +165,7 @@ export function EmployeeAccountingOverview() {
                     variant="outline" 
                     className="flex-1"
                   >
-                    <TrendingUp className="h-3 w-3 mr-1" />
+                    <TrendingUp className="h-3 w-3 me-1" />
                     التفاصيل
                   </Button>
                 </div>

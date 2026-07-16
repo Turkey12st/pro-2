@@ -216,7 +216,7 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
           <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
-                <Upload className="h-4 w-4 mr-2" />
+                <Upload className="h-4 w-4 me-2" />
                 رفع ملف إكسل
               </Button>
             </DialogTrigger>
@@ -251,7 +251,7 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
           <Dialog open={isManualEntryOpen} onOpenChange={setIsManualEntryOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 me-2" />
                 إدخال يدوي
               </Button>
             </DialogTrigger>

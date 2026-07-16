@@ -44,7 +44,7 @@ export const JournalEntryLines: React.FC<JournalEntryLinesProps> = ({
             {isBalanced ? 'القيد متوازن' : 'القيد غير متوازن'}
           </span>
           <Button type="button" variant="outline" size="sm" onClick={onAddLine}>
-            <Plus className="h-4 w-4 ml-1" /> إضافة بند
+            <Plus className="h-4 w-4 ms-1" /> إضافة بند
           </Button>
         </div>
       </div>

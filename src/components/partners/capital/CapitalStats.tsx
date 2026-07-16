@@ -17,7 +17,7 @@ export function CapitalStats({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div className="bg-blue-50 p-4 rounded-lg flex items-center">
-        <TrendingUp className="h-10 w-10 text-blue-500 ml-4" />
+        <TrendingUp className="h-10 w-10 text-blue-500 ms-4" />
         <div>
           <p className="text-sm text-muted-foreground">إجمالي رأس المال</p>
           <p className="text-xl font-bold">{formatNumber(totalCapital)} ريال</p>
@@ -25,7 +25,7 @@ export function CapitalStats({
       </div>
       
       <div className="bg-green-50 p-4 rounded-lg flex items-center">
-        <Users className="h-10 w-10 text-green-500 ml-4" />
+        <Users className="h-10 w-10 text-green-500 ms-4" />
         <div>
           <p className="text-sm text-muted-foreground">رأس مال الأفراد</p>
           <p className="text-xl font-bold">{formatNumber(individualCapital)} ريال</p>
@@ -38,7 +38,7 @@ export function CapitalStats({
       </div>
       
       <div className="bg-purple-50 p-4 rounded-lg flex items-center">
-        <Building className="h-10 w-10 text-purple-500 ml-4" />
+        <Building className="h-10 w-10 text-purple-500 ms-4" />
         <div>
           <p className="text-sm text-muted-foreground">رأس مال الشركات</p>
           <p className="text-xl font-bold">{formatNumber(corporateCapital)} ريال</p>

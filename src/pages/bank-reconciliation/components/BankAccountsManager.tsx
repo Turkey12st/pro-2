@@ -120,7 +120,7 @@ export default function BankAccountsManager() {
           }}>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="h-4 w-4 ml-2" />
+                <Plus className="h-4 w-4 ms-2" />
                 إضافة حساب
               </Button>
             </DialogTrigger>
@@ -186,7 +186,7 @@ export default function BankAccountsManager() {
                     إلغاء
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
+                    {isSubmitting && <Loader2 className="h-4 w-4 ms-2 animate-spin" />}
                     {editingId ? 'تحديث' : 'إضافة'}
                   </Button>
                 </div>

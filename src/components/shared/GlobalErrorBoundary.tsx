@@ -149,17 +149,17 @@ User Agent: ${navigator.userAgent}
               {/* أزرار الإجراءات */}
               <div className="flex flex-col gap-2">
                 <Button onClick={this.handleReset} className="w-full">
-                  <RefreshCw className="h-4 w-4 ml-2" />
+                  <RefreshCw className="h-4 w-4 ms-2" />
                   إعادة المحاولة
                 </Button>
                 
                 <div className="grid grid-cols-2 gap-2">
                   <Button onClick={this.handleReload} variant="outline">
-                    <RefreshCw className="h-4 w-4 ml-2" />
+                    <RefreshCw className="h-4 w-4 ms-2" />
                     إعادة تحميل الصفحة
                   </Button>
                   <Button onClick={this.handleGoHome} variant="outline">
-                    <Home className="h-4 w-4 ml-2" />
+                    <Home className="h-4 w-4 ms-2" />
                     الصفحة الرئيسية
                   </Button>
                 </div>

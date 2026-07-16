@@ -106,7 +106,7 @@ export default function JournalEntryForm({
           type="submit" 
           disabled={isSubmitting} // تعطيل الزر أثناء الإرسال
         >
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
           {isSubmitting ? "جاري الحفظ..." : "حفظ"}
         </Button>
       </div>

@@ -194,7 +194,7 @@ export function UserManagementPanel() {
                 placeholder="البحث عن مستخدم..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
+                className="pe-10"
               />
             </div>
             <Select value={selectedRole} onValueChange={setSelectedRole}>

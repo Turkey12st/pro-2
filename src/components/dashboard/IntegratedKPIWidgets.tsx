@@ -178,11 +178,11 @@ export function IntegratedKPIWidgets() {
             className="h-8 px-3 rounded-full text-xs font-medium"
           >
             {kpis.syncHealth === 'good' ? (
-              <><CheckCircle2 className="h-3.5 w-3.5 ml-1.5" /> مزامنة سليمة</>
+              <><CheckCircle2 className="h-3.5 w-3.5 ms-1.5" /> مزامنة سليمة</>
             ) : kpis.syncHealth === 'warning' ? (
-              <><AlertTriangle className="h-3.5 w-3.5 ml-1.5" /> تحذيرات</>
+              <><AlertTriangle className="h-3.5 w-3.5 ms-1.5" /> تحذيرات</>
             ) : (
-              <><AlertTriangle className="h-3.5 w-3.5 ml-1.5" /> مشاكل مزامنة</>
+              <><AlertTriangle className="h-3.5 w-3.5 ms-1.5" /> مشاكل مزامنة</>
             )}
           </Badge>
           
@@ -193,7 +193,7 @@ export function IntegratedKPIWidgets() {
             disabled={refreshing}
             className="h-8 rounded-full px-3"
           >
-            <RefreshCw className={`h-4 w-4 ml-1.5 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ms-1.5 ${refreshing ? 'animate-spin' : ''}`} />
             تحديث
           </Button>
         </div>
@@ -253,11 +253,11 @@ export function IntegratedKPIWidgets() {
             </div>
             <div className="flex gap-2 mt-3">
               <Badge variant="secondary" className="rounded-full text-xs font-medium px-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-warning ml-1.5" />
+                <span className="w-1.5 h-1.5 rounded-full bg-warning ms-1.5" />
                 مسودة: {kpis.pendingPayrolls}
               </Badge>
               <Badge variant="default" className="rounded-full text-xs font-medium px-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground ml-1.5" />
+                <span className="w-1.5 h-1.5 rounded-full bg-primary-foreground ms-1.5" />
                 معتمد: {kpis.approvedPayrolls}
               </Badge>
             </div>

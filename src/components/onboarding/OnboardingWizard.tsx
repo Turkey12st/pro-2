@@ -155,7 +155,7 @@ export function OnboardingWizard({
                     className="shrink-0"
                   >
                     {step.completed ? 'عرض' : 'ابدأ'}
-                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    <ChevronLeft className="h-4 w-4 me-1" />
                   </Button>
                 )}
               </div>

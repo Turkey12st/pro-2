@@ -27,7 +27,7 @@ export function PartnersTable({ partners, onDelete, onUploadDocument, loading }:
         <h3 className="mt-4 text-lg font-semibold">لا يوجد شركاء</h3>
         <p className="text-muted-foreground mt-2">لم يتم إضافة أي شركاء بعد. قم بإضافة شريك جديد للبدء.</p>
         <Button onClick={() => navigate("/partners/add")} className="mt-4">
-          <span className="mr-2">+</span> إضافة شريك جديد
+          <span className="me-2">+</span> إضافة شريك جديد
         </Button>
       </div>
     );

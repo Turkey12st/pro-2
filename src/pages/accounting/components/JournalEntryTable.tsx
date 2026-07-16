@@ -129,7 +129,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
           <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="بحث في القيود..."
-            className="pr-10"
+            className="pe-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -237,11 +237,11 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                 {!entry.is_approved && (
                   <>
                     <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={() => onEdit(entry)}>
-                      <Edit className="h-3 w-3 ml-1" />
+                      <Edit className="h-3 w-3 ms-1" />
                       تعديل
                     </Button>
                     <Button variant="outline" size="sm" className="flex-1 h-8 text-xs text-success" onClick={() => handleApproveEntry(entry.id)}>
-                      <FileText className="h-3 w-3 ml-1" />
+                      <FileText className="h-3 w-3 ms-1" />
                       اعتماد
                     </Button>
                     <Button variant="outline" size="sm" className="h-8 text-xs text-destructive" onClick={() => onDelete(entry.id)}>
@@ -251,7 +251,7 @@ const JournalEntryTable: React.FC<JournalEntryTableProps> = ({
                 )}
                 {entry.is_approved && (
                   <Button variant="ghost" size="sm" className="flex-1 h-8 text-xs" onClick={() => onEdit(entry)}>
-                    <FileText className="h-3 w-3 ml-1" />
+                    <FileText className="h-3 w-3 ms-1" />
                     عرض التفاصيل
                   </Button>
                 )}

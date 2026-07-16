@@ -83,11 +83,11 @@ function ErrorFallback({ error, onReset }: ErrorFallbackProps) {
           
           <div className="flex gap-2 justify-center">
             <Button onClick={onReset} variant="outline" className="flex-1">
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RefreshCw className="h-4 w-4 me-2" />
               إعادة المحاولة
             </Button>
             <Button onClick={() => navigate('/')} className="flex-1">
-              <Home className="h-4 w-4 mr-2" />
+              <Home className="h-4 w-4 me-2" />
               الصفحة الرئيسية
             </Button>
           </div>

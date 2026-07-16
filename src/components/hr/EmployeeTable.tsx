@@ -69,14 +69,14 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({ employees, onDelete }) =>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={() => navigate(`/hr/employee/${employee.id}`)}>
-                      <Eye className="h-4 w-4 ml-1" /> عرض
+                      <Eye className="h-4 w-4 ms-1" /> عرض
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => navigate(`/hr/employees/edit/${employee.id}`)}>
-                      <Pencil className="h-4 w-4 ml-1" /> تعديل
+                      <Pencil className="h-4 w-4 ms-1" /> تعديل
                     </Button>
                     {onDelete && (
                       <Button variant="outline" size="sm" className="text-red-600" onClick={() => handleDelete(employee.id)}>
-                        <Trash className="h-4 w-4 ml-1" /> حذف
+                        <Trash className="h-4 w-4 ms-1" /> حذف
                       </Button>
                     )}
                   </div>

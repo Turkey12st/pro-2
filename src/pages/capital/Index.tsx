@@ -107,15 +107,15 @@ export default function CapitalManagementPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="overview" className="flex items-center space-x-2 space-x-reverse">
-              <Building2 className="h-4 w-4 ml-2" />
+              <Building2 className="h-4 w-4 ms-2" />
               <span>نظرة عامة</span>
             </TabsTrigger>
             <TabsTrigger value="transactions" className="flex items-center space-x-2 space-x-reverse">
-              <ArrowUpDown className="h-4 w-4 ml-2" />
+              <ArrowUpDown className="h-4 w-4 ms-2" />
               <span>معاملات رأس المال</span>
             </TabsTrigger>
             <TabsTrigger value="analysis" className="flex items-center space-x-2 space-x-reverse">
-              <LineChart className="h-4 w-4 ml-2" />
+              <LineChart className="h-4 w-4 ms-2" />
               <span>تحليل رأس المال</span>
             </TabsTrigger>
           </TabsList>

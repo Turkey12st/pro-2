@@ -169,7 +169,7 @@ export function ActivityLog() {
             placeholder="بحث في السجل..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 w-full"
+            className="ps-9 w-full"
           />
         </div>
         <div className="flex space-x-2 rtl:space-x-reverse">

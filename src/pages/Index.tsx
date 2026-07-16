@@ -104,9 +104,9 @@ export default function Index() {
             size="lg" 
             className="bg-white text-gray-900 hover:bg-gray-100 text-lg px-8 py-3 shadow-lg"
           >
-            <LayoutDashboard className="h-5 w-5 ml-2" />
+            <LayoutDashboard className="h-5 w-5 ms-2" />
             لوحة المعلومات
-            <ArrowLeft className="h-5 w-5 mr-2" />
+            <ArrowLeft className="h-5 w-5 me-2" />
           </Button>
 
           <DropdownMenu>
@@ -117,7 +117,7 @@ export default function Index() {
                 className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-lg px-8 py-3"
               >
                 الوصول السريع
-                <ChevronDown className="h-5 w-5 mr-2" />
+                <ChevronDown className="h-5 w-5 me-2" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-white shadow-xl" align="center">

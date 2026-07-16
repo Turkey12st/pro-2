@@ -96,7 +96,7 @@ export function LoanCalculator() {
                     max={1000000}
                     step={10000}
                     onValueChange={(values) => setAmount(values[0])}
-                    className="flex-1 ml-4 rtl:ml-0 rtl:mr-4"
+                    className="flex-1 ms-4 rtl:ms-0 rtl:me-4"
                   />
                   <Input
                     type="number"
@@ -120,7 +120,7 @@ export function LoanCalculator() {
                     max={20}
                     step={0.25}
                     onValueChange={(values) => setRate(values[0])}
-                    className="flex-1 ml-4 rtl:ml-0 rtl:mr-4"
+                    className="flex-1 ms-4 rtl:ms-0 rtl:me-4"
                   />
                   <Input
                     type="number"
@@ -142,7 +142,7 @@ export function LoanCalculator() {
                     max={360}
                     step={12}
                     onValueChange={(values) => setTerm(values[0])}
-                    className="flex-1 ml-4 rtl:ml-0 rtl:mr-4"
+                    className="flex-1 ms-4 rtl:ms-0 rtl:me-4"
                   />
                   <Input
                     type="number"
@@ -160,7 +160,7 @@ export function LoanCalculator() {
                 onClick={calculateLoan} 
                 className="w-full"
               >
-                <CalculatorIcon className="ml-2 h-4 w-4" />
+                <CalculatorIcon className="ms-2 h-4 w-4" />
                 حساب القرض
               </Button>
             </div>

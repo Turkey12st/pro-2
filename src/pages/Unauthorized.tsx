@@ -23,14 +23,14 @@ export default function UnauthorizedPage() {
           <div className="flex flex-col gap-3">
             <Button asChild className="w-full">
               <Link to="/dashboard">
-                <Home className="ml-2 h-4 w-4" />
+                <Home className="ms-2 h-4 w-4" />
                 العودة للوحة التحكم
               </Link>
             </Button>
             
             <Button variant="outline" asChild className="w-full">
               <Link to="/main">
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ms-2 h-4 w-4" />
                 الصفحة الرئيسية
               </Link>
             </Button>
