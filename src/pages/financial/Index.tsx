@@ -32,6 +32,6 @@ export default function FinancialPage() {
           استخدم الزر أعلاه لإنشاء تقرير مالي جديد. سيتم عرض التقارير المُنشأة هنا.
         </CardContent>
       </Card>
-    </>
+    </PageShell>
   );
 }
