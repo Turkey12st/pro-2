@@ -10,6 +10,7 @@ import { Plus, Edit, Trash2, Mail, Phone, User, Loader2, Store, Search } from 'l
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanyContext } from '@/hooks/useCompanyContext';
 import { PageShell } from '@/components/shared/PageShell';
+import { useTranslation } from 'react-i18next';
 
 interface Client {
   id: string;
@@ -26,6 +27,7 @@ interface Client {
 }
 
 const ClientsPage = () => {
+  const { t } = useTranslation();
   const [clients, setClients] = useState<Client[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -214,12 +216,12 @@ const ClientsPage = () => {
 
   return (
     <PageShell
-      title="إدارة العملاء"
-      description={`${clients.length} عميل مسجل في النظام`}
+      title={t('pages.clients.title')}
+      description={t('pages.clients.descriptionCount', { count: clients.length })}
       icon={Store}
       actions={
         <Button onClick={() => setShowDialog(true)} className="gap-2">
-          <Plus className="h-4 w-4" /> إضافة عميل جديد
+          <Plus className="h-4 w-4" /> {t('pages.clients.addNew')}
         </Button>
       }
     >
@@ -228,7 +230,7 @@ const ClientsPage = () => {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="ابحث بالاسم أو الهاتف أو البريد أو السجل التجاري…"
+          placeholder={t('pages.clients.searchPlaceholder')}
           className="pe-9"
         />
       </div>
