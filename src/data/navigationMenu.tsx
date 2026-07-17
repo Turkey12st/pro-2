@@ -1,5 +1,6 @@
 import {
   LayoutDashboard,
+  Crown,
   Receipt,
   FileText,
   Users,
@@ -32,6 +33,7 @@ export function getNavigationMenu(t?: TFunction): MenuItem[] {
 
   return [
     { name: tr("nav.dashboard", "لوحة المعلومات"), href: "/dashboard", icon: LayoutDashboard, group: groups.overview },
+    { name: tr("nav.executive", "لوحة تنفيذية"), href: "/dashboard/executive", icon: Crown, group: groups.overview },
 
     { name: tr("nav.accounting", "المحاسبة"), href: "/accounting", icon: Receipt, group: groups.finance },
     { name: tr("nav.financial", "التقارير المالية"), href: "/financial", icon: TrendingUp, group: groups.finance },
