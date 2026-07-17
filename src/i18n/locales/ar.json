@@ -54,7 +54,8 @@
     "calendar": "التقويم",
     "notifications": "الإشعارات",
     "settings": "الإعدادات",
-    "admin": "لوحة الإدارة"
+    "admin": "لوحة الإدارة",
+    "executive": "اللوحة التنفيذية"
   },
   "pages": {
     "dashboard": {
@@ -64,6 +65,18 @@
       "revenue": "الإيرادات",
       "expenses": "المصروفات",
       "netCashFlow": "صافي التدفق"
+    },
+    "executive": {
+      "title": "اللوحة التنفيذية",
+      "description": "مؤشرات أداء عليا للمالية والموارد البشرية والعمليات",
+      "mtdRevenue": "إيرادات الشهر",
+      "mtdExpenses": "مصروفات الشهر",
+      "netMargin": "هامش الربح الصافي",
+      "headcount": "عدد الموظفين",
+      "activeProjects": "المشاريع النشطة",
+      "atRiskProjects": "مشاريع متعثرة",
+      "pendingLeaves": "طلبات إجازة معلقة",
+      "expiringDocs": "مستندات تنتهي خلال 90 يوم"
     },
     "accounting": {
       "title": "النظام المحاسبي",
