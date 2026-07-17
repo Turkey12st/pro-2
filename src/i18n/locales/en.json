@@ -54,7 +54,8 @@
     "calendar": "Calendar",
     "notifications": "Notifications",
     "settings": "Settings",
-    "admin": "Admin"
+    "admin": "Admin",
+    "executive": "Executive"
   },
   "pages": {
     "dashboard": {
@@ -64,6 +65,18 @@
       "revenue": "Revenue",
       "expenses": "Expenses",
       "netCashFlow": "Net Cash Flow"
+    },
+    "executive": {
+      "title": "Executive Dashboard",
+      "description": "High-level KPIs across finance, HR, and operations",
+      "mtdRevenue": "Revenue (MTD)",
+      "mtdExpenses": "Expenses (MTD)",
+      "netMargin": "Net Margin",
+      "headcount": "Headcount",
+      "activeProjects": "Active Projects",
+      "atRiskProjects": "At-Risk Projects",
+      "pendingLeaves": "Pending Leaves",
+      "expiringDocs": "Expiring Documents (90d)"
     },
     "accounting": {
       "title": "Accounting",
