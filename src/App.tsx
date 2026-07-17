@@ -12,6 +12,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 // Pages
 import MainPage from "./pages/MainPage";
 import DashboardPage from "./pages/dashboard/Index";
+import ExecutiveDashboard from "./pages/dashboard/Executive";
 import AccountingPage from "./pages/accounting/Index";
 import HRPage from "./pages/hr/Index";
 import EmployeeProfile from "./pages/hr/EmployeeProfile";
@@ -55,6 +56,7 @@ function App() {
               {/* Protected routes with AppLayout */}
               <Route path="/main" element={<ProtectedRoute><AppLayout><MainPage /></AppLayout></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><AppLayout><DashboardPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/dashboard/executive" element={<ProtectedRoute requiredRoles={['admin']}><AppLayout><ExecutiveDashboard /></AppLayout></ProtectedRoute>} />
               <Route path="/accounting" element={<ProtectedRoute><AppLayout><AccountingPage /></AppLayout></ProtectedRoute>} />
               <Route path="/financial" element={<ProtectedRoute><AppLayout><FinancialPage /></AppLayout></ProtectedRoute>} />
               <Route path="/bank-reconciliation" element={<ProtectedRoute><AppLayout><BankReconciliationPage /></AppLayout></ProtectedRoute>} />
