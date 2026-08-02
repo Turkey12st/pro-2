@@ -23,7 +23,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { exportToExcel, exportToCSV, exportToPDF } from "@/utils/exportHelpers";
 import { generateFinancialReport, type ReportData } from "@/services/accountingReports";
 
