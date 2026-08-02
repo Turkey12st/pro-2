@@ -27,6 +27,15 @@ export function useAuth() {
           user: session?.user ?? null,
           loading: false,
         }));
+
+        // تهيئة المستخدم (شركة افتراضية + دور) بعد تسجيل الدخول
+        if (session?.user && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+          setTimeout(() => {
+            (supabase as any).rpc("ensure_user_setup").then(({ error }: any) => {
+              if (error) console.warn("ensure_user_setup:", error.message);
+            });
+          }, 0);
+        }
       }
     );
 
