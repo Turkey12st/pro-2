@@ -2499,6 +2499,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "journal_entry_items_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "journal_entry_items_journal_entry_id_fkey"
             columns: ["journal_entry_id"]
             isOneToOne: false
@@ -3962,6 +3969,10 @@ export type Database = {
         }[]
       }
       calculate_employee_kpi: { Args: { emp_id: string }; Returns: Json }
+      can_access_company_finance: {
+        Args: { _company: string }
+        Returns: boolean
+      }
       count_journal_entries: { Args: never; Returns: number }
       create_api_integration: {
         Args: {
@@ -3985,6 +3996,7 @@ export type Database = {
         Returns: string
       }
       delete_journal_entry: { Args: { p_entry_id: string }; Returns: undefined }
+      ensure_user_setup: { Args: never; Returns: Json }
       get_account_path: { Args: { account_id: string }; Returns: string[] }
       get_all_companies: {
         Args: never
@@ -4032,6 +4044,16 @@ export type Database = {
       }
       get_journal_entry_attachment: {
         Args: { p_entry_id: string }
+        Returns: string
+      }
+      get_or_create_account: {
+        Args: {
+          p_balance_type: string
+          p_company: string
+          p_name: string
+          p_number: string
+          p_type: string
+        }
         Returns: string
       }
       get_unified_national_number: {

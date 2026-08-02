@@ -23,41 +23,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { exportToExcel, exportToCSV, exportToPDF } from "@/utils/exportHelpers";
-
-interface JournalEntryItem {
-  id: string;
-  journal_entry_id: string;
-  account_id: string;
-  description: string | null;
-  debit: number | null;
-  credit: number | null;
-}
-
-interface JournalEntry {
-  id: string;
-  entry_date: string;
-  description: string;
-  total_debit: number;
-  total_credit: number;
-  status: string;
-  entry_type: string | null;
-  financial_statement_section: string | null;
-  items?: JournalEntryItem[];
-}
-
-interface ReportSection {
-  title: string;
-  items: any[];
-  total?: number;
-}
-
-interface ReportData {
-  sections: ReportSection[];
-  summary?: { label: string; value: number; isNet?: boolean }[];
-  type: string;
-}
+import { generateFinancialReport, type ReportData } from "@/services/accountingReports";
 
 export default function FinancialReports() {
   const { toast } = useToast();
@@ -66,36 +33,6 @@ export default function FinancialReports() {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [reportTitle, setReportTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
-
-  // جلب البيانات من قاعدة البيانات
-  const fetchJournalEntries = async () => {
-    try {
-      const { startDate, endDate } = getDateRange(period);
-      
-      const { data, error } = await supabase
-        .from('journal_entries')
-        .select(`
-          *,
-          items:journal_entry_items(*)
-        `)
-        .gte('entry_date', startDate)
-        .lte('entry_date', endDate)
-        .eq('status', 'posted');
-
-      if (error) throw error;
-      setJournalEntries(data || []);
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching journal entries:', error);
-      toast({
-        title: "خطأ في جلب البيانات",
-        description: "حدث خطأ أثناء جلب القيود المحاسبية",
-        variant: "destructive"
-      });
-      return [];
-    }
-  };
 
   // حساب نطاق التاريخ بناءً على الفترة
   const getDateRange = (selectedPeriod: string) => {
@@ -129,239 +66,13 @@ export default function FinancialReports() {
     return { startDate, endDate };
   };
 
-  // قائمة الدخل - وفق المعايير الدولية IFRS
-  const generateIncomeStatement = (entries: JournalEntry[]): ReportData => {
-    const revenues: any[] = [];
-    const costOfSales: any[] = [];
-    const operatingExpenses: any[] = [];
-    const otherIncome: any[] = [];
-    const financingCosts: any[] = [];
-
-    entries.forEach(entry => {
-      const section = entry.financial_statement_section || entry.entry_type;
-      const item = {
-        id: entry.id,
-        date: entry.entry_date,
-        description: entry.description,
-        amount: entry.total_debit || entry.total_credit || 0
-      };
-
-      switch (section) {
-        case 'revenue':
-        case 'income':
-          revenues.push(item);
-          break;
-        case 'cost_of_sales':
-        case 'cogs':
-          costOfSales.push(item);
-          break;
-        case 'expense':
-        case 'operating_expense':
-          operatingExpenses.push(item);
-          break;
-        case 'other_income':
-          otherIncome.push(item);
-          break;
-        case 'financing':
-        case 'interest':
-          financingCosts.push(item);
-          break;
-      }
-    });
-
-    const totalRevenue = revenues.reduce((sum, e) => sum + e.amount, 0);
-    const totalCostOfSales = costOfSales.reduce((sum, e) => sum + e.amount, 0);
-    const grossProfit = totalRevenue - totalCostOfSales;
-    const totalOperatingExpenses = operatingExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const operatingProfit = grossProfit - totalOperatingExpenses;
-    const totalOtherIncome = otherIncome.reduce((sum, e) => sum + e.amount, 0);
-    const totalFinancingCosts = financingCosts.reduce((sum, e) => sum + e.amount, 0);
-    const netIncome = operatingProfit + totalOtherIncome - totalFinancingCosts;
-
-    return {
-      sections: [
-        { title: "الإيرادات", items: revenues, total: totalRevenue },
-        { title: "تكلفة المبيعات", items: costOfSales, total: totalCostOfSales },
-        { title: "المصروفات التشغيلية", items: operatingExpenses, total: totalOperatingExpenses },
-        { title: "الإيرادات الأخرى", items: otherIncome, total: totalOtherIncome },
-        { title: "تكاليف التمويل", items: financingCosts, total: totalFinancingCosts },
-      ],
-      summary: [
-        { label: "إجمالي الإيرادات", value: totalRevenue },
-        { label: "مجمل الربح", value: grossProfit },
-        { label: "الربح التشغيلي", value: operatingProfit },
-        { label: "صافي الربح", value: netIncome, isNet: true },
-      ],
-      type: "income-statement",
-    };
-  };
-
-  // قائمة المركز المالي - وفق المعايير الدولية
-  const generateBalanceSheet = (entries: JournalEntry[]): ReportData => {
-    const currentAssets: any[] = [];
-    const nonCurrentAssets: any[] = [];
-    const currentLiabilities: any[] = [];
-    const nonCurrentLiabilities: any[] = [];
-    const equity: any[] = [];
-
-    entries.forEach(entry => {
-      const section = entry.financial_statement_section;
-      const item = {
-        id: entry.id,
-        date: entry.entry_date,
-        description: entry.description,
-        amount: Math.abs(entry.total_debit - entry.total_credit)
-      };
-
-      switch (section) {
-        case 'current_asset':
-          currentAssets.push(item);
-          break;
-        case 'non_current_asset':
-        case 'fixed_asset':
-          nonCurrentAssets.push(item);
-          break;
-        case 'current_liability':
-          currentLiabilities.push(item);
-          break;
-        case 'non_current_liability':
-        case 'long_term_liability':
-          nonCurrentLiabilities.push(item);
-          break;
-        case 'equity':
-        case 'capital':
-          equity.push(item);
-          break;
-      }
-    });
-
-    const totalCurrentAssets = currentAssets.reduce((sum, e) => sum + e.amount, 0);
-    const totalNonCurrentAssets = nonCurrentAssets.reduce((sum, e) => sum + e.amount, 0);
-    const totalAssets = totalCurrentAssets + totalNonCurrentAssets;
-    const totalCurrentLiabilities = currentLiabilities.reduce((sum, e) => sum + e.amount, 0);
-    const totalNonCurrentLiabilities = nonCurrentLiabilities.reduce((sum, e) => sum + e.amount, 0);
-    const totalLiabilities = totalCurrentLiabilities + totalNonCurrentLiabilities;
-    const totalEquity = equity.reduce((sum, e) => sum + e.amount, 0);
-
-    return {
-      sections: [
-        { title: "الأصول المتداولة", items: currentAssets, total: totalCurrentAssets },
-        { title: "الأصول غير المتداولة", items: nonCurrentAssets, total: totalNonCurrentAssets },
-        { title: "الخصوم المتداولة", items: currentLiabilities, total: totalCurrentLiabilities },
-        { title: "الخصوم غير المتداولة", items: nonCurrentLiabilities, total: totalNonCurrentLiabilities },
-        { title: "حقوق الملكية", items: equity, total: totalEquity },
-      ],
-      summary: [
-        { label: "إجمالي الأصول", value: totalAssets },
-        { label: "إجمالي الخصوم", value: totalLiabilities },
-        { label: "إجمالي حقوق الملكية", value: totalEquity },
-        { label: "التحقق (أصول = خصوم + ملكية)", value: totalAssets - (totalLiabilities + totalEquity), isNet: true },
-      ],
-      type: "balance-sheet",
-    };
-  };
-
-  // قائمة التدفقات النقدية
-  const generateCashFlowStatement = (entries: JournalEntry[]): ReportData => {
-    const operatingActivities: any[] = [];
-    const investingActivities: any[] = [];
-    const financingActivities: any[] = [];
-
-    entries.forEach(entry => {
-      const section = entry.financial_statement_section;
-      const item = {
-        id: entry.id,
-        date: entry.entry_date,
-        description: entry.description,
-        amount: entry.total_debit - entry.total_credit
-      };
-
-      if (['operating', 'revenue', 'expense'].includes(section || '')) {
-        operatingActivities.push(item);
-      } else if (['investing', 'fixed_asset'].includes(section || '')) {
-        investingActivities.push(item);
-      } else if (['financing', 'loan', 'capital'].includes(section || '')) {
-        financingActivities.push(item);
-      }
-    });
-
-    const cashFromOperating = operatingActivities.reduce((sum, e) => sum + e.amount, 0);
-    const cashFromInvesting = investingActivities.reduce((sum, e) => sum + e.amount, 0);
-    const cashFromFinancing = financingActivities.reduce((sum, e) => sum + e.amount, 0);
-    const netCashFlow = cashFromOperating + cashFromInvesting + cashFromFinancing;
-
-    return {
-      sections: [
-        { title: "التدفقات النقدية من الأنشطة التشغيلية", items: operatingActivities, total: cashFromOperating },
-        { title: "التدفقات النقدية من الأنشطة الاستثمارية", items: investingActivities, total: cashFromInvesting },
-        { title: "التدفقات النقدية من الأنشطة التمويلية", items: financingActivities, total: cashFromFinancing },
-      ],
-      summary: [
-        { label: "صافي التدفق النقدي من التشغيل", value: cashFromOperating },
-        { label: "صافي التدفق النقدي من الاستثمار", value: cashFromInvesting },
-        { label: "صافي التدفق النقدي من التمويل", value: cashFromFinancing },
-        { label: "صافي التغير في النقدية", value: netCashFlow, isNet: true },
-      ],
-      type: "cash-flow",
-    };
-  };
-
-  // دفتر الأستاذ العام
-  const generateGeneralLedger = (entries: JournalEntry[]): ReportData => {
-    const groupedByAccount: { [key: string]: any[] } = {};
-
-    entries.forEach(entry => {
-      if (entry.items) {
-        entry.items.forEach(item => {
-          const accountId = item.account_id || 'غير محدد';
-          if (!groupedByAccount[accountId]) {
-            groupedByAccount[accountId] = [];
-          }
-          groupedByAccount[accountId].push({
-            id: item.id,
-            date: entry.entry_date,
-            description: item.description || entry.description,
-            debit: item.debit || 0,
-            credit: item.credit || 0
-          });
-        });
-      }
-    });
-
-    return {
-      sections: Object.entries(groupedByAccount).map(([account, items]) => ({
-        title: `حساب: ${account}`,
-        items,
-        total: items.reduce((sum, i) => sum + (i.debit - i.credit), 0)
-      })),
-      type: "general-ledger",
-    };
-  };
-
   const handleGenerateReport = async () => {
     setIsLoading(true);
     setReportData(null);
 
     try {
-      const entries = await fetchJournalEntries();
-
-      let report: ReportData;
-      switch (reportType) {
-        case "income-statement":
-          report = generateIncomeStatement(entries);
-          break;
-        case "balance-sheet":
-          report = generateBalanceSheet(entries);
-          break;
-        case "cash-flow":
-          report = generateCashFlowStatement(entries);
-          break;
-        case "general-ledger":
-          report = generateGeneralLedger(entries);
-          break;
-        default:
-          report = generateIncomeStatement(entries);
-      }
+      const { startDate, endDate } = getDateRange(period);
+      const report = await generateFinancialReport(reportType, startDate, endDate);
 
       setReportData(report);
       setReportTitle(`${getReportTypeName(reportType)} - ${getPeriodName(period)}`);
@@ -428,7 +139,8 @@ export default function FinancialReports() {
       "income-statement": "قائمة الدخل",
       "balance-sheet": "قائمة المركز المالي",
       "cash-flow": "قائمة التدفقات النقدية",
-      "general-ledger": "دفتر الأستاذ العام"
+      "general-ledger": "دفتر الأستاذ العام",
+      "trial-balance": "ميزان المراجعة"
     };
     return names[type] || "التقرير";
   };
@@ -489,7 +201,7 @@ export default function FinancialReports() {
                     <TableRow>
                       <TableHead>التاريخ</TableHead>
                       <TableHead>الوصف</TableHead>
-                      {reportData.type === 'general-ledger' ? (
+                      {(reportData.type === 'general-ledger' || reportData.type === 'trial-balance') ? (
                         <>
                           <TableHead className="text-left">مدين</TableHead>
                           <TableHead className="text-left">دائن</TableHead>
@@ -504,7 +216,7 @@ export default function FinancialReports() {
                       <TableRow key={itemIndex}>
                         <TableCell>{item.date}</TableCell>
                         <TableCell>{item.description}</TableCell>
-                        {reportData.type === 'general-ledger' ? (
+                        {(reportData.type === 'general-ledger' || reportData.type === 'trial-balance') ? (
                           <>
                             <TableCell className="text-left">{formatCurrency(item.debit || 0)}</TableCell>
                             <TableCell className="text-left">{formatCurrency(item.credit || 0)}</TableCell>
@@ -570,6 +282,7 @@ export default function FinancialReports() {
                   <SelectItem value="balance-sheet">قائمة المركز المالي</SelectItem>
                   <SelectItem value="cash-flow">قائمة التدفقات النقدية</SelectItem>
                   <SelectItem value="general-ledger">دفتر الأستاذ العام</SelectItem>
+                  <SelectItem value="trial-balance">ميزان المراجعة</SelectItem>
                 </SelectContent>
               </Select>
             </div>
