@@ -4088,6 +4088,10 @@ export type Database = {
       has_role:
         | { Args: { _role: string }; Returns: boolean }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
+      is_admin_owner: { Args: never; Returns: boolean }
+      is_finance_staff: { Args: never; Returns: boolean }
+      is_hr_or_finance: { Args: never; Returns: boolean }
+      is_hr_staff: { Args: never; Returns: boolean }
       log_integration_error: {
         Args: {
           error_msg: string

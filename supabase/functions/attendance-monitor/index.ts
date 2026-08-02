@@ -15,6 +15,36 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // --- Authorization: caller must be an authenticated HR/admin user ---
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    if (!token) {
+      return new Response(JSON.stringify({ error: "غير مصرّح" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "غير مصرّح" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id);
+    const allowed = ["admin", "owner", "hr_manager"];
+    if (!roles?.some((r: { role: string }) => allowed.includes(r.role))) {
+      return new Response(JSON.stringify({ error: "لا تملك صلاحية تشغيل مراقبة الحضور" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Get settings (use first row or defaults)
     const { data: settings } = await supabase
       .from("attendance_automation_settings")
