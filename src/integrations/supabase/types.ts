@@ -3943,6 +3943,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_request: {
+        Args: {
+          p_action: string
+          p_id: string
+          p_notes?: string
+          p_type: string
+        }
+        Returns: Json
+      }
       calculate_cash_flow: {
         Args: { end_date: string; start_date: string }
         Returns: {
