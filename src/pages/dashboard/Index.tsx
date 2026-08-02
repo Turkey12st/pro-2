@@ -14,6 +14,8 @@ import { PageShell } from "@/components/shared/PageShell";
 import { useTranslation } from "react-i18next";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
 import { ApprovalQueueWidget } from "@/components/dashboard/ApprovalQueueWidget";
+import { QuickActionsBar } from "@/components/dashboard/QuickActionsBar";
+import { RecentActivityFeed } from "@/components/dashboard/RecentActivityFeed";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function DashboardPage() {
@@ -56,6 +58,11 @@ export default function DashboardPage() {
         <OnboardingBanner showWhenComplete={!onboardingComplete} />
 
         <div className="space-y-8">
+          {/* Quick actions */}
+          <section className="animate-slide-up">
+            <QuickActionsBar />
+          </section>
+
           {/* KPI Widgets - Premium Design */}
           <section className="animate-slide-up">
             <IntegratedKPIWidgets />
@@ -83,6 +90,11 @@ export default function DashboardPage() {
               <FinancialMetricsCard />
             </section>
           </div>
+
+          {/* Recent activity */}
+          <section className="animate-slide-up stagger-3">
+            <RecentActivityFeed />
+          </section>
           
           {/* ERP Dashboard - Full Width */}
           <section className="animate-slide-up stagger-4">
