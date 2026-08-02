@@ -25,39 +25,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToExcel, exportToCSV, exportToPDF } from "@/utils/exportHelpers";
-
-interface JournalEntryItem {
-  id: string;
-  journal_entry_id: string;
-  account_id: string;
-  description: string | null;
-  debit: number | null;
-  credit: number | null;
-}
-
-interface JournalEntry {
-  id: string;
-  entry_date: string;
-  description: string;
-  total_debit: number;
-  total_credit: number;
-  status: string;
-  entry_type: string | null;
-  financial_statement_section: string | null;
-  items?: JournalEntryItem[];
-}
-
-interface ReportSection {
-  title: string;
-  items: any[];
-  total?: number;
-}
-
-interface ReportData {
-  sections: ReportSection[];
-  summary?: { label: string; value: number; isNet?: boolean }[];
-  type: string;
-}
+import { generateFinancialReport, type ReportData } from "@/services/accountingReports";
 
 export default function FinancialReports() {
   const { toast } = useToast();
@@ -66,36 +34,6 @@ export default function FinancialReports() {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [reportTitle, setReportTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
-
-  // جلب البيانات من قاعدة البيانات
-  const fetchJournalEntries = async () => {
-    try {
-      const { startDate, endDate } = getDateRange(period);
-      
-      const { data, error } = await supabase
-        .from('journal_entries')
-        .select(`
-          *,
-          items:journal_entry_items(*)
-        `)
-        .gte('entry_date', startDate)
-        .lte('entry_date', endDate)
-        .eq('status', 'posted');
-
-      if (error) throw error;
-      setJournalEntries(data || []);
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching journal entries:', error);
-      toast({
-        title: "خطأ في جلب البيانات",
-        description: "حدث خطأ أثناء جلب القيود المحاسبية",
-        variant: "destructive"
-      });
-      return [];
-    }
-  };
 
   // حساب نطاق التاريخ بناءً على الفترة
   const getDateRange = (selectedPeriod: string) => {
