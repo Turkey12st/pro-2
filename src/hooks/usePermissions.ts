@@ -25,6 +25,8 @@ export function usePermissions() {
         .from('user_roles')
         .select('role, company_id')
         .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(1)
         .maybeSingle();
 
       if (error) {
