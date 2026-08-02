@@ -33,12 +33,12 @@ export function usePermissions() {
         console.error('Error fetching user role:', error);
       }
 
-      // تحويل الدور للنوع الصحيح - إذا لم يوجد دور يعتبر admin (المالك)
+      // تحويل الدور للنوع الصحيح - إذا لم يوجد دور فالافتراضي هو أقل صلاحية (viewer)
       const roleValue = userRoleData?.role;
       const validRoles: UserRole[] = ['admin', 'owner', 'accountant', 'hr_manager', 'sales_manager', 'viewer'];
-      const role: UserRole = (roleValue && validRoles.includes(roleValue as UserRole)) 
-        ? (roleValue as UserRole) 
-        : 'admin';
+      const role: UserRole = (roleValue && validRoles.includes(roleValue as UserRole))
+        ? (roleValue as UserRole)
+        : 'viewer';
       setUserRole(role);
       setCompanyId(userRoleData?.company_id || null);
       
