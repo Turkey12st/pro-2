@@ -13,6 +13,7 @@ import { LayoutDashboard } from "lucide-react";
 import { PageShell } from "@/components/shared/PageShell";
 import { useTranslation } from "react-i18next";
 import { CashFlowChart } from "@/components/dashboard/CashFlowChart";
+import { ApprovalQueueWidget } from "@/components/dashboard/ApprovalQueueWidget";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function DashboardPage() {
@@ -70,8 +71,11 @@ export default function DashboardPage() {
             <CashFlowChart />
           </section>
 
-          {/* Two Column Layout for Notifications & Metrics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-slide-up stagger-3">
+          {/* Approvals, Notifications & Metrics */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up stagger-3">
+            <section>
+              <ApprovalQueueWidget />
+            </section>
             <section>
               <CompactNotificationsPanel />
             </section>
