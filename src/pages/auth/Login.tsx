@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { 
   Lock, Mail, AlertCircle, CheckCircle, KeyRound, 
-  Building2, Shield, Zap, BarChart3, Users, ArrowLeft 
+  Building2, Shield, Zap, BarChart3, Users, ArrowLeft, Eye, EyeOff 
 } from 'lucide-react';
 
 const loginSchema = z.object({
@@ -23,30 +23,18 @@ const resetSchema = z.object({
   email: z.string().email('البريد الإلكتروني غير صالح'),
 });
 
-async function setupNewUserCompany(userId: string, companyName: string): Promise<boolean> {
-  try {
-    const { data: newCompany, error: companyError } = await supabase
-      .from('companies')
-      .insert({ name: companyName, is_active: true })
-      .select('id')
-      .single();
-
-    if (companyError || !newCompany) return false;
-
-    const { error: linkError } = await supabase
-      .from('users_companies')
-      .insert({ user_id: userId, company_id: newCompany.id, is_default: true });
-
-    if (linkError) return false;
-
-    await supabase
-      .from('user_roles')
-      .insert({ user_id: userId, company_id: newCompany.id, role: 'admin' });
-
-    return true;
-  } catch {
-    return false;
-  }
+function mapAuthError(message: string): string {
+  if (message.includes('Invalid login credentials'))
+    return 'بيانات الدخول غير صحيحة. تحقق من البريد الإلكتروني وكلمة المرور.';
+  if (message.includes('Email not confirmed'))
+    return 'لم يتم تأكيد البريد الإلكتروني. يرجى التحقق من بريدك الوارد.';
+  if (message.includes('already registered') || message.includes('User already registered'))
+    return 'هذا البريد مسجّل مسبقاً. سجّل الدخول أو استعد كلمة المرور.';
+  if (message.toLowerCase().includes('rate limit'))
+    return 'تم تجاوز عدد المحاولات المسموح بها. حاول مرة أخرى بعد قليل.';
+  if (message.includes('Failed to fetch'))
+    return 'تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت.';
+  return message;
 }
 
 const features = [
@@ -68,7 +56,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && !loading) {
@@ -87,29 +75,29 @@ export default function LoginPage() {
       setIsSubmitting(true);
       
       if (isSignUp) {
-        const { error } = await signUp(validated.email, validated.password);
+        const { error, data } = await signUp(validated.email, validated.password);
         if (error) {
-          setError(error.message);
+          setError(mapAuthError(error.message));
+        } else if (data?.session) {
+          // تم تفعيل الحساب مباشرة — سيتم التوجيه تلقائياً
+          setSuccess('تم إنشاء الحساب وتسجيل الدخول بنجاح.');
         } else {
           // الشركة والصلاحيات تُنشأ تلقائياً عبر trigger في قاعدة البيانات
-          setSuccess('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.');
+          setSuccess('تم إنشاء الحساب! تحقق من بريدك الإلكتروني لتأكيد الحساب ثم سجّل الدخول.');
           setIsSignUp(false);
+          setPassword('');
         }
       } else {
         const { error } = await signIn(validated.email, validated.password);
         if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            setError('بيانات الدخول غير صحيحة. تحقق من البريد الإلكتروني وكلمة المرور.');
-          } else if (error.message.includes('Email not confirmed')) {
-            setError('لم يتم تأكيد البريد الإلكتروني. يرجى التحقق من بريدك الوارد.');
-          } else {
-            setError(error.message);
-          }
+          setError(mapAuthError(error.message));
         }
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
         setError(err.errors[0].message);
+      } else {
+        setError('حدث خطأ غير متوقع. حاول مرة أخرى.');
       }
     } finally {
       setIsSubmitting(false);
@@ -193,14 +181,14 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="reset-email" className="text-sm font-medium">البريد الإلكتروني</Label>
                 <div className="relative">
-                  <Mail className="absolute right-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                  <Mail className="absolute start-3 top-3.5 z-10 h-5 w-5 text-muted-foreground pointer-events-none" />
                   <Input
                     id="reset-email"
                     type="email"
                     placeholder="example@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pe-11 h-12 rounded-xl input-premium"
+                    className="ps-11 h-12 rounded-xl input-premium"
                     required
                     disabled={isSubmitting}
                   />
@@ -331,15 +319,16 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="login-email" className="text-sm font-medium">البريد الإلكتروني</Label>
                   <div className="relative">
-                    <Mail className="absolute right-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                    <Mail className="absolute start-3 top-3.5 z-10 h-5 w-5 text-muted-foreground pointer-events-none" />
                     <Input
                       id="login-email"
                       type="email"
                       placeholder="example@company.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pe-11 h-12 rounded-xl input-premium"
+                      className="ps-11 h-12 rounded-xl input-premium"
                       required
+                      autoComplete="email"
                       disabled={isSubmitting}
                     />
                   </div>
@@ -360,17 +349,26 @@ export default function LoginPage() {
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="absolute right-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                    <Lock className="absolute start-3 top-3.5 z-10 h-5 w-5 text-muted-foreground pointer-events-none" />
                     <Input
                       id="login-password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pe-11 h-12 rounded-xl input-premium"
+                      className="ps-11 pe-11 h-12 rounded-xl input-premium"
                       required
+                      autoComplete={isSignUp ? 'new-password' : 'current-password'}
                       disabled={isSubmitting}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                      className="absolute end-3 top-3.5 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
                   </div>
                 </div>
                 
