@@ -3969,6 +3969,10 @@ export type Database = {
         }[]
       }
       calculate_employee_kpi: { Args: { emp_id: string }; Returns: Json }
+      can_access_company_finance: {
+        Args: { _company: string }
+        Returns: boolean
+      }
       count_journal_entries: { Args: never; Returns: number }
       create_api_integration: {
         Args: {
