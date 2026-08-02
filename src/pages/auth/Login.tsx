@@ -319,15 +319,16 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="login-email" className="text-sm font-medium">البريد الإلكتروني</Label>
                   <div className="relative">
-                    <Mail className="absolute right-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                    <Mail className="absolute start-3 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
                     <Input
                       id="login-email"
                       type="email"
                       placeholder="example@company.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pe-11 h-12 rounded-xl input-premium"
+                      className="ps-11 h-12 rounded-xl input-premium"
                       required
+                      autoComplete="email"
                       disabled={isSubmitting}
                     />
                   </div>
@@ -348,17 +349,26 @@ export default function LoginPage() {
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="absolute right-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                    <Lock className="absolute start-3 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
                     <Input
                       id="login-password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pe-11 h-12 rounded-xl input-premium"
+                      className="ps-11 pe-11 h-12 rounded-xl input-premium"
                       required
+                      autoComplete={isSignUp ? 'new-password' : 'current-password'}
                       disabled={isSubmitting}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                      className="absolute end-3 top-3.5 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
                   </div>
                 </div>
                 
