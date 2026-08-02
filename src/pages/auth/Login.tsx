@@ -181,7 +181,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="reset-email" className="text-sm font-medium">البريد الإلكتروني</Label>
                 <div className="relative">
-                  <Mail className="absolute start-3 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
+                  <Mail className="absolute start-3 top-3.5 z-10 h-5 w-5 text-muted-foreground pointer-events-none" />
                   <Input
                     id="reset-email"
                     type="email"
@@ -319,7 +319,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <Label htmlFor="login-email" className="text-sm font-medium">البريد الإلكتروني</Label>
                   <div className="relative">
-                    <Mail className="absolute start-3 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
+                    <Mail className="absolute start-3 top-3.5 z-10 h-5 w-5 text-muted-foreground pointer-events-none" />
                     <Input
                       id="login-email"
                       type="email"
@@ -349,7 +349,7 @@ export default function LoginPage() {
                     )}
                   </div>
                   <div className="relative">
-                    <Lock className="absolute start-3 top-3.5 h-5 w-5 text-muted-foreground pointer-events-none" />
+                    <Lock className="absolute start-3 top-3.5 z-10 h-5 w-5 text-muted-foreground pointer-events-none" />
                     <Input
                       id="login-password"
                       type={showPassword ? 'text' : 'password'}
