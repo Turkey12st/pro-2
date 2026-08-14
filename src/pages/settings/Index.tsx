@@ -19,29 +19,31 @@ export default function SettingsPage() {
       description="أدوات مساعدة وتكاملات خارجية وإعدادات النظام"
       icon={Settings}
     >
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid grid-cols-2 lg:grid-cols-5 h-auto">
-            <TabsTrigger value="task-scheduler" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0 space-y-4">
+          <div className="overflow-x-auto pb-1">
+            <TabsList className="flex h-auto min-w-max rounded-xl">
+            <TabsTrigger value="task-scheduler" className="gap-2 px-3 py-2.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-4 sm:text-sm">
               <CalendarClock className="h-4 w-4" />
               جدولة المهام
             </TabsTrigger>
-            <TabsTrigger value="loan-calculator" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+            <TabsTrigger value="loan-calculator" className="gap-2 px-3 py-2.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-4 sm:text-sm">
               <Calculator className="h-4 w-4" />
               حاسبة القروض
             </TabsTrigger>
-            <TabsTrigger value="business-planner" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+            <TabsTrigger value="business-planner" className="gap-2 px-3 py-2.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-4 sm:text-sm">
               <LineChart className="h-4 w-4" />
               مخطط الأعمال
             </TabsTrigger>
-            <TabsTrigger value="activity-log" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+            <TabsTrigger value="activity-log" className="gap-2 px-3 py-2.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-4 sm:text-sm">
               <ClipboardList className="h-4 w-4" />
               سجل الأنشطة
             </TabsTrigger>
-            <TabsTrigger value="api-integrations" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2">
+            <TabsTrigger value="api-integrations" className="gap-2 px-3 py-2.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-4 sm:text-sm">
               <Settings className="h-4 w-4" />
               تكاملات API
             </TabsTrigger>
-          </TabsList>
+            </TabsList>
+          </div>
 
           <Card>
             <CardHeader>

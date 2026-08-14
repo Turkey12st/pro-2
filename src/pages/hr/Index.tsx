@@ -17,16 +17,19 @@ import { AttendanceManagement } from "@/components/hr/AttendanceManagement";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { PageShell } from "@/components/shared/PageShell";
 
 export default function HRPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const { data: employees = [], isLoading } = useQuery({
+  const { data: employees = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["employees"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("employees").select("*");
+      const { data, error } = await supabase
+        .from("employees")
+        .select("id,salary,employee_gosi_contribution,company_gosi_contribution,created_at,is_active,nationality,employee_type,department");
       if (error) throw error;
       return data || [];
     },
@@ -75,47 +78,50 @@ export default function HRPage() {
   };
 
   return (
-    <div className="page-container" dir="rtl">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Briefcase className="h-7 w-7 text-primary" />
-            إدارة الموارد البشرية
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {format(new Date(), 'EEEE، d MMMM yyyy', { locale: ar })}
-            {' · '}{totalEmployees} موظف مسجل
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+    <PageShell
+      title="إدارة الموارد البشرية"
+      description={isLoading ? "جاري تحديث بيانات الموظفين…" : `${format(new Date(), 'EEEE، d MMMM yyyy', { locale: ar })} · ${totalEmployees} موظف مسجل`}
+      icon={Briefcase}
+      actions={
+        <div className="page-action-group">
+          <Button onClick={() => setIsAddDialogOpen(true)} className="h-10 flex-1 gap-2 rounded-xl sm:flex-none">
             <Plus className="h-4 w-4" /> إضافة موظف
           </Button>
-          <Button variant="outline" onClick={handleExport} className="gap-2">
+          <Button variant="outline" onClick={handleExport} className="h-10 flex-1 gap-2 rounded-xl sm:flex-none">
             <FileSpreadsheet className="h-4 w-4" /> تصدير
           </Button>
         </div>
-      </div>
+      }
+    >
+      {isError && (
+        <Card className="border-destructive/25 bg-destructive/5">
+          <CardContent className="flex flex-col gap-3 p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <span>تعذر جلب بيانات الموظفين. تحقق من الصلاحيات أو الاتصال ثم أعد المحاولة.</span>
+            <Button variant="outline" size="sm" className="w-full border-destructive/25 sm:w-auto" onClick={() => void refetch()}>إعادة المحاولة</Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 mb-6 h-12">
-          <TabsTrigger value="dashboard" className="gap-2 text-sm">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0">
+        <div className="mb-5 overflow-x-auto pb-1">
+          <TabsList className="grid h-auto min-w-max grid-cols-3 rounded-xl">
+          <TabsTrigger value="dashboard" className="gap-2 px-3 py-2.5 text-xs sm:px-4 sm:text-sm">
             <LayoutDashboard className="h-4 w-4" /> لوحة التحكم
           </TabsTrigger>
-          <TabsTrigger value="employees" className="gap-2 text-sm">
+          <TabsTrigger value="employees" className="gap-2 px-3 py-2.5 text-xs sm:px-4 sm:text-sm">
             <Users className="h-4 w-4" /> الموظفون
           </TabsTrigger>
-          <TabsTrigger value="attendance" className="gap-2 text-sm">
+          <TabsTrigger value="attendance" className="gap-2 px-3 py-2.5 text-xs sm:px-4 sm:text-sm">
             <Clock className="h-4 w-4" /> الحضور والانصراف
           </TabsTrigger>
-        </TabsList>
+          </TabsList>
+        </div>
 
         {/* Dashboard Tab */}
         <TabsContent value="dashboard" className="space-y-6">
           {/* KPI Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="metric-grid">
             <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/5 to-primary/10">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between">
@@ -301,6 +307,6 @@ export default function HRPage() {
           <EmployeeForm onSuccess={() => setIsAddDialogOpen(false)} />
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   );
 }

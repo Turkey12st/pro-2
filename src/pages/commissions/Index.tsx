@@ -17,6 +17,7 @@ export default function CommissionsPage() {
   const [rules, setRules] = useState<any[]>([]);
   const [commissions, setCommissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     name: "", rule_type: "sales", calculation_type: "fixed_percent",
@@ -25,12 +26,18 @@ export default function CommissionsPage() {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: r }, { data: c }] = await Promise.all([
+    setLoadError(null);
+    const [rulesResult, commissionsResult] = await Promise.all([
       (supabase as any).from("commission_rules").select("*").order("created_at", { ascending: false }),
       (supabase as any).from("commissions").select("*, employees(name)").order("created_at", { ascending: false }).limit(100),
     ]);
-    setRules(r || []);
-    setCommissions(c || []);
+    if (rulesResult.error || commissionsResult.error) {
+      setLoadError("تعذر تحميل العمولات أو قواعد الاحتساب. تحقق من الاتصال والصلاحيات ثم أعد المحاولة.");
+      toast.error(rulesResult.error?.message || commissionsResult.error?.message || "فشل تحميل البيانات");
+    } else {
+      setRules(rulesResult.data || []);
+      setCommissions(commissionsResult.data || []);
+    }
     setLoading(false);
   };
 
@@ -79,8 +86,8 @@ export default function CommissionsPage() {
       description="قواعد الاحتساب، اعتماد العمولات، وسجل المدفوعات للموظفين"
       icon={DollarSign}
     >
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">معلقة</p><p className="text-2xl font-bold">{stats.pending.toLocaleString()} ر.س</p></div><Clock className="h-8 w-8 text-amber-500" /></div></CardContent></Card>
+      <div className="metric-grid">
+        <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">معلّقة</p><p className="text-2xl font-bold">{stats.pending.toLocaleString()} ر.س</p></div><Clock className="h-8 w-8 text-amber-500" /></div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">معتمدة</p><p className="text-2xl font-bold">{stats.approved.toLocaleString()} ر.س</p></div><CheckCircle className="h-8 w-8 text-blue-500" /></div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">مدفوعة</p><p className="text-2xl font-bold">{stats.paid.toLocaleString()} ر.س</p></div><DollarSign className="h-8 w-8 text-green-600" /></div></CardContent></Card>
       </div>
@@ -88,17 +95,19 @@ export default function CommissionsPage() {
       <Card>
         <CardHeader><CardTitle>نظام العمولات</CardTitle></CardHeader>
         <CardContent>
-          <Tabs defaultValue="commissions">
-            <TabsList>
-              <TabsTrigger value="commissions">العمولات</TabsTrigger>
-              <TabsTrigger value="rules">القواعد</TabsTrigger>
-            </TabsList>
+          <Tabs defaultValue="commissions" className="min-w-0">
+            <div className="mb-4 overflow-x-auto pb-1"><TabsList className="h-auto min-w-max rounded-xl">
+              <TabsTrigger value="commissions" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">العمولات</TabsTrigger>
+              <TabsTrigger value="rules" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">القواعد</TabsTrigger>
+            </TabsList></div>
 
             <TabsContent value="commissions" className="mt-4">
-              {loading ? <p>...جاري التحميل</p> : commissions.length === 0 ? (
+              {loading ? <p>...جاري التحميل</p> : loadError ? (
+                <div className="flex flex-col items-center gap-3 py-8 text-center"><p className="text-sm text-muted-foreground">{loadError}</p><Button variant="outline" className="rounded-xl" onClick={() => void load()}>إعادة المحاولة</Button></div>
+              ) : commissions.length === 0 ? (
                 <p className="text-center py-8 text-muted-foreground">لا توجد عمولات بعد. سيتم احتسابها تلقائياً عند تحصيل المدفوعات.</p>
               ) : (
-                <Table>
+                <div className="table-scroll"><Table className="responsive-table">
                   <TableHeader><TableRow>
                     <TableHead>الموظف</TableHead><TableHead>النوع</TableHead><TableHead>الأساس</TableHead>
                     <TableHead>العمولة</TableHead><TableHead>الحالة</TableHead><TableHead>إجراءات</TableHead>
@@ -118,15 +127,15 @@ export default function CommissionsPage() {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </Table></div>
               )}
             </TabsContent>
 
             <TabsContent value="rules" className="mt-4">
-              <div className="flex justify-end mb-4">
+              <div className="mb-4 flex justify-stretch sm:justify-end">
                 <Dialog open={open} onOpenChange={setOpen}>
-                  <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" />قاعدة جديدة</Button></DialogTrigger>
-                  <DialogContent>
+                  <DialogTrigger asChild><Button className="h-10 w-full gap-2 rounded-xl sm:w-auto"><Plus className="h-4 w-4" />قاعدة جديدة</Button></DialogTrigger>
+                  <DialogContent className="max-h-[90vh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-lg">
                     <DialogHeader><DialogTitle>قاعدة عمولة جديدة</DialogTitle></DialogHeader>
                     <div className="space-y-3">
                       <div><Label>اسم القاعدة *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
@@ -164,14 +173,14 @@ export default function CommissionsPage() {
                         </Select>
                       </div>
                     </div>
-                    <DialogFooter><Button onClick={createRule}>إنشاء</Button></DialogFooter>
+                    <DialogFooter><Button className="w-full rounded-xl sm:w-auto" onClick={createRule}>إنشاء</Button></DialogFooter>
                   </DialogContent>
                 </Dialog>
               </div>
               {rules.length === 0 ? (
                 <p className="text-center py-8 text-muted-foreground">لا توجد قواعد. أضف قاعدتك الأولى.</p>
               ) : (
-                <Table>
+                <div className="table-scroll"><Table className="responsive-table">
                   <TableHeader><TableRow>
                     <TableHead>الاسم</TableHead><TableHead>النوع</TableHead><TableHead>الحساب</TableHead>
                     <TableHead>القيمة</TableHead><TableHead>المُحفِّز</TableHead><TableHead>نشط</TableHead>
@@ -188,7 +197,7 @@ export default function CommissionsPage() {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </Table></div>
               )}
             </TabsContent>
           </Tabs>

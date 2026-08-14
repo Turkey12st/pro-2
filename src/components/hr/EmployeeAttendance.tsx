@@ -1,5 +1,6 @@
 
 import React, { useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -31,54 +32,26 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   
-  // يمكن استبدال هذا لاحقًا باستعلام من قاعدة البيانات
-  const attendanceData = [
-    {
-      date: "2025-04-01",
-      check_in: "07:55:23",
-      check_out: "17:03:12",
-      status: "present",
-      late_minutes: 0,
-      overtime_minutes: 3,
-      notes: ""
+  const { data: attendanceData = [], isLoading, isError, refetch } = useQuery({
+    queryKey: ["employee-attendance", employeeId ?? "all", selectedMonth],
+    queryFn: async () => {
+      const [year, month] = selectedMonth.split("-").map(Number);
+      const nextMonthStart = new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
+
+      let query = supabase
+        .from("attendance_records")
+        .select("id,date,check_in,check_out,status,late_minutes,overtime_minutes,notes")
+        .gte("date", `${selectedMonth}-01`)
+        .lt("date", nextMonthStart)
+        .order("date", { ascending: false });
+
+      if (employeeId) query = query.eq("employee_id", employeeId);
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data ?? [];
     },
-    {
-      date: "2025-04-02",
-      check_in: "08:15:45",
-      check_out: "17:00:00",
-      status: "late",
-      late_minutes: 15,
-      overtime_minutes: 0,
-      notes: "تأخر بسبب الازدحام المروري"
-    },
-    {
-      date: "2025-04-03",
-      check_in: "08:00:03",
-      check_out: "17:30:22",
-      status: "present",
-      late_minutes: 0,
-      overtime_minutes: 30,
-      notes: "عمل إضافي لإكمال المهام"
-    },
-    {
-      date: "2025-04-04",
-      check_in: null,
-      check_out: null,
-      status: "absent",
-      late_minutes: 0,
-      overtime_minutes: 0,
-      notes: "إجازة مرضية"
-    },
-    {
-      date: "2025-04-05",
-      check_in: "08:03:45",
-      check_out: "16:45:12",
-      status: "early-leave",
-      late_minutes: 3,
-      overtime_minutes: 0,
-      notes: "خروج مبكر بإذن"
-    }
-  ];
+  });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -89,6 +62,7 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
       case 'late':
         return <Clock className="h-5 w-5 text-yellow-600" />;
       case 'early-leave':
+      case 'early_leave':
         return <AlertCircle className="h-5 w-5 text-orange-600" />;
       default:
         return null;
@@ -104,24 +78,23 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
       case 'late':
         return "متأخر";
       case 'early-leave':
+      case 'early_leave':
         return "خروج مبكر";
       default:
         return status;
     }
   };
 
-  const months = [
-    { value: "2025-04", label: "أبريل 2025" },
-    { value: "2025-03", label: "مارس 2025" },
-    { value: "2025-02", label: "فبراير 2025" },
-    { value: "2025-01", label: "يناير 2025" },
-    { value: "2024-12", label: "ديسمبر 2024" }
-  ];
+  const months = Array.from({ length: 12 }, (_, index) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - index);
+    return {
+      value: format(date, "yyyy-MM"),
+      label: format(date, "MMMM yyyy", { locale: ar }),
+    };
+  });
 
-  // تصفية البيانات حسب الشهر المحدد
-  const filteredData = attendanceData.filter(record => 
-    record.date.startsWith(selectedMonth)
-  );
+  const filteredData = attendanceData;
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -184,6 +157,7 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
         check_out: '',
         notes: ''
       });
+      await refetch();
     } catch (error: any) {
       toast({
         title: "خطأ في إضافة السجل",
@@ -195,13 +169,14 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col gap-4 space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle>سجل الحضور والانصراف</CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">بيانات فعلية من سجل الحضور للشهر المحدد</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full min-w-[155px] sm:w-[180px]">
               <SelectValue placeholder="اختر الشهر" />
             </SelectTrigger>
             <SelectContent>
@@ -215,7 +190,7 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
           
           <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
                 <Upload className="h-4 w-4 me-2" />
                 رفع ملف إكسل
               </Button>
@@ -250,7 +225,7 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
 
           <Dialog open={isManualEntryOpen} onOpenChange={setIsManualEntryOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
                 <Plus className="h-4 w-4 me-2" />
                 إدخال يدوي
               </Button>
@@ -301,8 +276,12 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {filteredData.length > 0 ? (
-          <Table>
+        {isLoading ? (
+          <div className="space-y-3 py-4"><div className="h-10 animate-pulse rounded-lg bg-muted" /><div className="h-10 animate-pulse rounded-lg bg-muted" /><div className="h-10 animate-pulse rounded-lg bg-muted" /></div>
+        ) : isError ? (
+          <div className="flex flex-col items-center gap-3 py-8 text-center"><AlertCircle className="h-7 w-7 text-destructive" /><p className="text-sm text-muted-foreground">تعذر تحميل سجلات الحضور. تحقق من الصلاحيات ثم أعد المحاولة.</p><Button variant="outline" onClick={() => void refetch()}>إعادة المحاولة</Button></div>
+        ) : filteredData.length > 0 ? (
+          <div className="table-scroll"><Table className="responsive-table">
             <TableHeader>
               <TableRow>
                 <TableHead>التاريخ</TableHead>
@@ -332,7 +311,7 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </Table></div>
         ) : (
           <div className="text-center py-8">
             <p className="text-muted-foreground">لا توجد سجلات حضور لهذا الشهر</p>

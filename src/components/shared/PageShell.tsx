@@ -20,13 +20,7 @@ export interface PageShellProps {
   className?: string;
 }
 
-/**
- * غلاف موحد لجميع صفحات النظام:
- * - عنوان + وصف + أيقونة
- * - أزرار إجراءات على اليسار (RTL: اليسار البصري)
- * - Breadcrumbs اختياري
- * - مسافات وعرض متسقان
- */
+/** غلاف متجاوب موحّد للعناوين والإجراءات ومحتوى صفحات النظام. */
 export function PageShell({
   title,
   description,
@@ -40,60 +34,47 @@ export function PageShell({
   return (
     <div
       className={cn(
-        fullWidth ? "w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8" : "page-container",
-        "space-y-6 sm:space-y-8",
-        className
+        fullWidth
+          ? "w-full min-w-0 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8"
+          : "page-container",
+        "min-w-0 space-y-5 sm:space-y-7",
+        className,
       )}
     >
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav
-          aria-label="breadcrumb"
-          className="flex items-center gap-1 text-xs text-muted-foreground"
-        >
+        <nav aria-label="breadcrumb" className="flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground">
           {breadcrumbs.map((crumb, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && <ChevronLeft className="h-3.5 w-3.5 opacity-60" />}
+            <React.Fragment key={`${crumb.label}-${i}`}>
+              {i > 0 && <ChevronLeft className="h-3.5 w-3.5 shrink-0 opacity-60" />}
               {crumb.href ? (
-                <Link
-                  to={crumb.href}
-                  className="hover:text-foreground transition-colors"
-                >
+                <Link to={crumb.href} className="max-w-[12rem] truncate transition-colors hover:text-foreground sm:max-w-none">
                   {crumb.label}
                 </Link>
               ) : (
-                <span className="text-foreground font-medium">{crumb.label}</span>
+                <span className="max-w-[12rem] truncate font-medium text-foreground sm:max-w-none">{crumb.label}</span>
               )}
             </React.Fragment>
           ))}
         </nav>
       )}
 
-      <header className="flex flex-col gap-4 pb-4 border-b border-border/50 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-4 min-w-0">
+      <header className="flex min-w-0 flex-col gap-4 border-b border-border/60 pb-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 items-start gap-3 sm:gap-4">
           {Icon && (
-            <div className="w-12 h-12 shrink-0 rounded-2xl gradient-primary shadow-primary flex items-center justify-center">
-              <Icon className="h-6 w-6 text-primary-foreground" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl gradient-primary shadow-primary sm:h-12 sm:w-12">
+              <Icon className="h-5 w-5 text-primary-foreground sm:h-6 sm:w-6" />
             </div>
           )}
           <div className="min-w-0 space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">
-              {title}
-            </h1>
-            {description && (
-              <p className="text-sm sm:text-base text-muted-foreground">
-                {description}
-              </p>
-            )}
+            <h1 className="text-balance text-xl font-bold leading-tight text-foreground sm:text-2xl lg:text-3xl">{title}</h1>
+            {description && <p className="max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">{description}</p>}
           </div>
         </div>
-        {actions && (
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            {actions}
-          </div>
-        )}
+
+        {actions && <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">{actions}</div>}
       </header>
 
-      <div className="space-y-6 sm:space-y-8 animate-fade-in">{children}</div>
+      <div className="min-w-0 space-y-5 animate-fade-in sm:space-y-7">{children}</div>
     </div>
   );
 }

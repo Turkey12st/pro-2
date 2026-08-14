@@ -24,15 +24,15 @@ export function QuickActionsBar() {
   const navigate = useNavigate();
 
   return (
-    <Card>
-      <CardContent className="p-3">
-        <div className="flex flex-wrap gap-2">
+    <Card className="border-border/50 bg-card/80 shadow-sm">
+      <CardContent className="p-3 sm:p-4">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           {ACTIONS.map(({ label, icon: Icon, route }) => (
             <Button
               key={route}
               variant="outline"
               size="sm"
-              className="gap-2"
+              className="h-11 w-full justify-start gap-2 rounded-xl bg-background/60 px-3 text-xs sm:w-auto sm:justify-center sm:text-sm"
               onClick={() => navigate(route)}
             >
               <Icon className="h-4 w-4 text-primary" />

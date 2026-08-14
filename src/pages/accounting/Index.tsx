@@ -20,7 +20,7 @@ export default function AccountingPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [currentTab, setCurrentTab] = useState("journal-entries");
-  const { journalEntries, isLoading, fetchJournalEntries, handleDeleteEntry } = useJournalEntries();
+  const { journalEntries, isLoading, error, fetchJournalEntries, handleDeleteEntry } = useJournalEntries();
 
   const handleEditEntry = (entry: JournalEntry) => {
     setEditingEntry(entry);
@@ -39,20 +39,28 @@ export default function AccountingPage() {
       icon={Receipt}
       actions={
         currentTab === "journal-entries" ? (
-          <Button onClick={handleAddEntry} className="gap-2">
+          <Button onClick={handleAddEntry} className="h-10 w-full gap-2 rounded-xl sm:w-auto">
             <Plus className="h-4 w-4" /> {t("pages.accounting.addEntry")}
           </Button>
         ) : null
       }
     >
-      <Card>
+      <Card className="overflow-hidden">
         <CardContent className="p-4 sm:p-6">
-          <Tabs value={currentTab} onValueChange={setCurrentTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="journal-entries">{t("pages.accounting.tabJournal")}</TabsTrigger>
-              <TabsTrigger value="chart-of-accounts">{t("pages.accounting.tabChart")}</TabsTrigger>
-              <TabsTrigger value="reports">{t("pages.accounting.tabReports")}</TabsTrigger>
-            </TabsList>
+          {error && (
+            <div className="mb-5 flex flex-col gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <span>تعذر تحميل بعض القيود اليومية. تحقق من الصلاحيات أو الاتصال ثم أعد المحاولة.</span>
+              <Button variant="outline" size="sm" className="w-full border-destructive/25 sm:w-auto" onClick={() => void fetchJournalEntries()}>إعادة المحاولة</Button>
+            </div>
+          )}
+          <Tabs value={currentTab} onValueChange={setCurrentTab} className="min-w-0">
+            <div className="mb-5 overflow-x-auto pb-1">
+              <TabsList className="h-auto min-w-max rounded-xl">
+              <TabsTrigger value="journal-entries" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">{t("pages.accounting.tabJournal")}</TabsTrigger>
+              <TabsTrigger value="chart-of-accounts" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">{t("pages.accounting.tabChart")}</TabsTrigger>
+              <TabsTrigger value="reports" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">{t("pages.accounting.tabReports")}</TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="journal-entries">
               <JournalEntryTable

@@ -57,7 +57,7 @@ export default function DashboardPage() {
       >
         <OnboardingBanner showWhenComplete={!onboardingComplete} />
 
-        <div className="space-y-8">
+        <div className="space-y-5 sm:space-y-7">
           {/* Quick actions */}
           <section className="animate-slide-up">
             <QuickActionsBar />
@@ -79,7 +79,7 @@ export default function DashboardPage() {
           </section>
 
           {/* Approvals, Notifications & Metrics */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up stagger-3">
+          <div className="grid grid-cols-1 gap-4 animate-slide-up stagger-3 sm:gap-5 lg:grid-cols-3 lg:gap-6">
             <section>
               <ApprovalQueueWidget />
             </section>

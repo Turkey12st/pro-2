@@ -1,47 +1,49 @@
-
 import { SidebarProvider, Sidebar, SidebarContent, SidebarTrigger } from "@/components/ui/sidebar";
 import { Menu, User, Settings, LogOut, Search } from "lucide-react";
-import { useState } from "react";
 import { AppNavigation } from "./AppNavigation";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { RealTimeNotificationBell } from "@/components/shared/RealTimeNotificationBell";
 import { CommandPalette, useCommandPalette } from "@/components/shared/CommandPalette";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const { isRtl } = useLanguage();
-  const [user] = useState({
-    name: "مستخدم النظام",
-    email: "user@example.com",
-    imageUrl: ""
-  });
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { open: cmdOpen, setOpen: setCmdOpen } = useCommandPalette();
 
+  const displayName =
+    String(user?.user_metadata?.full_name || user?.user_metadata?.name || "").trim() ||
+    user?.email?.split("@")[0] ||
+    t("header.systemUser", "مستخدم النظام");
+  const email = user?.email || "";
+  const imageUrl = String(user?.user_metadata?.avatar_url || "");
+  const initials = displayName.trim().slice(0, 2).toUpperCase();
+
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      await signOut();
       toast({
         title: t("header.logoutSuccess"),
         description: t("header.logoutSuccessDesc"),
       });
-      navigate("/auth");
+      navigate("/auth", { replace: true });
     } catch (error) {
       console.error("Error during logout:", error);
       toast({
@@ -54,7 +56,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div dir={isRtl ? "rtl" : "ltr"} className="min-h-screen flex w-full bg-background">
+      <div dir={isRtl ? "rtl" : "ltr"} className="flex min-h-[100dvh] w-full overflow-hidden bg-background">
         <Sidebar
           className={isRtl ? "border-l border-sidebar-border bg-sidebar" : "border-r border-sidebar-border bg-sidebar"}
           side={isRtl ? "right" : "left"}
@@ -63,13 +65,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <AppNavigation />
           </SidebarContent>
         </Sidebar>
-        <main className="flex-1 overflow-hidden">
-          {/* Header */}
-          <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-            <div className="h-full flex items-center justify-between px-4 sm:px-6">
-              <div className="flex items-center gap-3">
-                <SidebarTrigger>
-                  <div className="p-2 hover:bg-accent rounded-lg transition-colors">
+
+        <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="sticky top-0 z-40 h-16 shrink-0 border-b border-border/80 bg-card/85 backdrop-blur-xl">
+            <div className="flex h-full min-w-0 items-center justify-between gap-2 px-3 sm:gap-4 sm:px-6">
+              <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
+                <SidebarTrigger aria-label={t("header.openNavigation", "فتح القائمة") }>
+                  <div className="rounded-lg p-2 transition-colors hover:bg-accent">
                     <Menu className="h-5 w-5 text-foreground" />
                   </div>
                 </SidebarTrigger>
@@ -77,72 +79,65 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 gap-2 text-muted-foreground w-64 justify-start"
+                  className="h-9 w-9 shrink-0 justify-center px-0 text-muted-foreground sm:w-64 sm:justify-start sm:px-3"
                   onClick={() => setCmdOpen(true)}
+                  aria-label={t("header.searchPlaceholder")}
                 >
-                  <Search className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t("header.searchPlaceholder")}</span>
-                  <span className="sm:hidden">{t("header.searchShort")}</span>
-                  <kbd className="ms-auto hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                  <Search className="h-4 w-4 shrink-0" />
+                  <span className="hidden truncate sm:inline">{t("header.searchPlaceholder")}</span>
+                  <kbd className="ms-auto hidden h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground sm:inline-flex">
                     ⌘K
                   </kbd>
                 </Button>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-1 sm:gap-2">
                 <LanguageSwitcher />
                 <RealTimeNotificationBell />
 
-              {/* User Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-9 w-9 rounded-full p-0">
-                    <Avatar className="h-9 w-9 border-2 border-border">
-                      <AvatarImage src={user.imageUrl} alt={user.name} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                        {user.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount sideOffset={5}>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/account" className="flex w-full items-center cursor-pointer">
-                      <User className="me-2 h-4 w-4" />
-                      <span>{t("header.myAccount")}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings" className="flex w-full items-center cursor-pointer">
-                      <Settings className="me-2 h-4 w-4" />
-                      <span>{t("header.settings")}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="cursor-pointer text-destructive focus:text-destructive" 
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="me-2 h-4 w-4" />
-                    <span>{t("header.logout")}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-9 w-9 rounded-full p-0" aria-label={t("header.accountMenu", "قائمة الحساب")}>
+                      <Avatar className="h-9 w-9 border-2 border-border">
+                        <AvatarImage src={imageUrl} alt={displayName} />
+                        <AvatarFallback className="bg-primary/10 text-sm font-semibold text-primary">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-64 max-w-[calc(100vw-1.5rem)]" align="end" forceMount sideOffset={8}>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <p className="truncate text-sm font-semibold leading-none">{displayName}</p>
+                        {email && <p className="truncate text-xs leading-none text-muted-foreground">{email}</p>}
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/account" className="flex w-full cursor-pointer items-center">
+                        <User className="me-2 h-4 w-4" />
+                        <span>{t("header.myAccount")}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/settings" className="flex w-full cursor-pointer items-center">
+                        <Settings className="me-2 h-4 w-4" />
+                        <span>{t("header.settings")}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" onClick={handleLogout}>
+                      <LogOut className="me-2 h-4 w-4" />
+                      <span>{t("header.logout")}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </header>
-          
-          {/* Main Content */}
-          <div className="overflow-auto h-[calc(100vh-4rem)]">
+
+          <div className="h-[calc(100dvh-4rem)] min-w-0 overflow-x-hidden overflow-y-auto overscroll-contain">
             {children}
           </div>
         </main>

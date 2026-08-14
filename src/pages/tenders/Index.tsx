@@ -39,6 +39,7 @@ interface Tender {
 export default function TendersPage() {
   const [tenders, setTenders] = useState<Tender[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     tender_number: "",
@@ -52,9 +53,15 @@ export default function TendersPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await (supabase as any).from("tenders").select("*").order("created_at", { ascending: false });
-    if (error) toast.error("فشل تحميل المناقصات: " + error.message);
-    else setTenders(data || []);
+    setLoadError(null);
+    const { data, error } = await (supabase as any)
+      .from("tenders")
+      .select("id,tender_number,title,client_name,stage,estimated_value,contract_value,submission_deadline,win_probability")
+      .order("created_at", { ascending: false });
+    if (error) {
+      setLoadError("تعذر تحميل المناقصات. تحقق من الاتصال والصلاحيات ثم أعد المحاولة.");
+      toast.error("فشل تحميل المناقصات: " + error.message);
+    } else setTenders(data || []);
     setLoading(false);
   };
 
@@ -111,30 +118,30 @@ export default function TendersPage() {
       actions={
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="h-10 w-full gap-2 rounded-xl sm:w-auto">
               <Plus className="h-4 w-4" />
               مناقصة جديدة
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-lg">
             <DialogHeader><DialogTitle>إنشاء مناقصة جديدة</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <div><Label>رقم المناقصة *</Label><Input value={form.tender_number} onChange={(e) => setForm({ ...form, tender_number: e.target.value })} placeholder="TND-2026-001" /></div>
               <div><Label>العنوان *</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
               <div><Label>الوصف</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
               <div><Label>اسم العميل</Label><Input value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} /></div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div><Label>القيمة التقديرية</Label><Input type="number" value={form.estimated_value} onChange={(e) => setForm({ ...form, estimated_value: e.target.value })} /></div>
                 <div><Label>احتمالية الفوز %</Label><Input type="number" min="0" max="100" value={form.win_probability} onChange={(e) => setForm({ ...form, win_probability: e.target.value })} /></div>
               </div>
               <div><Label>الموعد النهائي للتقديم</Label><Input type="date" value={form.submission_deadline} onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })} /></div>
             </div>
-            <DialogFooter><Button onClick={handleCreate}>إنشاء</Button></DialogFooter>
+            <DialogFooter><Button className="w-full rounded-xl sm:w-auto" onClick={handleCreate}>إنشاء</Button></DialogFooter>
           </DialogContent>
         </Dialog>
       }
     >
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="metric-grid">
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">إجمالي المناقصات</p><p className="text-2xl font-bold">{stats.total}</p></div><Briefcase className="h-8 w-8 text-primary" /></div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">نشطة</p><p className="text-2xl font-bold">{stats.active}</p></div><TrendingUp className="h-8 w-8 text-blue-500" /></div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">فائزة</p><p className="text-2xl font-bold">{stats.won}</p></div><Award className="h-8 w-8 text-green-600" /></div></CardContent></Card>
@@ -146,13 +153,15 @@ export default function TendersPage() {
           <CardTitle>خط أنابيب المناقصات</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? <p className="text-center py-8">جاري التحميل...</p> : tenders.length === 0 ? (
+          {loading ? <p className="text-center py-8">جاري التحميل...</p> : loadError ? (
+            <div className="flex flex-col items-center gap-3 py-10 text-center"><XCircle className="h-7 w-7 text-destructive" /><p className="text-sm text-muted-foreground">{loadError}</p><Button variant="outline" className="rounded-xl" onClick={() => void load()}>إعادة المحاولة</Button></div>
+          ) : tenders.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Briefcase className="mx-auto h-12 w-12 mb-3 opacity-50" />
               <p>لا توجد مناقصات بعد. ابدأ بإضافة أول مناقصة.</p>
             </div>
           ) : (
-            <Table>
+            <div className="table-scroll"><Table className="responsive-table">
               <TableHeader>
                 <TableRow>
                   <TableHead>الرقم</TableHead><TableHead>العنوان</TableHead><TableHead>العميل</TableHead>
@@ -174,7 +183,7 @@ export default function TendersPage() {
                       <TableCell>{t.submission_deadline || "-"}</TableCell>
                       <TableCell>
                         <Select value={t.stage} onValueChange={(v) => updateStage(t.id, v)}>
-                          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
                           <SelectContent>{STAGES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                         </Select>
                       </TableCell>
@@ -182,7 +191,7 @@ export default function TendersPage() {
                   );
                 })}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>

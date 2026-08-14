@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { PageShell } from '@/components/shared/PageShell';
 import { useToast } from '@/hooks/use-toast';
 import { 
   User, 
@@ -39,6 +40,7 @@ export default function AccountPage() {
   
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accountLoadError, setAccountLoadError] = useState<string | null>(null);
   const [changingPassword, setChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -69,11 +71,15 @@ export default function AccountPage() {
           .maybeSingle();
 
         // Get user's role
-        const { data: userRole } = await supabase
+        if (userCompany.error) throw userCompany.error;
+
+        const { data: userRole, error: userRoleError } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id)
           .maybeSingle();
+
+        if (userRoleError) throw userRoleError;
 
         setAccountInfo({
           email: user.email || '',
@@ -84,6 +90,7 @@ export default function AccountPage() {
         });
       } catch (error) {
         console.error('Error fetching account info:', error);
+        setAccountLoadError('تعذر جلب معلومات الحساب. تحقق من الاتصال أو الصلاحيات ثم أعد المحاولة.');
       } finally {
         setLoading(false);
       }
@@ -149,21 +156,21 @@ export default function AccountPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
+      <PageShell title="إعدادات الحساب" description="جاري تحميل معلومات الحساب…" icon={User}>
+        <div className="flex h-64 items-center justify-center rounded-2xl border bg-card"><LoadingSpinner /></div>
+      </PageShell>
     );
   }
 
   return (
-    <>
-      <div className="page-container max-w-4xl mx-auto">
-        <div className="space-y-1 mb-6">
-          <h1 className="page-title">إعدادات الحساب</h1>
-          <p className="page-description">إدارة معلومات حسابك وإعدادات الأمان</p>
-        </div>
-
-        <div className="grid gap-6">
+    <PageShell title="إعدادات الحساب" description="إدارة معلومات حسابك وإعدادات الأمان" icon={User}>
+      <div className="mx-auto grid w-full max-w-4xl gap-6">
+        {accountLoadError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{accountLoadError}</AlertDescription>
+          </Alert>
+        )}
           {/* Account Information */}
           <Card>
             <CardHeader>
@@ -267,7 +274,7 @@ export default function AccountPage() {
                   />
                 </div>
                 
-                <Button type="submit" disabled={changingPassword}>
+                <Button type="submit" className="h-10 w-full rounded-xl sm:w-auto" disabled={changingPassword}>
                   {changingPassword ? 'جاري التغيير...' : 'تغيير كلمة المرور'}
                 </Button>
               </form>
@@ -286,13 +293,12 @@ export default function AccountPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="destructive" onClick={handleSignOut}>
+              <Button variant="destructive" className="h-10 w-full rounded-xl sm:w-auto" onClick={handleSignOut}>
                 تسجيل الخروج
               </Button>
             </CardContent>
           </Card>
         </div>
-      </div>
-    </>
+    </PageShell>
   );
 }

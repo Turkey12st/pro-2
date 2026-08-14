@@ -32,6 +32,7 @@ const ClientsPage = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [search, setSearch] = useState('');
   const { toast } = useToast();
@@ -55,10 +56,14 @@ const ClientsPage = () => {
 
   const fetchClients = async () => {
     setIsLoading(true);
+    setLoadError(null);
     try {
       const companyId = await getCompanyId();
       
-      let query = supabase.from('clients').select('*').order('created_at', { ascending: false });
+      let query = supabase
+        .from('clients')
+        .select('id,name,phone,email,type,contact_person,cr_number,vat_number,address,created_at,company_id')
+        .order('created_at', { ascending: false });
       
       if (companyId) {
         query = query.eq('company_id', companyId);
@@ -70,6 +75,7 @@ const ClientsPage = () => {
       setClients(data || []);
     } catch (error) {
       console.error('Error fetching clients:', error);
+      setLoadError('تعذر تحميل بيانات العملاء. تحقق من الاتصال والصلاحيات ثم أعد المحاولة.');
       toast({
         variant: "destructive",
         title: "خطأ في تحميل العملاء",
@@ -220,12 +226,12 @@ const ClientsPage = () => {
       description={t('pages.clients.descriptionCount', { count: clients.length })}
       icon={Store}
       actions={
-        <Button onClick={() => setShowDialog(true)} className="gap-2">
+        <Button onClick={() => setShowDialog(true)} className="h-10 w-full gap-2 rounded-xl sm:w-auto">
           <Plus className="h-4 w-4" /> {t('pages.clients.addNew')}
         </Button>
       }
     >
-      <div className="relative max-w-md">
+      <div className="relative w-full max-w-md">
         <Search className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           value={search}
@@ -235,7 +241,9 @@ const ClientsPage = () => {
         />
       </div>
 
-      {isLoading ? (
+      {loadError ? (
+          <Card className="border-destructive/25 bg-destructive/5"><CardContent className="flex flex-col items-center gap-3 p-8 text-center"><p className="text-sm text-muted-foreground">{loadError}</p><Button variant="outline" className="rounded-xl" onClick={() => void fetchClients()}>إعادة المحاولة</Button></CardContent></Card>
+        ) : isLoading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
@@ -259,13 +267,14 @@ const ClientsPage = () => {
               filtered.map((client) => (
                 <Card key={client.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">{client.name}</CardTitle>
+                    <div className="flex items-start justify-between gap-3">
+                      <CardTitle className="truncate text-lg">{client.name}</CardTitle>
                       <div className="flex gap-1">
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => openEditDialog(client)}
+                          aria-label={`تعديل ${client.name}`}
                         >
                           <Edit size={16} />
                         </Button>
@@ -273,6 +282,7 @@ const ClientsPage = () => {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDelete(client.id)}
+                          aria-label={`حذف ${client.name}`}
                         >
                           <Trash2 size={16} />
                         </Button>
@@ -318,7 +328,7 @@ const ClientsPage = () => {
 
         {/* Add/Edit Client Dialog */}
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-h-[90vh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
                 {editingClient ? 'تعديل بيانات العميل' : 'إضافة عميل جديد'}
@@ -396,10 +406,10 @@ const ClientsPage = () => {
               </div>
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => { resetForm(); setShowDialog(false); }}>
+                <Button type="button" className="flex-1 sm:flex-none" variant="outline" onClick={() => { resetForm(); setShowDialog(false); }}>
                   إلغاء
                 </Button>
-                <Button type="submit" disabled={isSaving}>
+                <Button type="submit" className="flex-1 sm:flex-none" disabled={isSaving}>
                   {isSaving ? (
                     <>
                       <Loader2 className="me-2 h-4 w-4 animate-spin" />

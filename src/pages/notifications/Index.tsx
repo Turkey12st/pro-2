@@ -17,15 +17,21 @@ export default function NotificationsPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const [{ data: l }, { data: s }] = await Promise.all([
+    setLoadError(null);
+    const [logsResult, settingsResult] = await Promise.all([
       (supabase as any).from("notification_logs").select("*").order("created_at", { ascending: false }).limit(100),
       (supabase as any).from("attendance_automation_settings").select("*").maybeSingle(),
     ]);
-    setLogs(l || []);
-    setSettings(s || {
+    if (logsResult.error || settingsResult.error) {
+      setLoadError("تعذر تحميل سجل الإشعارات أو إعدادات الأتمتة. تحقق من الاتصال والصلاحيات ثم أعد المحاولة.");
+      toast.error(logsResult.error?.message || settingsResult.error?.message || "فشل تحميل البيانات");
+    }
+    setLogs(logsResult.data || []);
+    setSettings(settingsResult.data || {
       late_threshold_minutes: 15, late_alert_enabled: true,
       absence_day1_enabled: true, absence_day2_enabled: true, absence_day3_enabled: true,
       channels: ["email", "in_app"],
@@ -61,7 +67,7 @@ export default function NotificationsPage() {
       description="سجل الإشعارات المرسلة عبر البريد الإلكتروني والتنبيهات داخل النظام مع إعدادات الأتمتة"
       icon={Bell}
     >
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="metric-grid">
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">إجمالي الإشعارات</p><p className="text-2xl font-bold">{stats.total}</p></div><Bell className="h-8 w-8 text-primary" /></div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">مُرسَلة بنجاح</p><p className="text-2xl font-bold text-green-600">{stats.sent}</p></div><Mail className="h-8 w-8 text-green-500" /></div></CardContent></Card>
         <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">فشل الإرسال</p><p className="text-2xl font-bold text-red-600">{stats.failed}</p></div><MessageSquare className="h-8 w-8 text-red-500" /></div></CardContent></Card>
@@ -70,17 +76,19 @@ export default function NotificationsPage() {
       <Card>
         <CardHeader><CardTitle>محرك الإشعارات والأتمتة</CardTitle></CardHeader>
         <CardContent>
-          <Tabs defaultValue="logs">
-            <TabsList>
-              <TabsTrigger value="logs">السجل</TabsTrigger>
-              <TabsTrigger value="settings" className="gap-2"><SettingsIcon className="h-4 w-4" />إعدادات الحضور التلقائي</TabsTrigger>
-            </TabsList>
+          <Tabs defaultValue="logs" className="min-w-0">
+            <div className="mb-4 overflow-x-auto pb-1"><TabsList className="h-auto min-w-max rounded-xl">
+              <TabsTrigger value="logs" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">السجل</TabsTrigger>
+              <TabsTrigger value="settings" className="gap-2 px-3 py-2.5 text-xs sm:px-4 sm:text-sm"><SettingsIcon className="h-4 w-4" />إعدادات الحضور التلقائي</TabsTrigger>
+            </TabsList></div>
 
             <TabsContent value="logs" className="mt-4">
-              {loading ? <p>...</p> : logs.length === 0 ? (
+              {loading ? <p>...</p> : loadError ? (
+                <div className="flex flex-col items-center gap-3 py-8 text-center"><p className="text-sm text-muted-foreground">{loadError}</p><Button variant="outline" className="rounded-xl" onClick={() => void load()}>إعادة المحاولة</Button></div>
+              ) : logs.length === 0 ? (
                 <p className="text-center py-8 text-muted-foreground">لا توجد إشعارات بعد.</p>
               ) : (
-                <Table>
+                <div className="table-scroll"><Table className="responsive-table">
                   <TableHeader><TableRow>
                     <TableHead>التاريخ</TableHead><TableHead>القناة</TableHead><TableHead>النوع</TableHead>
                     <TableHead>المستلم</TableHead><TableHead>الموضوع</TableHead><TableHead>الحالة</TableHead>
@@ -97,14 +105,14 @@ export default function NotificationsPage() {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                </Table></div>
               )}
             </TabsContent>
 
             <TabsContent value="settings" className="mt-4 space-y-4">
               {settings && (
                 <>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div><Label>عتبة التأخير (دقائق)</Label><Input type="number" value={settings.late_threshold_minutes} onChange={(e) => setSettings({ ...settings, late_threshold_minutes: parseInt(e.target.value) })} /></div>
                     <div className="flex items-center justify-between"><Label>تفعيل تنبيه التأخير</Label><Switch checked={settings.late_alert_enabled} onCheckedChange={(v) => setSettings({ ...settings, late_alert_enabled: v })} /></div>
                   </div>
@@ -117,9 +125,9 @@ export default function NotificationsPage() {
                   </div>
                   <div className="bg-muted p-3 rounded-lg text-sm">
                     <p><strong>القنوات النشطة:</strong> {settings.channels?.join(", ")}</p>
-                    <p className="text-muted-foreground mt-1">📧 البريد الإلكتروني مفعّل. لتفعيل WhatsApp، اربط Twilio من الإعدادات.</p>
+                    <p className="mt-1 text-muted-foreground">البريد الإلكتروني مفعّل. لتفعيل WhatsApp، اربط Twilio من الإعدادات.</p>
                   </div>
-                  <Button onClick={saveSettings}>حفظ الإعدادات</Button>
+                  <Button className="h-10 w-full rounded-xl sm:w-auto" onClick={saveSettings}>حفظ الإعدادات</Button>
                 </>
               )}
             </TabsContent>

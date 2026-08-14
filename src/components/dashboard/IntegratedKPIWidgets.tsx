@@ -87,6 +87,7 @@ export function IntegratedKPIWidgets() {
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useRealtimeSync({
     tables: ['employees', 'employee_salaries', 'journal_entries', 'data_sync_log'],
@@ -95,6 +96,7 @@ export function IntegratedKPIWidgets() {
 
   const fetchKPIs = async () => {
     try {
+      setLoadError(null);
       const [employeesRes, salariesRes, journalRes, syncRes] = await Promise.all([
         supabase.from('employees').select('id, is_active, salary', { count: 'exact' }),
         supabase.from('employee_salaries').select('id, status, gross_pay, net_pay', { count: 'exact' }),
@@ -104,6 +106,11 @@ export function IntegratedKPIWidgets() {
           .select('id, status')
           .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
       ]);
+
+      const requestError = [employeesRes, salariesRes, journalRes, syncRes]
+        .map((result) => result.error)
+        .find(Boolean);
+      if (requestError) throw requestError;
 
       const employees = employeesRes.data || [];
       const salaries = salariesRes.data || [];
@@ -127,6 +134,8 @@ export function IntegratedKPIWidgets() {
       });
     } catch (error) {
       console.error('خطأ في جلب المؤشرات:', error);
+      setLoadError('تعذر تحديث بعض مؤشرات النظام. يمكنك إعادة المحاولة، وسيظل آخر عرض متاح ظاهراً.');
+      setKpis((current) => ({ ...current, syncHealth: 'error' }));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -149,7 +158,7 @@ export function IntegratedKPIWidgets() {
           <div className="h-7 w-64 skeleton-premium" />
           <div className="h-8 w-32 skeleton-premium" />
         </div>
-        <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="metric-grid">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-44 skeleton-premium rounded-2xl" />
           ))}
@@ -161,7 +170,7 @@ export function IntegratedKPIWidgets() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Sparkles className="h-5 w-5 text-primary" />
@@ -199,8 +208,17 @@ export function IntegratedKPIWidgets() {
         </div>
       </div>
 
+      {loadError && (
+        <div role="status" className="flex flex-col gap-3 rounded-2xl border border-destructive/25 bg-destructive/5 p-4 text-sm text-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>{loadError}</span>
+          <Button variant="outline" size="sm" className="w-full border-destructive/25 sm:w-auto" onClick={handleRefresh} disabled={refreshing}>
+            إعادة المحاولة
+          </Button>
+        </div>
+      )}
+
       {/* KPI Cards Grid */}
-      <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="metric-grid">
         {/* Employees Card */}
         <Card
           className={`group cursor-pointer premium-card border-r-4 ${kpiCards[0].borderColor} bg-gradient-to-br ${kpiCards[0].gradient}`}

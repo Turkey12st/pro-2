@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash, Eye, AlertTriangle, FileText, Download } from "lucide-react";
+import { Trash, FileText, Download } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 export default function DocumentsList() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -25,6 +26,7 @@ export default function DocumentsList() {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const { data, error } = await supabase
         .from("company_documents")
         .select("*")
@@ -60,6 +62,7 @@ export default function DocumentsList() {
       }
     } catch (error) {
       console.error("Error fetching documents:", error);
+      setLoadError("تعذر جلب المستندات. تحقق من الاتصال والصلاحيات ثم أعد المحاولة.");
       toast({
         variant: "destructive",
         title: "خطأ في جلب البيانات",
@@ -138,6 +141,8 @@ export default function DocumentsList() {
       <CardContent>
         {loading ? (
           <div className="text-center py-8">جاري التحميل...</div>
+        ) : loadError ? (
+          <div className="flex flex-col items-center gap-3 py-8 text-center"><p className="text-sm text-muted-foreground">{loadError}</p><Button variant="outline" className="rounded-xl" onClick={() => void fetchDocuments()}>إعادة المحاولة</Button></div>
         ) : documents.length === 0 ? (
           <div className="text-center py-8">
             <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
@@ -145,8 +150,8 @@ export default function DocumentsList() {
             <p className="text-muted-foreground mt-2">لم يتم إضافة أي مستندات بعد.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
+          <div className="table-scroll">
+            <Table className="responsive-table">
               <TableHeader>
                 <TableRow>
                   <TableHead>المستند</TableHead>
@@ -175,20 +180,19 @@ export default function DocumentsList() {
                     <TableCell>{getStatusBadge(doc.status)}</TableCell>
                     <TableCell className="flex items-center space-x-2 space-x-reverse">
                       {doc.document_url && (
-                        <Button variant="ghost" size="sm" className="text-blue-500">
-                          <Download className="h-4 w-4" />
-                          <span className="sr-only">تنزيل</span>
+                        <Button variant="ghost" size="sm" className="text-blue-500" asChild>
+                          <a href={doc.document_url} target="_blank" rel="noreferrer" aria-label={`تنزيل ${doc.title}`}>
+                            <Download className="h-4 w-4" />
+                            <span className="sr-only">تنزيل</span>
+                          </a>
                         </Button>
                       )}
-                      <Button variant="ghost" size="sm">
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">تعديل</span>
-                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="text-red-500"
                         onClick={() => setDeleteId(doc.id)}
+                        aria-label={`حذف ${doc.title}`}
                       >
                         <Trash className="h-4 w-4" />
                         <span className="sr-only">حذف</span>

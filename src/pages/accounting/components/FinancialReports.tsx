@@ -170,18 +170,18 @@ export default function FinancialReports() {
 
     return (
       <Card className="mt-8">
-        <CardHeader className="flex flex-row justify-between items-center">
+        <CardHeader className="flex flex-col gap-3 space-y-0 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle>{reportTitle}</CardTitle>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleExport('excel')}>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => handleExport('excel')}>
               <FileSpreadsheet className="h-4 w-4 ms-2" />
               Excel
             </Button>
-            <Button variant="outline" size="sm" onClick={() => handleExport('csv')}>
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => handleExport('csv')}>
               <File className="h-4 w-4 ms-2" />
               CSV
             </Button>
-            <Button variant="outline" size="sm" onClick={() => handleExport('pdf')}>
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => handleExport('pdf')}>
               <Download className="h-4 w-4 ms-2" />
               PDF
             </Button>
@@ -197,7 +197,7 @@ export default function FinancialReports() {
                 )}
               </div>
               {section.items.length > 0 ? (
-                <Table>
+                <div className="table-scroll"><Table className="responsive-table">
                   <TableHeader>
                     <TableRow>
                       <TableHead>التاريخ</TableHead>
@@ -228,7 +228,7 @@ export default function FinancialReports() {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                  </Table></div>
               ) : (
                 <p className="text-muted-foreground text-center py-4">لا توجد بيانات</p>
               )}
@@ -304,7 +304,7 @@ export default function FinancialReports() {
             </div>
           </div>
           <Button
-            className="w-full mt-6"
+            className="mt-6 h-11 w-full rounded-xl"
             onClick={handleGenerateReport}
             disabled={isLoading}
           >

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { PageShell } from "@/components/shared/PageShell";
 import { EmployeeHRManagement } from "@/components/hr/EmployeeHRManagement";
 import { EmployeeViolations } from "@/components/hr/EmployeeViolations";
 import { EmployeeSalaries } from "@/components/hr/EmployeeSalaries";
@@ -25,30 +26,33 @@ export default function EmployeeProfile() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">جاري تحميل بيانات الموظف...</div>
-      </div>
+      <PageShell title="ملف الموظف" description="جاري تحميل بيانات الموظف…" icon={User}>
+        <div className="flex min-h-64 items-center justify-center rounded-2xl border bg-card text-muted-foreground">جاري تحميل بيانات الموظف…</div>
+      </PageShell>
     );
   }
 
   if (error || !employee) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-destructive">
+      <PageShell title="ملف الموظف" description="تعذر الوصول إلى بيانات الموظف" icon={User}>
+        <div className="flex min-h-64 items-center justify-center rounded-2xl border border-destructive/25 bg-destructive/5 p-6 text-center text-destructive">
           {error || "لم يتم العثور على بيانات الموظف"}
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <>
-      <div className="container mx-auto py-6 space-y-6">
+    <PageShell
+      title={employee.name}
+      description={`${employee.position || "موظف"} · ${employee.department || "القسم غير محدد"}`}
+      icon={User}
+    >
         {/* Employee Header */}
         <Card>
           <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-4 space-x-reverse">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex min-w-0 items-center gap-4">
                 <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
                   {employee.photo_url ? (
                     <img 
@@ -60,8 +64,8 @@ export default function EmployeeProfile() {
                     <User className="w-8 h-8 text-gray-500" />
                   )}
                 </div>
-                <div>
-                  <CardTitle className="text-2xl">{employee.name}</CardTitle>
+                <div className="min-w-0">
+                  <CardTitle className="truncate text-xl sm:text-2xl">بيانات الموظف</CardTitle>
                   <p className="text-lg text-muted-foreground">{employee.position}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <Badge variant="outline">{employee.department}</Badge>
@@ -71,7 +75,7 @@ export default function EmployeeProfile() {
                   </div>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right sm:shrink-0">
                 <p className="text-sm text-muted-foreground">رقم الموظف</p>
                 <p className="font-mono">{employee.employment_number || employee.id}</p>
               </div>
@@ -80,17 +84,19 @@ export default function EmployeeProfile() {
         </Card>
 
         {/* Employee Details Tabs */}
-        <Tabs defaultValue="personal" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="personal">البيانات الشخصية</TabsTrigger>
-            <TabsTrigger value="hr">الموارد البشرية</TabsTrigger>
-            <TabsTrigger value="attendance">الحضور</TabsTrigger>
-            <TabsTrigger value="salaries">الرواتب</TabsTrigger>
-            <TabsTrigger value="benefits">المزايا</TabsTrigger>
-            <TabsTrigger value="violations">المخالفات</TabsTrigger>
-            <TabsTrigger value="vacations">الإجازات</TabsTrigger>
-            <TabsTrigger value="documents">المستندات</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="personal" className="min-w-0 space-y-4">
+          <div className="overflow-x-auto pb-1">
+            <TabsList className="flex h-auto min-w-max rounded-xl">
+            <TabsTrigger value="personal" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">البيانات الشخصية</TabsTrigger>
+            <TabsTrigger value="hr" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">الموارد البشرية</TabsTrigger>
+            <TabsTrigger value="attendance" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">الحضور</TabsTrigger>
+            <TabsTrigger value="salaries" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">الرواتب</TabsTrigger>
+            <TabsTrigger value="benefits" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">المزايا</TabsTrigger>
+            <TabsTrigger value="violations" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">المخالفات</TabsTrigger>
+            <TabsTrigger value="vacations" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">الإجازات</TabsTrigger>
+            <TabsTrigger value="documents" className="px-3 py-2.5 text-xs sm:px-4 sm:text-sm">المستندات</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="personal" className="space-y-4">
             <div className="grid gap-6 md:grid-cols-2">
@@ -176,7 +182,6 @@ export default function EmployeeProfile() {
             <EmployeeDocuments employeeId={employee.id} documents={[]} />
           </TabsContent>
         </Tabs>
-      </div>
-    </>
+    </PageShell>
   );
 }

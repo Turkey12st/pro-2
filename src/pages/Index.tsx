@@ -81,28 +81,28 @@ export default function Index() {
 
   return (
     <div 
-      className="min-h-screen w-full flex flex-col items-center justify-center relative px-4"
+      className="relative flex min-h-screen w-full flex-col items-center justify-center px-4 py-8 sm:py-12"
       style={{
         background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       }}
     >
       {/* Header */}
-      <div className="text-center space-y-6 max-w-4xl w-full mb-8">
+      <div className="z-10 mb-8 w-full max-w-4xl space-y-6 text-center">
         <div className="space-y-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
+          <h1 className="text-3xl font-bold text-white drop-shadow-lg sm:text-4xl md:text-5xl">
             نظام إدارة الأعمال المتكامل
           </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
+          <p className="mx-auto max-w-2xl text-base text-white/90 sm:text-xl">
             منصة شاملة لإدارة جميع احتياجات شركتك من المحاسبة إلى إدارة الموارد البشرية
           </p>
         </div>
 
         {/* Quick Access Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4">
           <Button 
             onClick={() => navigate("/dashboard")}
             size="lg" 
-            className="bg-white text-gray-900 hover:bg-gray-100 text-lg px-8 py-3 shadow-lg"
+            className="w-full bg-white px-6 py-3 text-base text-gray-900 shadow-lg hover:bg-gray-100 sm:w-auto sm:px-8 sm:text-lg"
           >
             <LayoutDashboard className="h-5 w-5 ms-2" />
             لوحة المعلومات
@@ -114,7 +114,7 @@ export default function Index() {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-lg px-8 py-3"
+                className="w-full border-white/30 bg-white/10 px-6 py-3 text-base text-white hover:bg-white/20 sm:w-auto sm:px-8 sm:text-lg"
               >
                 الوصول السريع
                 <ChevronDown className="h-5 w-5 me-2" />
@@ -146,9 +146,9 @@ export default function Index() {
       </div>
 
       {/* Categories Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl w-full">
+      <div className="z-10 grid w-full max-w-6xl grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
         {quickAccessCategories.map((category) => (
-          <Card key={category.title} className={`${category.color} hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}>
+          <Card key={category.title} className={`${category.color} transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}>
             <CardHeader className="text-center pb-4">
               <div className={`mx-auto w-12 h-12 rounded-full bg-white flex items-center justify-center mb-3 shadow-sm`}>
                 <category.icon className={`h-6 w-6 ${category.iconColor}`} />

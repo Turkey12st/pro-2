@@ -33,6 +33,7 @@ export function AdminDashboard() {
     securityWarnings: 0,
     securityScore: 0
   });
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     loadStats();
@@ -41,13 +42,17 @@ export function AdminDashboard() {
   const loadStats = async () => {
     try {
       // جلب إحصائيات حقيقية من قاعدة البيانات
-      const { count: usersCount } = await supabase
+      setLoadError(null);
+      const { count: usersCount, error: usersError } = await supabase
         .from('user_roles')
-        .select('*', { count: 'exact', head: true });
+        .select('user_id', { count: 'exact', head: true });
 
-      const { count: employeesCount } = await supabase
+      const { count: employeesCount, error: employeesError } = await supabase
         .from('employees')
-        .select('*', { count: 'exact', head: true });
+        .select('id', { count: 'exact', head: true })
+        .eq('is_active', true);
+
+      if (usersError || employeesError) throw usersError || employeesError;
 
       setStats({
         totalUsers: usersCount || 0,
@@ -57,6 +62,7 @@ export function AdminDashboard() {
       });
     } catch (error) {
       console.error('Error loading stats:', error);
+      setLoadError('تعذر تحميل بعض إحصاءات الإدارة. تحقق من الاتصال أو الصلاحيات ثم أعد المحاولة.');
     }
   };
 
@@ -99,15 +105,17 @@ export function AdminDashboard() {
         </Badge>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="section-card p-2">
-          <TabsList className="grid grid-cols-3 lg:grid-cols-6 w-full gap-1 bg-transparent">
+      {loadError && <div className="rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm text-muted-foreground">{loadError}</div>}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0 space-y-6">
+        <div className="section-card overflow-x-auto p-2">
+          <TabsList className="flex h-auto min-w-max gap-1 bg-transparent">
             <TabsTrigger 
               value="overview" 
-              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="flex shrink-0 items-center gap-2 px-3 py-2.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:px-4 sm:text-sm"
             >
               <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">نظرة عامة</span>
+              <span>نظرة عامة</span>
             </TabsTrigger>
             <TabsTrigger 
               value="users" 
@@ -149,7 +157,7 @@ export function AdminDashboard() {
 
         <TabsContent value="overview" className="space-y-6 animate-in">
           {/* إحصائيات سريعة */}
-          <div className="dashboard-grid">
+          <div className="metric-grid">
             <Card className="stat-card">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">

@@ -59,7 +59,8 @@ const getStatusBadge = (status: string) => {
   switch (status) {
     case "planned":
       return { label: "مخطط له", variant: "secondary", icon: <Clock className="h-3 w-3 me-1" /> };
-    case "in-progress":
+                    case "in-progress":
+    case "in_progress":
       return { label: "قيد التنفيذ", variant: "warning", icon: <AlertTriangle className="h-3 w-3 me-1" /> };
     case "completed":
       return { label: "مكتمل", variant: "success", icon: <CheckCircle className="h-3 w-3 me-1" /> };
@@ -77,12 +78,12 @@ export default function ProjectList() {
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const navigate = useNavigate();
 
-  const { data: projects, isLoading } = useQuery({
+  const { data: projects, isLoading, isError, refetch } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("*")
+        .select("id,title,start_date,end_date,status,budget,progress")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -162,17 +163,27 @@ export default function ProjectList() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-20 w-full rounded-2xl" />
+        <Skeleton className="h-20 w-full rounded-2xl" />
+        <Skeleton className="h-20 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-destructive/25 bg-destructive/5 px-5 py-10 text-center">
+        <AlertTriangle className="h-7 w-7 text-destructive" />
+        <div><p className="font-semibold">تعذر تحميل المشاريع</p><p className="mt-1 text-sm text-muted-foreground">تحقق من الاتصال والصلاحيات ثم أعد المحاولة.</p></div>
+        <Button variant="outline" className="rounded-xl" onClick={() => void refetch()}>إعادة المحاولة</Button>
       </div>
     );
   }
 
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
+      <div className="table-scroll">
+        <Table className="responsive-table">
           <TableHeader>
             <TableRow>
               <TableHead>عنوان المشروع</TableHead>
@@ -235,7 +246,7 @@ export default function ProjectList() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" onClick={(event) => event.stopPropagation()} aria-label="إجراءات المشروع">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

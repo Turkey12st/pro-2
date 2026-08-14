@@ -16,14 +16,14 @@ export default function ProjectsPage() {
       description="متابعة المشاريع النشطة والمكتملة وإنشاء مشاريع جديدة"
       icon={FolderKanban}
       actions={
-        <Button onClick={() => setActiveTab("new")} className="gap-2">
+        <Button onClick={() => setActiveTab("new")} className="h-10 w-full gap-2 rounded-xl sm:w-auto">
           <Plus className="h-4 w-4" />
           مشروع جديد
         </Button>
       }
     >
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full sm:w-auto grid-cols-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0">
+        <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl sm:w-auto">
           <TabsTrigger value="list">قائمة المشاريع</TabsTrigger>
           <TabsTrigger value="new">مشروع جديد</TabsTrigger>
         </TabsList>

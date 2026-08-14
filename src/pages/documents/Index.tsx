@@ -25,7 +25,7 @@ export default function DocumentsPage() {
       description={t("pages.documents.description")}
       icon={FileText}
       actions={
-        <Button onClick={() => setAddOpen(true)} className="gap-2">
+        <Button onClick={() => setAddOpen(true)} className="h-10 w-full gap-2 rounded-xl sm:w-auto">
           <Plus className="h-4 w-4" /> {t("pages.documents.addDocument")}
         </Button>
       }
@@ -33,7 +33,7 @@ export default function DocumentsPage() {
       <DocumentsList key={refreshKey} />
 
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] w-[calc(100%-2rem)] overflow-y-auto sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>إضافة مستند جديد</DialogTitle>
             <DialogDescription>
