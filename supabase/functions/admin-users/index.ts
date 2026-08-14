@@ -21,6 +21,13 @@ serve(async (req) => {
   }
 
   try {
+    if (req.method !== 'POST') {
+      return new Response(
+        JSON.stringify({ error: 'طريقة الطلب غير مسموحة' }),
+        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Create admin client with service role key
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -54,14 +61,15 @@ serve(async (req) => {
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single();
+      .in('role', ['admin', 'owner'])
+      .limit(1)
+      .maybeSingle();
 
     if (roleError) {
       console.log('Role fetch error:', roleError);
     }
 
-    const allowedRoles = ['admin', 'owner'];
-    if (!userRole || !allowedRoles.includes(userRole.role)) {
+    if (!userRole) {
       console.log('User role not allowed:', userRole?.role);
       return new Response(
         JSON.stringify({ error: 'غير مصرح - ليس لديك صلاحية الوصول' }),
@@ -156,7 +164,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Admin users function error:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'حدث خطأ في الخادم' }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'حدث خطأ في الخادم' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

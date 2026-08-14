@@ -48,10 +48,11 @@ export default function FinancialReports() {
         startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
         endDate = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
         break;
-      case 'current-quarter':
+      case 'current-quarter': {
         const quarter = Math.floor(now.getMonth() / 3);
         startDate = new Date(now.getFullYear(), quarter * 3, 1).toISOString().split('T')[0];
         break;
+      }
       case 'year-to-date':
         startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
         break;

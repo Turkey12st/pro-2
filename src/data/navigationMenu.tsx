@@ -35,16 +35,16 @@ export function getNavigationMenu(t?: TFunction): MenuItem[] {
     { name: tr("nav.dashboard", "لوحة المعلومات"), href: "/dashboard", icon: LayoutDashboard, group: groups.overview },
     { name: tr("nav.executive", "لوحة تنفيذية"), href: "/dashboard/executive", icon: Crown, group: groups.overview },
 
-    { name: tr("nav.accounting", "المحاسبة"), href: "/accounting", icon: Receipt, group: groups.finance },
-    { name: tr("nav.financial", "التقارير المالية"), href: "/financial", icon: TrendingUp, group: groups.finance },
-    { name: tr("nav.capital", "إدارة رأس المال"), href: "/capital", icon: Building2, group: groups.finance },
-    { name: tr("nav.bankReconciliation", "المطابقة البنكية"), href: "/bank-reconciliation", icon: Landmark, group: groups.finance },
+    { name: tr("nav.accounting", "المحاسبة"), href: "/accounting", icon: Receipt, group: groups.finance, requiredPermissions: ['view_journal_entries'] },
+    { name: tr("nav.financial", "التقارير المالية"), href: "/financial", icon: TrendingUp, group: groups.finance, requiredPermissions: ['view_financials'] },
+    { name: tr("nav.capital", "إدارة رأس المال"), href: "/capital", icon: Building2, group: groups.finance, requiredPermissions: ['view_financials'] },
+    { name: tr("nav.bankReconciliation", "المطابقة البنكية"), href: "/bank-reconciliation", icon: Landmark, group: groups.finance, requiredPermissions: ['view_financials'] },
     { name: tr("nav.commissions", "العمولات"), href: "/commissions", icon: DollarSign, group: groups.finance },
 
-    { name: tr("nav.hr", "الموظفون والحضور"), href: "/hr", icon: Users, group: groups.hr },
+    { name: tr("nav.hr", "الموظفون والحضور"), href: "/hr", icon: Users, group: groups.hr, requiredPermissions: ['view_employees'] },
 
     { name: tr("nav.projects", "المشاريع"), href: "/projects", icon: ListChecks, group: groups.ops },
-    { name: tr("nav.clients", "العملاء"), href: "/clients", icon: Store, group: groups.ops },
+    { name: tr("nav.clients", "العملاء"), href: "/clients", icon: Store, group: groups.ops, requiredPermissions: ['view_clients'] },
     { name: tr("nav.partners", "الشركاء"), href: "/partners", icon: Link, group: groups.ops },
     { name: tr("nav.tenders", "المناقصات"), href: "/tenders", icon: Briefcase, group: groups.ops },
 
@@ -53,6 +53,6 @@ export function getNavigationMenu(t?: TFunction): MenuItem[] {
     { name: tr("nav.calendar", "التقويم"), href: "/calendar", icon: CalendarIcon, group: groups.system },
     { name: tr("nav.notifications", "الإشعارات والأتمتة"), href: "/notifications", icon: Bell, group: groups.system },
     { name: tr("nav.settings", "الإعدادات"), href: "/settings", icon: Settings, group: groups.system },
-    { name: tr("nav.admin", "لوحة الإدارة"), href: "/admin", icon: Shield, group: groups.system },
+    { name: tr("nav.admin", "لوحة الإدارة"), href: "/admin", icon: Shield, group: groups.system, requiredPermissions: ['manage_users'] },
   ];
 }

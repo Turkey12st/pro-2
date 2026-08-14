@@ -1,29 +1,31 @@
-
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { DesktopNav } from "./navigation/DesktopNav";
 import { MobileNav } from "./navigation/MobileNav";
 import { getNavigationMenu } from "@/data/navigationMenu";
-import { MenuItem } from "@/types/navigation";
+import type { MenuItem } from "@/types/navigation";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export function AppNavigation() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
+  const { permissions, isLoading } = usePermissions();
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const [pathname, setPathname] = useState("/");
-  const [user, setUser] = useState<any>(null); // Simplified user state
   const [groupedMenuItems, setGroupedMenuItems] = useState<Record<string, MenuItem[]>>({});
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
     setPathname(location.pathname);
-    setUser({ firstName: "مستخدم", imageUrl: "", username: "مستخدم النظام" });
 
-    // Get menu items (localized)
-    const navItems = getNavigationMenu(t);
+    const navItems = getNavigationMenu(t).filter((item) =>
+      !item.requiredPermissions || item.requiredPermissions.every((permission) => permissions.includes(permission))
+    );
     setMenuItems(navItems);
 
     const grouped: Record<string, MenuItem[]> = {};
@@ -33,40 +35,36 @@ export function AppNavigation() {
       grouped[group].push(item);
     });
     setGroupedMenuItems(grouped);
-  }, [location, i18n.language, t]);
+  }, [location.pathname, i18n.language, permissions, t]);
 
-  useEffect(() => {
-    setPathname(location.pathname);
-  }, [location.pathname]);
-
-  if (!isMounted) {
-    return null;
-  }
+  const navigationUser = user
+    ? {
+        name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "مستخدم",
+        email: user.email || "",
+        avatarUrl: user.user_metadata?.avatar_url || "",
+      }
+    : null;
 
   const isActive = (href: string): boolean => {
-    if (href === "/") {
-      return pathname === "/";
-    }
-    
-    if (href === "/dashboard" && pathname === "/dashboard") {
-      return true;
-    }
-    
+    if (href === "/") return pathname === "/";
+    if (href === "/dashboard" && pathname === "/dashboard") return true;
     return pathname.startsWith(href);
   };
 
+  if (!isMounted || isLoading) return null;
+
   return (
     <>
-      <DesktopNav 
-        menuItems={menuItems} 
+      <DesktopNav
+        menuItems={menuItems}
         groupedMenuItems={groupedMenuItems}
-        isActive={isActive} 
-        user={user} 
+        isActive={isActive}
+        user={navigationUser}
       />
-      <MobileNav 
-        menuItems={menuItems} 
-        isActive={isActive} 
-        user={user} 
+      <MobileNav
+        menuItems={menuItems}
+        isActive={isActive}
+        user={navigationUser}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
       />

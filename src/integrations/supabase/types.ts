@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounting_events: {
+        Row: {
+          accounting_event: string
+          company_id: string
+          created_at: string
+          failure_code: string | null
+          failure_detail: string | null
+          id: string
+          idempotency_key: string
+          journal_entry_id: string | null
+          processed_at: string | null
+          request_hash: string
+          requested_by: string
+          source_id: string
+          source_type: string
+          status: string
+        }
+        Insert: {
+          accounting_event: string
+          company_id: string
+          created_at?: string
+          failure_code?: string | null
+          failure_detail?: string | null
+          id?: string
+          idempotency_key: string
+          journal_entry_id?: string | null
+          processed_at?: string | null
+          request_hash: string
+          requested_by: string
+          source_id: string
+          source_type: string
+          status: string
+        }
+        Update: {
+          accounting_event?: string
+          company_id?: string
+          created_at?: string
+          failure_code?: string | null
+          failure_detail?: string | null
+          id?: string
+          idempotency_key?: string
+          journal_entry_id?: string | null
+          processed_at?: string | null
+          request_hash?: string
+          requested_by?: string
+          source_id?: string
+          source_type?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_events_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_events_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: true
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_transactions: {
         Row: {
           account_id: string | null
@@ -2352,6 +2418,7 @@ export type Database = {
       }
       journal_entries: {
         Row: {
+          accounting_event: string | null
           amount: number | null
           approved_at: string | null
           approved_by: string | null
@@ -2367,12 +2434,16 @@ export type Database = {
           exchange_rate: number | null
           financial_statement_section: string | null
           id: string
+          idempotency_key: string | null
           is_approved: boolean | null
           is_recurring: boolean | null
           posted_at: string | null
           posted_by: string | null
           recurrence_pattern: Json | null
           reference_number: string | null
+          reversal_of_journal_entry_id: string | null
+          source_id: string | null
+          source_type: string | null
           status: string | null
           tags: string[] | null
           total_credit: number | null
@@ -2380,6 +2451,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accounting_event?: string | null
           amount?: number | null
           approved_at?: string | null
           approved_by?: string | null
@@ -2395,12 +2467,16 @@ export type Database = {
           exchange_rate?: number | null
           financial_statement_section?: string | null
           id?: string
+          idempotency_key?: string | null
           is_approved?: boolean | null
           is_recurring?: boolean | null
           posted_at?: string | null
           posted_by?: string | null
           recurrence_pattern?: Json | null
           reference_number?: string | null
+          reversal_of_journal_entry_id?: string | null
+          source_id?: string | null
+          source_type?: string | null
           status?: string | null
           tags?: string[] | null
           total_credit?: number | null
@@ -2408,6 +2484,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accounting_event?: string | null
           amount?: number | null
           approved_at?: string | null
           approved_by?: string | null
@@ -2423,12 +2500,16 @@ export type Database = {
           exchange_rate?: number | null
           financial_statement_section?: string | null
           id?: string
+          idempotency_key?: string | null
           is_approved?: boolean | null
           is_recurring?: boolean | null
           posted_at?: string | null
           posted_by?: string | null
           recurrence_pattern?: Json | null
           reference_number?: string | null
+          reversal_of_journal_entry_id?: string | null
+          source_id?: string | null
+          source_type?: string | null
           status?: string | null
           tags?: string[] | null
           total_credit?: number | null
@@ -2441,6 +2522,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_reversal_of_journal_entry_id_fkey"
+            columns: ["reversal_of_journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -3974,6 +4062,21 @@ export type Database = {
         Returns: boolean
       }
       count_journal_entries: { Args: never; Returns: number }
+      create_accounting_event: {
+        Args: {
+          p_accounting_event: string
+          p_auto_post?: boolean
+          p_company_id: string
+          p_currency: string
+          p_description: string
+          p_entry_date: string
+          p_idempotency_key: string
+          p_lines: Json
+          p_source_id: string
+          p_source_type: string
+        }
+        Returns: Json
+      }
       create_api_integration: {
         Args: {
           integration_active?: boolean
@@ -4291,3 +4394,4 @@ export const Constants = {
     },
   },
 } as const
+

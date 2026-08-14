@@ -1,11 +1,13 @@
-
-// خدمة الربط المالي العالمي
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
+import {
+  createAccountingEvent,
+  type AccountingEventResult,
+} from "@/services/accountingPostingService";
 
 export interface FinancialTransaction {
   id: string;
   amount: number;
-  type: 'debit' | 'credit';
+  type: "debit" | "credit";
   accountId: string;
   description: string;
   referenceId: string;
@@ -13,8 +15,26 @@ export interface FinancialTransaction {
   date: string;
 }
 
+interface SalaryData {
+  total_salary: number;
+  gosi_subscription?: number;
+  employee_name?: string;
+}
 
-/** دليل الحسابات القياسي المستخدم في القيود التلقائية */
+interface ProjectExpenseData {
+  amount: number;
+  description: string;
+  date: string;
+}
+
+interface CapitalTransactionData {
+  id: string;
+  amount: number;
+  transaction_type: "increase" | "decrease";
+  effective_date: string;
+}
+
+/** دليل الحسابات القياسي المطلوب للأتمتة؛ لا يُنشأ تلقائياً من الواجهة. */
 export const STANDARD_ACCOUNTS: Record<string, { name: string; type: string; balance: string }> = {
   "1110": { name: "النقدية", type: "asset", balance: "debit" },
   "1120": { name: "المدينون", type: "asset", balance: "debit" },
@@ -26,229 +46,246 @@ export const STANDARD_ACCOUNTS: Record<string, { name: string; type: string; bal
   "5120": { name: "مصروفات المشاريع", type: "expense", balance: "debit" },
 };
 
-/** تحويل أرقام الحسابات إلى معرفات دليل الحسابات (وإنشاؤها عند الحاجة) */
-export async function resolveAccountIds(accountNumbers: string[]): Promise<Record<string, string>> {
-  const unique = [...new Set(accountNumbers)];
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+async function getActiveCompanyId(): Promise<string> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("يجب تسجيل الدخول قبل إنشاء حدث مالي");
+  }
+
+  const { data: membership, error: membershipError } = await supabase
+    .from("users_companies")
+    .select("company_id, is_default, created_at")
+    .eq("user_id", user.id)
+    .order("is_default", { ascending: false })
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (membershipError || !membership?.company_id) {
+    throw new Error("لا توجد شركة نشطة مرتبطة بحسابك");
+  }
+
+  return membership.company_id;
+}
+
+/**
+ * يطابق أرقام الحسابات مع دليل حسابات الشركة الحالية أو حسابات النظام العامة.
+ * لا تنشئ الخدمة حسابات تلقائياً لأن إنشاء الدليل يتطلب موافقة وإدارة مالية.
+ */
+export async function resolveAccountIds(
+  accountNumbers: string[],
+  companyId: string
+): Promise<Record<string, string>> {
+  const uniqueNumbers = [...new Set(accountNumbers)];
   const { data, error } = await supabase
     .from("chart_of_accounts")
-    .select("id, account_number")
-    .in("account_number", unique);
+    .select("id, account_number, company_id, is_active")
+    .in("account_number", uniqueNumbers)
+    .eq("is_active", true);
+
   if (error) throw error;
 
-  const map: Record<string, string> = {};
-  (data ?? []).forEach((a: any) => { map[a.account_number] = a.id; });
+  const accountMap: Record<string, string> = {};
+  for (const number of uniqueNumbers) {
+    const account = (data ?? []).find(
+      (candidate) =>
+        candidate.account_number === number && candidate.company_id === companyId
+    ) ?? (data ?? []).find(
+      (candidate) => candidate.account_number === number && candidate.company_id === null
+    );
 
-  const missing = unique.filter((n) => !map[n]);
-  if (missing.length > 0) {
-    const { data: uc } = await supabase.from("users_companies").select("company_id").limit(1).maybeSingle();
-    for (const number of missing) {
-      const meta = STANDARD_ACCOUNTS[number] ?? { name: `حساب ${number}`, type: "asset", balance: "debit" };
-      const { data: id, error: rpcError } = await (supabase as any).rpc("get_or_create_account", {
-        p_company: uc?.company_id ?? null,
-        p_number: number,
-        p_name: meta.name,
-        p_type: meta.type,
-        p_balance_type: meta.balance,
-      });
-      if (rpcError) throw rpcError;
-      map[number] = id as string;
+    if (!account) {
+      throw new Error(`الحساب ${number} غير مهيأ للشركة الحالية أو غير نشط`);
     }
+
+    accountMap[number] = account.id;
   }
-  return map;
+
+  return accountMap;
 }
 
 export class FinancialIntegrationService {
-  // إنشاء قيد محاسبي تلقائي
+  /**
+   * ينشئ حدثاً محاسبياً في مسودة عبر RPC. يتحقق الخادم من التوازن والصلاحية
+   * وعزل الشركة ويمنع التكرار عبر المصدر والحدث ومفتاح الإعادة.
+   */
   static async createAutomaticJournalEntry(
     description: string,
     transactions: FinancialTransaction[],
     referenceType: string,
     referenceId: string
-  ) {
-    try {
-      // التحقق من توازن القيد (مجموع المدين = مجموع الدائن)
-      const totalDebit = transactions
-        .filter(t => t.type === 'debit')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const totalCredit = transactions
-        .filter(t => t.type === 'credit')
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      if (Math.abs(totalDebit - totalCredit) > 0.01) {
-        throw new Error('Journal entry is not balanced');
-      }
-
-      // إنشاء القيد الرئيسي
-      const { data: journalEntry, error: journalError } = await supabase
-        .from('journal_entries')
-        .insert({
-          entry_name: description,
-          description,
-          entry_date: new Date().toISOString().split('T')[0],
-          total_debit: totalDebit,
-          total_credit: totalCredit,
-          status: 'posted',
-          entry_type: 'automatic',
-          financial_statement_section: 'balance_sheet'
-        })
-        .select()
-        .single();
-
-      if (journalError) throw journalError;
-
-      // تحويل أرقام الحسابات إلى معرفات دليل الحسابات
-      const accountMap = await resolveAccountIds(transactions.map(t => t.accountId));
-
-      // إنشاء بنود القيد
-      const journalItems = transactions.map(transaction => ({
-        journal_entry_id: journalEntry.id,
-        account_id: accountMap[transaction.accountId],
-        description: transaction.description,
-        debit: transaction.type === 'debit' ? transaction.amount : 0,
-        credit: transaction.type === 'credit' ? transaction.amount : 0
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('journal_entry_items')
-        .insert(journalItems);
-
-      if (itemsError) throw itemsError;
-
-      // تسجيل المعاملة في جدول المعاملات المحاسبية
-      const accountingTransactions = transactions.map(transaction => ({
-        journal_entry_id: journalEntry.id,
-        account_id: accountMap[transaction.accountId],
-        reference_id: referenceId,
-        reference_type: referenceType,
-        transaction_date: new Date().toISOString().split('T')[0],
-        debit_amount: transaction.type === 'debit' ? transaction.amount : 0,
-        credit_amount: transaction.type === 'credit' ? transaction.amount : 0,
-        description: transaction.description,
-        status: 'completed',
-        auto_generated: true
-      }));
-
-      await supabase
-        .from('accounting_transactions')
-        .insert(accountingTransactions);
-
-      return journalEntry;
-    } catch (error) {
-      console.error('Error creating automatic journal entry:', error);
-      throw error;
+  ): Promise<AccountingEventResult> {
+    if (!UUID_PATTERN.test(referenceId)) {
+      throw new Error("مرجع الحدث المالي يجب أن يكون UUID صالحاً");
     }
+
+    const totalDebit = transactions
+      .filter((transaction) => transaction.type === "debit")
+      .reduce((sum, transaction) => sum + Number(transaction.amount || 0), 0);
+    const totalCredit = transactions
+      .filter((transaction) => transaction.type === "credit")
+      .reduce((sum, transaction) => sum + Number(transaction.amount || 0), 0);
+
+    if (transactions.length < 2 || Math.abs(totalDebit - totalCredit) > 0.009) {
+      throw new Error("القيد المحاسبي غير متوازن");
+    }
+
+    const companyId = await getActiveCompanyId();
+    const accountMap = await resolveAccountIds(
+      transactions.map((transaction) => transaction.accountId),
+      companyId
+    );
+
+    return createAccountingEvent({
+      companyId,
+      sourceType: referenceType,
+      sourceId: referenceId,
+      eventType: `${referenceType}_accrued`,
+      entryDate: transactions[0]?.date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
+      description,
+      currency: "SAR",
+      idempotencyKey: crypto.randomUUID(),
+      autoPost: false,
+      lines: transactions.map((transaction) => ({
+        account_id: accountMap[transaction.accountId],
+        description: transaction.description,
+        debit: transaction.type === "debit" ? Number(transaction.amount) : 0,
+        credit: transaction.type === "credit" ? Number(transaction.amount) : 0,
+        currency: "SAR",
+      })),
+    });
   }
 
-  // ربط راتب الموظف بالنظام المحاسبي
-  static async linkEmployeeSalary(employeeId: string, salaryData: any) {
+  static async linkEmployeeSalary(
+    employeeId: string,
+    salaryData: SalaryData
+  ): Promise<AccountingEventResult> {
+    const grossSalary = Number(salaryData.total_salary || 0);
+    const gosiAmount = Number(salaryData.gosi_subscription || 0);
+    const netSalary = grossSalary - gosiAmount;
+
+    if (grossSalary <= 0 || netSalary < 0) {
+      throw new Error("قيم الراتب غير صالحة للترحيل");
+    }
+
     const transactions: FinancialTransaction[] = [
       {
         id: `salary-${employeeId}-gross`,
-        amount: salaryData.total_salary,
-        type: 'debit',
-        accountId: '5110', // مصروف الرواتب
-        description: `راتب الموظف - إجمالي`,
+        amount: grossSalary,
+        type: "debit",
+        accountId: "5110",
+        description: "مصروف راتب الموظف",
         referenceId: employeeId,
-        referenceType: 'employee_salary',
-        date: new Date().toISOString()
+        referenceType: "employee_salary",
+        date: new Date().toISOString(),
       },
       {
         id: `salary-${employeeId}-net`,
-        amount: salaryData.total_salary - (salaryData.gosi_subscription || 0),
-        type: 'credit',
-        accountId: '2110', // الرواتب المستحقة
-        description: `راتب الموظف - صافي`,
+        amount: netSalary,
+        type: "credit",
+        accountId: "2110",
+        description: "رواتب مستحقة الدفع",
         referenceId: employeeId,
-        referenceType: 'employee_salary',
-        date: new Date().toISOString()
-      }
+        referenceType: "employee_salary",
+        date: new Date().toISOString(),
+      },
     ];
 
-    // إضافة التأمينات الاجتماعية إذا وُجدت
-    if (salaryData.gosi_subscription > 0) {
+    if (gosiAmount > 0) {
       transactions.push({
         id: `salary-${employeeId}-gosi`,
-        amount: salaryData.gosi_subscription,
-        type: 'credit',
-        accountId: '2120', // التأمينات الاجتماعية المستحقة
-        description: `تأمينات اجتماعية`,
+        amount: gosiAmount,
+        type: "credit",
+        accountId: "2120",
+        description: "تأمينات اجتماعية مستحقة",
         referenceId: employeeId,
-        referenceType: 'employee_salary',
-        date: new Date().toISOString()
+        referenceType: "employee_salary",
+        date: new Date().toISOString(),
       });
     }
 
-    return await this.createAutomaticJournalEntry(
-      `راتب الموظف - ${salaryData.employee_name}`,
+    return this.createAutomaticJournalEntry(
+      `استحقاق راتب ${salaryData.employee_name || "موظف"}`,
       transactions,
-      'employee_salary',
+      "employee_salary",
       employeeId
     );
   }
 
-  // ربط مصروفات المشروع
-  static async linkProjectExpense(projectId: string, expenseData: any) {
-    const transactions: FinancialTransaction[] = [
-      {
-        id: `project-${projectId}-expense`,
-        amount: expenseData.amount,
-        type: 'debit',
-        accountId: '5120', // مصروفات المشاريع
-        description: expenseData.description,
-        referenceId: projectId,
-        referenceType: 'project_expense',
-        date: expenseData.date
-      },
-      {
-        id: `project-${projectId}-payable`,
-        amount: expenseData.amount,
-        type: 'credit',
-        accountId: '2130', // المصروفات المستحقة
-        description: expenseData.description,
-        referenceId: projectId,
-        referenceType: 'project_expense',
-        date: expenseData.date
-      }
-    ];
+  static async linkProjectExpense(
+    projectId: string,
+    expenseData: ProjectExpenseData
+  ): Promise<AccountingEventResult> {
+    const amount = Number(expenseData.amount || 0);
+    if (amount <= 0) throw new Error("قيمة مصروف المشروع يجب أن تكون موجبة");
 
-    return await this.createAutomaticJournalEntry(
+    return this.createAutomaticJournalEntry(
       `مصروف مشروع - ${expenseData.description}`,
-      transactions,
-      'project_expense',
+      [
+        {
+          id: `project-${projectId}-expense`,
+          amount,
+          type: "debit",
+          accountId: "5120",
+          description: expenseData.description,
+          referenceId: projectId,
+          referenceType: "project_expense",
+          date: expenseData.date,
+        },
+        {
+          id: `project-${projectId}-payable`,
+          amount,
+          type: "credit",
+          accountId: "2130",
+          description: expenseData.description,
+          referenceId: projectId,
+          referenceType: "project_expense",
+          date: expenseData.date,
+        },
+      ],
+      "project_expense",
       projectId
     );
   }
 
-  // ربط رأس المال
-  static async linkCapitalTransaction(capitalData: any) {
-    const transactions: FinancialTransaction[] = [
-      {
-        id: `capital-${capitalData.id}`,
-        amount: capitalData.amount,
-        type: capitalData.transaction_type === 'increase' ? 'debit' : 'credit',
-        accountId: '1110', // النقدية
-        description: `${capitalData.transaction_type === 'increase' ? 'زيادة' : 'تخفيض'} رأس المال`,
-        referenceId: capitalData.id,
-        referenceType: 'capital_transaction',
-        date: capitalData.effective_date
-      },
-      {
-        id: `capital-equity-${capitalData.id}`,
-        amount: capitalData.amount,
-        type: capitalData.transaction_type === 'increase' ? 'credit' : 'debit',
-        accountId: '3100', // رأس المال
-        description: `${capitalData.transaction_type === 'increase' ? 'زيادة' : 'تخفيض'} رأس المال`,
-        referenceId: capitalData.id,
-        referenceType: 'capital_transaction',
-        date: capitalData.effective_date
-      }
-    ];
+  static async linkCapitalTransaction(
+    capitalData: CapitalTransactionData
+  ): Promise<AccountingEventResult> {
+    const amount = Number(capitalData.amount || 0);
+    if (amount <= 0) throw new Error("قيمة رأس المال يجب أن تكون موجبة");
 
-    return await this.createAutomaticJournalEntry(
-      `معاملة رأس المال`,
-      transactions,
-      'capital_transaction',
+    const isIncrease = capitalData.transaction_type === "increase";
+    return this.createAutomaticJournalEntry(
+      isIncrease ? "زيادة رأس المال" : "تخفيض رأس المال",
+      [
+        {
+          id: `capital-${capitalData.id}`,
+          amount,
+          type: isIncrease ? "debit" : "credit",
+          accountId: "1110",
+          description: isIncrease ? "زيادة نقدية لرأس المال" : "تخفيض نقدي لرأس المال",
+          referenceId: capitalData.id,
+          referenceType: "capital_transaction",
+          date: capitalData.effective_date,
+        },
+        {
+          id: `capital-equity-${capitalData.id}`,
+          amount,
+          type: isIncrease ? "credit" : "debit",
+          accountId: "3100",
+          description: isIncrease ? "زيادة حقوق الملكية" : "تخفيض حقوق الملكية",
+          referenceId: capitalData.id,
+          referenceType: "capital_transaction",
+          date: capitalData.effective_date,
+        },
+      ],
+      "capital_transaction",
       capitalData.id
     );
   }

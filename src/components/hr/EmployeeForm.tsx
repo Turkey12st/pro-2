@@ -124,7 +124,7 @@ export default function EmployeeForm({ onSuccess }: { onSuccess: () => void }) {
       }
 
       let photoPath = '';
-      let documentUrls = [];
+      const documentUrls = [];
 
       if (photo) {
         const photoFileName = `${crypto.randomUUID()}-${photo.name}`;

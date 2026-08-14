@@ -8,11 +8,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { MenuItem } from "@/types/navigation";
 
+interface NavigationUser {
+  name: string;
+  email: string;
+  avatarUrl: string;
+}
+
 interface DesktopNavProps {
   menuItems: MenuItem[];
   groupedMenuItems: Record<string, MenuItem[]>;
   isActive: (href: string) => boolean;
-  user: any;
+  user: NavigationUser | null;
 }
 
 export function DesktopNav({
@@ -105,13 +111,13 @@ export function DesktopNav({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="w-full justify-start gap-2">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={user.imageUrl} alt={user.firstName || "مستخدم"} />
+                  <AvatarImage src={user.avatarUrl} alt={user.name} />
                   <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                    {user.firstName?.charAt(0) || user.username?.charAt(0) || "م"}
+                    {user.name.charAt(0) || "م"}
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-sm font-medium">
-                  {user.firstName || user.username || "حسابي"}
+                  {user.name || "حسابي"}
                 </span>
               </Button>
             </DropdownMenuTrigger>

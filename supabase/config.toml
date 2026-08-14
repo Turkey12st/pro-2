@@ -35,16 +35,16 @@ double_confirm_changes = true
 enable_confirmations = false
 
 [functions.send-email]
-verify_jwt = false
+verify_jwt = true
 
 [functions.saudi-gov-integration]
-verify_jwt = false
+verify_jwt = true
 
 [functions.accounting-automation]
-verify_jwt = false
+verify_jwt = true
 
 [functions.admin-users]
-verify_jwt = false
+verify_jwt = true
 
 [functions.gosi-integration]
-verify_jwt = false
+verify_jwt = true

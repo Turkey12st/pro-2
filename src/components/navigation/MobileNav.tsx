@@ -17,10 +17,16 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+interface NavigationUser {
+  name: string;
+  email: string;
+  avatarUrl: string;
+}
+
 interface MobileNavProps {
   menuItems: MenuItem[];
   isActive: (href: string) => boolean;
-  user: any;
+  user: NavigationUser | null;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
 }

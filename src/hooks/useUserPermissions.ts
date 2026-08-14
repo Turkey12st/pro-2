@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useMemo } from "react";
+import { usePermissions } from "@/hooks/usePermissions";
+import type { UserRole } from "@/types/permissions";
 
 export interface UserPermissions {
   isMainAccount: boolean;
@@ -11,15 +11,14 @@ export interface UserPermissions {
   canManageUsers: boolean;
 }
 
-// تحديد الصلاحيات بناءً على الدور
-const ROLE_PERMISSIONS: Record<string, UserPermissions> = {
+const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
   admin: {
     isMainAccount: true,
     canCreate: true,
     canUpdate: true,
     canDelete: true,
     canViewFinancials: true,
-    canManageUsers: true
+    canManageUsers: true,
   },
   owner: {
     isMainAccount: true,
@@ -27,7 +26,7 @@ const ROLE_PERMISSIONS: Record<string, UserPermissions> = {
     canUpdate: true,
     canDelete: true,
     canViewFinancials: true,
-    canManageUsers: true
+    canManageUsers: true,
   },
   accountant: {
     isMainAccount: false,
@@ -35,7 +34,7 @@ const ROLE_PERMISSIONS: Record<string, UserPermissions> = {
     canUpdate: true,
     canDelete: false,
     canViewFinancials: true,
-    canManageUsers: false
+    canManageUsers: false,
   },
   hr_manager: {
     isMainAccount: false,
@@ -43,7 +42,7 @@ const ROLE_PERMISSIONS: Record<string, UserPermissions> = {
     canUpdate: true,
     canDelete: false,
     canViewFinancials: false,
-    canManageUsers: false
+    canManageUsers: false,
   },
   sales_manager: {
     isMainAccount: false,
@@ -51,7 +50,7 @@ const ROLE_PERMISSIONS: Record<string, UserPermissions> = {
     canUpdate: true,
     canDelete: false,
     canViewFinancials: false,
-    canManageUsers: false
+    canManageUsers: false,
   },
   viewer: {
     isMainAccount: false,
@@ -59,79 +58,32 @@ const ROLE_PERMISSIONS: Record<string, UserPermissions> = {
     canUpdate: false,
     canDelete: false,
     canViewFinancials: false,
-    canManageUsers: false
-  }
+    canManageUsers: false,
+  },
 };
 
+/**
+ * واجهة توافقية للمكوّنات القديمة. تعتمد الآن على الشركة الافتراضية والدور
+ * المقيد بها من usePermissions؛ ولا تمنح صلاحيات مدير عند غياب الدور.
+ */
 export function useUserPermissions() {
-  const [permissions, setPermissions] = useState<UserPermissions>({
-    isMainAccount: false,
-    canCreate: false,
-    canUpdate: false,
-    canDelete: false,
-    canViewFinancials: false,
-    canManageUsers: false
-  });
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [companyId, setCompanyId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const {
+    userRole,
+    companyId,
+    isLoading,
+    refreshPermissions,
+  } = usePermissions();
 
-  useEffect(() => {
-    loadUserPermissions();
-  }, []);
-
-  const loadUserPermissions = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      // جلب دور المستخدم من الهيكل الجديد (بدون عمود permissions)
-      const { data: userRoleData, error } = await supabase
-        .from('user_roles')
-        .select('role, company_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching user role:', error);
-        throw error;
-      }
-
-      if (userRoleData) {
-        const role = userRoleData.role || 'admin';
-        setUserRole(role);
-        setCompanyId(userRoleData.company_id);
-        
-        const rolePermissions = ROLE_PERMISSIONS[role] || ROLE_PERMISSIONS.admin;
-        setPermissions(rolePermissions);
-      } else {
-        // إذا لم يوجد دور محدد، يُعتبر مدير (المالك الأصلي)
-        setUserRole('admin');
-        setPermissions(ROLE_PERMISSIONS.admin);
-      }
-    } catch (error) {
-      console.error('Error loading user permissions:', error);
-      toast({
-        title: 'خطأ في تحميل الصلاحيات',
-        description: 'حدث خطأ أثناء تحميل صلاحيات المستخدم',
-        variant: 'destructive',
-      });
-      
-      setPermissions(ROLE_PERMISSIONS.viewer);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const permissions = useMemo(
+    () => ROLE_PERMISSIONS[userRole] ?? ROLE_PERMISSIONS.viewer,
+    [userRole]
+  );
 
   return {
     permissions,
     userRole,
     companyId,
-    loading,
-    refreshPermissions: loadUserPermissions
+    loading: isLoading,
+    refreshPermissions,
   };
 }

@@ -57,16 +57,16 @@ function App() {
               <Route path="/main" element={<ProtectedRoute><AppLayout><MainPage /></AppLayout></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><AppLayout><DashboardPage /></AppLayout></ProtectedRoute>} />
               <Route path="/dashboard/executive" element={<ProtectedRoute requiredRoles={['admin']}><AppLayout><ExecutiveDashboard /></AppLayout></ProtectedRoute>} />
-              <Route path="/accounting" element={<ProtectedRoute><AppLayout><AccountingPage /></AppLayout></ProtectedRoute>} />
-              <Route path="/financial" element={<ProtectedRoute><AppLayout><FinancialPage /></AppLayout></ProtectedRoute>} />
-              <Route path="/bank-reconciliation" element={<ProtectedRoute><AppLayout><BankReconciliationPage /></AppLayout></ProtectedRoute>} />
-              <Route path="/capital" element={<ProtectedRoute><AppLayout><CapitalManagementPage /></AppLayout></ProtectedRoute>} />
-              <Route path="/hr" element={<ProtectedRoute><AppLayout><HRPage /></AppLayout></ProtectedRoute>} />
-              <Route path="/hr/employee/:id" element={<ProtectedRoute><AppLayout><EmployeeProfile /></AppLayout></ProtectedRoute>} />
+              <Route path="/accounting" element={<ProtectedRoute requiredPermissions={['view_journal_entries']}><AppLayout><AccountingPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/financial" element={<ProtectedRoute requiredPermissions={['view_financials']}><AppLayout><FinancialPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/bank-reconciliation" element={<ProtectedRoute requiredPermissions={['view_financials']}><AppLayout><BankReconciliationPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/capital" element={<ProtectedRoute requiredPermissions={['view_financials']}><AppLayout><CapitalManagementPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/hr" element={<ProtectedRoute requiredPermissions={['view_employees']}><AppLayout><HRPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/hr/employee/:id" element={<ProtectedRoute requiredPermissions={['view_employees']}><AppLayout><EmployeeProfile /></AppLayout></ProtectedRoute>} />
               <Route path="/documents" element={<ProtectedRoute><AppLayout><DocumentsPage /></AppLayout></ProtectedRoute>} />
               <Route path="/projects" element={<ProtectedRoute><AppLayout><ProjectsPage /></AppLayout></ProtectedRoute>} />
               <Route path="/projects/:id" element={<ProtectedRoute><AppLayout><ProjectDetails /></AppLayout></ProtectedRoute>} />
-              <Route path="/clients" element={<ProtectedRoute><AppLayout><ClientsPage /></AppLayout></ProtectedRoute>} />
+              <Route path="/clients" element={<ProtectedRoute requiredPermissions={['view_clients']}><AppLayout><ClientsPage /></AppLayout></ProtectedRoute>} />
               <Route path="/company" element={<ProtectedRoute><AppLayout><CompanyPage /></AppLayout></ProtectedRoute>} />
               <Route path="/partners" element={<ProtectedRoute><AppLayout><PartnersPage /></AppLayout></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><AppLayout><SettingsPage /></AppLayout></ProtectedRoute>} />
@@ -78,7 +78,7 @@ function App() {
               
               {/* Admin only routes */}
               <Route path="/admin" element={
-                <ProtectedRoute requiredRoles={['admin']}>
+                <ProtectedRoute requiredRoles={['admin']} requiredPermissions={['manage_users']}>
                   <AppLayout><AdminPage /></AppLayout>
                 </ProtectedRoute>
               } />

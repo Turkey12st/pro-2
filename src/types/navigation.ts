@@ -1,5 +1,6 @@
 
 import { LucideIcon } from "lucide-react";
+import type { Permission } from "@/types/permissions";
 
 export interface MenuItem {
   name: string;
@@ -12,4 +13,5 @@ export interface MenuItem {
   disabled?: boolean; // For disabling menu items
   exact?: boolean; // For exact matching of routes in navigation
   title?: string; // Additional property for compatibility
+  requiredPermissions?: Permission[];
 }

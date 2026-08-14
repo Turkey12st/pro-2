@@ -1,15 +1,16 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { JournalEntry } from "@/types/database";
-import { validateJournalEntry } from "@/utils/journalEntryHelpers";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { JournalEntryHeader } from "./JournalEntryHeader";
 import { JournalEntryLines } from "./JournalEntryLines";
+import { usePermissions } from "@/hooks/usePermissions";
+import { createAccountingEvent } from "@/services/accountingPostingService";
 
 interface JournalEntryFormProps {
   initialData?: Partial<JournalEntry>;
@@ -33,6 +34,7 @@ export default function JournalEntryForm({
 }: JournalEntryFormProps) {
   const { toast } = useToast();
   const { accounts, isLoading: isLoadingAccounts } = useChartOfAccounts();
+  const { companyId } = usePermissions();
   const [formData, setFormData] = useState<Partial<JournalEntry>>({
     description: initialData?.description || "",
     entry_name: initialData?.entry_name || "",
@@ -52,6 +54,8 @@ export default function JournalEntryForm({
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBalanced, setIsBalanced] = useState(true);
+  const sourceIdRef = useRef(crypto.randomUUID());
+  const idempotencyKeyRef = useRef(crypto.randomUUID());
 
   // تحميل بنود القيد عند التعديل
   useEffect(() => {
@@ -172,82 +176,50 @@ export default function JournalEntryForm({
     setIsSubmitting(true);
 
     try {
-      let journalEntryId: string;
-      
-      const entryData = {
-        description: formData.description || "",
-        entry_date: formData.entry_date || "",
-        entry_name: formData.entry_name,
-        financial_statement_section: formData.financial_statement_section,
-        total_debit: formData.total_debit,
-        total_credit: formData.total_credit,
-        currency: formData.currency,
-        exchange_rate: formData.exchange_rate,
-      };
-      
-      if (initialData?.id) {
-        const { data, error } = await supabase
-          .from("journal_entries")
-          .update(entryData)
-          .eq("id", initialData.id)
-          .select();
-          
-        if (error) throw error;
-        
-        if (!data || data.length === 0) {
-          throw new Error("لم يتم العثور على القيد المحاسبي");
-        }
-        
-        journalEntryId = initialData.id;
-        
-        await supabase
-          .from("journal_entry_items")
-          .delete()
-          .eq("journal_entry_id", journalEntryId);
-      } else {
-        const { data, error } = await supabase
-          .from("journal_entries")
-          .insert(entryData)
-          .select();
-          
-        if (error) throw error;
-        
-        if (!data || data.length === 0) {
-          throw new Error("فشل في إنشاء القيد المحاسبي");
-        }
-        
-        journalEntryId = data[0].id;
+      if (!companyId) {
+        throw new Error("لا توجد شركة نشطة مرتبطة بحسابك");
       }
-      
-      const entryItemsData = entryLines.map(line => ({
-        journal_entry_id: journalEntryId,
-        account_id: line.account_id,
-        account_number: line.account_number,
-        description: line.description || "",
-        debit: line.debit || 0,
-        credit: line.credit || 0,
-      }));
-      
-      const { error: itemsError } = await supabase
-        .from("journal_entry_items")
-        .insert(entryItemsData);
-        
-      if (itemsError) throw itemsError;
-      
-      const { data: updatedEntry, error: fetchError } = await supabase
+
+      if (initialData?.id) {
+        throw new Error("تعديل القيود يتم عبر طلب عكس أو مسار خادمي مخصص؛ لا يمكن تعديل القيد مباشرة");
+      }
+
+      const entryLabel = formData.entry_name || formData.description || "قيد يدوي";
+      const eventResult = await createAccountingEvent({
+        companyId,
+        sourceType: "manual_journal",
+        sourceId: sourceIdRef.current,
+        eventType: "manual_journal_draft",
+        entryDate: formData.entry_date || format(new Date(), "yyyy-MM-dd"),
+        description: `${entryLabel}: ${formData.description || ""}`.trim(),
+        currency: formData.currency || "SAR",
+        idempotencyKey: idempotencyKeyRef.current,
+        lines: entryLines.map((line) => ({
+          account_id: line.account_id,
+          description: line.description || "",
+          debit: Number(line.debit) || 0,
+          credit: Number(line.credit) || 0,
+          currency: formData.currency || "SAR",
+          exchange_rate: Number(formData.exchange_rate) || 1,
+        })),
+      });
+
+      const { data: createdEntry, error: fetchError } = await supabase
         .from("journal_entries")
         .select("*")
-        .eq("id", journalEntryId)
+        .eq("id", eventResult.journal_entry_id)
         .single();
-        
-      if (fetchError) throw fetchError;
-      
+
+      if (fetchError || !createdEntry) {
+        throw new Error(fetchError?.message || "تم إنشاء القيد لكن تعذر استرجاعه");
+      }
+
       toast({
-        title: initialData?.id ? "تم التعديل" : "تم الإضافة",
-        description: `تم ${initialData?.id ? "تعديل" : "إضافة"} القيد بنجاح`,
+        title: "تم إنشاء مسودة القيد",
+        description: "تم إنشاء القيد عبر محرك محاسبي خادمي آمن",
       });
-      
-      onSuccess(updatedEntry as JournalEntry);
+
+      onSuccess(createdEntry as JournalEntry);
     } catch (error) {
       console.error("خطأ:", error);
       toast({
