@@ -63,12 +63,17 @@ export function AttendanceManagement({ employeeId }: AttendanceManagementProps) 
       setIsLoading(true);
       console.log('Loading attendance records...');
       
-      // استخدام استعلام مباشر بدلاً من RPC
+      // نستخدم بداية الشهر التالي كحد حصري، لأن اليوم 32 ليس تاريخاً صالحاً.
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const nextMonthStart = new Date(Date.UTC(year, month, 1))
+        .toISOString()
+        .slice(0, 10);
+
       let query = supabase
         .from('attendance_records')
         .select('*')
         .gte('date', `${selectedMonth}-01`)
-        .lt('date', `${selectedMonth}-32`)
+        .lt('date', nextMonthStart)
         .order('date', { ascending: false });
 
       if (employeeId) {

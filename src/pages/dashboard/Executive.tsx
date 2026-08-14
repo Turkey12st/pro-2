@@ -55,7 +55,7 @@ export default function ExecutiveDashboard() {
           .gte("entry_date", monthStart)
           .limit(2000),
         (supabase as any).from("employees").select("id", { count: "exact", head: true }),
-        (supabase as any).from("projects").select("id,status,budget,contract_value"),
+        (supabase as any).from("projects").select("id,status,budget,revenue"),
         (supabase as any).from("leaves").select("id,status").eq("status", "pending"),
         (supabase as any)
           .from("company_documents")
@@ -80,7 +80,7 @@ export default function ExecutiveDashboard() {
       const atRiskProjects = projectRows.filter(
         (p: any) =>
           p.status === "at_risk" ||
-          (p.budget && p.contract_value && Number(p.budget) > Number(p.contract_value))
+          (p.budget && p.revenue && Number(p.budget) > Number(p.revenue))
       ).length;
 
       setKpis({
