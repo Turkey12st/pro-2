@@ -174,7 +174,34 @@ export default function CapitalManagementPage() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-center">سجل معاملات رأس المال</CardTitle>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => {
+                      if (!capitalHistory || capitalHistory.length === 0) {
+                        toast({ variant: 'destructive', title: 'لا توجد بيانات', description: 'لا توجد معاملات للتصدير' });
+                        return;
+                      }
+                      exportToExcel(
+                        (capitalHistory as any[]).map((i: any) => ({
+                          ...i,
+                          created_at: new Date(i.created_at).toLocaleDateString('en-GB'),
+                          transaction_type: i.transaction_type === 'increase' ? 'زيادة' : 'تخفيض',
+                        })),
+                        [
+                          { header: 'التاريخ', key: 'created_at', width: 15 },
+                          { header: 'النوع', key: 'transaction_type', width: 12 },
+                          { header: 'المبلغ', key: 'amount', width: 15 },
+                          { header: 'رأس المال السابق', key: 'previous_capital', width: 18 },
+                          { header: 'رأس المال الجديد', key: 'new_capital', width: 18 },
+                          { header: 'ملاحظات', key: 'notes', width: 30 },
+                        ],
+                        { filename: `معاملات_رأس_المال_${new Date().toISOString().slice(0, 10)}`, sheetName: 'المعاملات' }
+                      );
+                      toast({ title: 'تم التصدير', description: 'تم تصدير سجل معاملات رأس المال' });
+                    }}
+                  >
                     <Download className="h-4 w-4" /> تصدير
                   </Button>
                 </div>
