@@ -45,6 +45,15 @@ export class APIIntegrationService {
     }
   }
 
+  // حذف تكامل
+  static async deleteIntegration(id: string): Promise<void> {
+    const { error } = await (supabase as any)
+      .from('api_integrations')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  }
+
   // جلب جميع التكاملات
   static async getIntegrations(): Promise<APIIntegrationConfig[]> {
     try {

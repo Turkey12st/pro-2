@@ -8,9 +8,13 @@ import { CapitalIncreaseDialog } from '@/components/dashboard/capital/CapitalInc
 import { Button } from '@/components/ui/button';
 import { Building2, Wallet, ArrowUpDown, LineChart, Download, Upload } from 'lucide-react';
 import { CapitalManagement } from '@/types/database';
+import { exportToExcel } from '@/utils/exportHelpers';
+import { useToast } from '@/hooks/use-toast';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 
 export default function CapitalManagementPage() {
   const [activeTab, setActiveTab] = React.useState('overview');
+  const { toast } = useToast();
   const {
     data: capitalData,
     isLoading
@@ -171,7 +175,34 @@ export default function CapitalManagementPage() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-center">سجل معاملات رأس المال</CardTitle>
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => {
+                      if (!capitalHistory || capitalHistory.length === 0) {
+                        toast({ variant: 'destructive', title: 'لا توجد بيانات', description: 'لا توجد معاملات للتصدير' });
+                        return;
+                      }
+                      exportToExcel(
+                        (capitalHistory as any[]).map((i: any) => ({
+                          ...i,
+                          created_at: new Date(i.created_at).toLocaleDateString('en-GB'),
+                          transaction_type: i.transaction_type === 'increase' ? 'زيادة' : 'تخفيض',
+                        })),
+                        [
+                          { header: 'التاريخ', key: 'created_at', width: 15 },
+                          { header: 'النوع', key: 'transaction_type', width: 12 },
+                          { header: 'المبلغ', key: 'amount', width: 15 },
+                          { header: 'رأس المال السابق', key: 'previous_capital', width: 18 },
+                          { header: 'رأس المال الجديد', key: 'new_capital', width: 18 },
+                          { header: 'ملاحظات', key: 'notes', width: 30 },
+                        ],
+                        { filename: `معاملات_رأس_المال_${new Date().toISOString().slice(0, 10)}`, sheetName: 'المعاملات' }
+                      );
+                      toast({ title: 'تم التصدير', description: 'تم تصدير سجل معاملات رأس المال' });
+                    }}
+                  >
                     <Download className="h-4 w-4" /> تصدير
                   </Button>
                 </div>
@@ -219,14 +250,31 @@ export default function CapitalManagementPage() {
                 <CardTitle className="text-center">تحليل رأس المال</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-10">
-                  <p className="text-muted-foreground">
-                    سيتم تفعيل تحليلات رأس المال قريبًا
-                  </p>
-                  <Button variant="outline" className="mt-4">
-                    طلب تقرير مخصص
-                  </Button>
-                </div>
+                {capitalHistory && capitalHistory.length > 0 ? (
+                  <div className="h-72 w-full" dir="ltr">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={[...(capitalHistory as any[])]
+                          .slice()
+                          .reverse()
+                          .map((i: any) => ({
+                            date: new Date(i.created_at).toLocaleDateString('en-GB'),
+                            capital: Number(i.new_capital) || 0,
+                          }))}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <RechartsTooltip formatter={(v: any) => `${new Intl.NumberFormat('en-US').format(v)} ريال`} />
+                        <Area type="monotone" dataKey="capital" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.2)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="text-center py-10 text-muted-foreground">
+                    لا توجد بيانات كافية لتحليل رأس المال
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

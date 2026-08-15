@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { format, differenceInDays, parseISO } from "date-fns";
 import { Calendar, Plus, Clock } from "lucide-react";
@@ -137,7 +141,53 @@ export function EnhancedEmployeeVacations({ employeeId }: EnhancedEmployeeVacati
   const getAnnualVacationEntitlement = () => {
     const yearsWorked = calculateYearsSinceJoining();
     if (yearsWorked < 1) return Math.floor(yearsWorked * 21);
-    return 21; // 21 يوم سنوياً حسب نظام العمل السعودي
+    // نظام العمل السعودي: 21 يوماً، و30 يوماً بعد إتمام 5 سنوات خدمة
+    return yearsWorked >= 5 ? 30 : 21;
+  };
+
+  const [newRequest, setNewRequest] = useState({
+    vacation_type: "annual",
+    start_date: "",
+    end_date: "",
+    reason: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmitRequest = async () => {
+    if (!employeeId) {
+      toast({ variant: "destructive", title: "تعذر الإرسال", description: "لم يتم تحديد الموظف" });
+      return;
+    }
+    if (!newRequest.start_date || !newRequest.end_date) {
+      toast({ variant: "destructive", title: "بيانات ناقصة", description: "يرجى تحديد تاريخ البداية والنهاية" });
+      return;
+    }
+    const days = differenceInDays(parseISO(newRequest.end_date), parseISO(newRequest.start_date)) + 1;
+    if (days <= 0) {
+      toast({ variant: "destructive", title: "تواريخ غير صحيحة", description: "تاريخ النهاية يجب أن يكون بعد تاريخ البداية" });
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      const { error } = await supabase.from("vacation_requests").insert({
+        employee_id: employeeId,
+        vacation_type: newRequest.vacation_type,
+        start_date: newRequest.start_date,
+        end_date: newRequest.end_date,
+        days_count: days,
+        reason: newRequest.reason || null,
+        status: "pending",
+      } as any);
+      if (error) throw error;
+      toast({ title: "تم إرسال الطلب", description: `طلب إجازة لمدة ${days} يوم بانتظار الاعتماد` });
+      setIsRequestDialogOpen(false);
+      setNewRequest({ vacation_type: "annual", start_date: "", end_date: "", reason: "" });
+      queryClient.invalidateQueries({ queryKey: ["vacation-requests", employeeId] });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "خطأ", description: e?.message || "فشل إرسال الطلب" });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const VacationBalanceCard = ({ title, total, used, remaining, color }: {
@@ -230,10 +280,56 @@ export function EnhancedEmployeeVacations({ employeeId }: EnhancedEmployeeVacati
             <Calendar className="h-5 w-5" />
             سجل طلبات الإجازات
           </CardTitle>
-          <Button size="sm">
-            <Plus className="h-4 w-4 me-2" />
-            طلب إجازة جديدة
-          </Button>
+          <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" disabled={!employeeId}>
+                <Plus className="h-4 w-4 me-2" />
+                طلب إجازة جديدة
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>طلب إجازة جديدة</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>نوع الإجازة</Label>
+                  <Select
+                    value={newRequest.vacation_type}
+                    onValueChange={(v) => setNewRequest((p) => ({ ...p, vacation_type: v }))}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="annual">سنوية</SelectItem>
+                      <SelectItem value="sick">مرضية</SelectItem>
+                      <SelectItem value="emergency">اضطرارية</SelectItem>
+                      <SelectItem value="maternity">أمومة</SelectItem>
+                      <SelectItem value="paternity">أبوة</SelectItem>
+                      <SelectItem value="hajj">حج</SelectItem>
+                      <SelectItem value="study">دراسية</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>من تاريخ</Label>
+                    <Input type="date" value={newRequest.start_date} onChange={(e) => setNewRequest((p) => ({ ...p, start_date: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>إلى تاريخ</Label>
+                    <Input type="date" value={newRequest.end_date} onChange={(e) => setNewRequest((p) => ({ ...p, end_date: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>السبب (اختياري)</Label>
+                  <Textarea value={newRequest.reason} onChange={(e) => setNewRequest((p) => ({ ...p, reason: e.target.value }))} />
+                </div>
+                <Button className="w-full" onClick={handleSubmitRequest} disabled={isSubmitting}>
+                  {isSubmitting ? "جارٍ الإرسال..." : "إرسال الطلب"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           {!isLoading && vacationRequests && vacationRequests.length > 0 ? (

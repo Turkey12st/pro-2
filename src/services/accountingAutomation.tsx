@@ -174,14 +174,26 @@ export function useAutoSave() {
   return context;
 }
 
-// Minimal service used by dashboard charts
+// Cash-flow aggregation used by dashboard charts
 export const AccountingAutomationService = {
   async getCashFlowData(startDate: string, endDate: string) {
-    // TODO: Replace with real aggregation from journal_entries
-    const total_inflow = 150000;
-    const total_outflow = 95000;
-    const net_flow = total_inflow - total_outflow;
-    const flow_ratio = total_inflow ? +(net_flow / total_inflow * 100).toFixed(2) : 0;
-    return { total_inflow, total_outflow, net_flow, flow_ratio };
+    const empty = { total_inflow: 0, total_outflow: 0, net_flow: 0, flow_ratio: 0 };
+    try {
+      const { data, error } = await (supabase as any).rpc('calculate_cash_flow', {
+        start_date: startDate,
+        end_date: endDate,
+      });
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) return empty;
+      const total_inflow = Number(row.total_inflow) || 0;
+      const total_outflow = Number(row.total_outflow) || 0;
+      const net_flow = Number(row.net_flow ?? total_inflow - total_outflow) || 0;
+      const flow_ratio = total_inflow ? +((net_flow / total_inflow) * 100).toFixed(2) : 0;
+      return { total_inflow, total_outflow, net_flow, flow_ratio };
+    } catch (e) {
+      console.error('getCashFlowData failed:', e);
+      return empty;
+    }
   }
 };
