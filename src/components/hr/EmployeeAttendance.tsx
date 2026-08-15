@@ -110,13 +110,17 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
     }
   };
 
-  const months = [
-    { value: "2025-04", label: "أبريل 2025" },
-    { value: "2025-03", label: "مارس 2025" },
-    { value: "2025-02", label: "فبراير 2025" },
-    { value: "2025-01", label: "يناير 2025" },
-    { value: "2024-12", label: "ديسمبر 2024" }
-  ];
+  // آخر 12 شهراً محسوبة ديناميكياً
+  const months = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - i);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return {
+      value,
+      label: d.toLocaleDateString('ar-SA-u-ca-gregory', { month: 'long', year: 'numeric' }),
+    };
+  });
 
   // تصفية البيانات حسب الشهر المحدد
   const filteredData = attendanceData.filter(record => 
