@@ -11,12 +11,59 @@ import { format, differenceInDays } from "date-fns";
 import { ar } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function DocumentsList() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editDoc, setEditDoc] = useState<Document | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
   const { toast } = useToast();
+
+  const handleDownload = async (doc: Document) => {
+    try {
+      const path = doc.document_url as string;
+      if (!path) return;
+      if (path.startsWith("http")) {
+        window.open(path, "_blank", "noopener,noreferrer");
+        return;
+      }
+      const { data, error } = await supabase.storage
+        .from("documents")
+        .createSignedUrl(path, 60);
+      if (error) throw error;
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "تعذر فتح الملف", description: e?.message || "حدث خطأ أثناء تنزيل المستند" });
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editDoc) return;
+    try {
+      setSavingEdit(true);
+      const { error } = await supabase
+        .from("company_documents")
+        .update({
+          title: editDoc.title,
+          number: editDoc.number,
+          issue_date: editDoc.issue_date,
+          expiry_date: editDoc.expiry_date,
+        })
+        .eq("id", editDoc.id);
+      if (error) throw error;
+      toast({ title: "تم التحديث", description: "تم حفظ بيانات المستند" });
+      setEditDoc(null);
+      fetchDocuments();
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "خطأ", description: e?.message || "فشل حفظ التعديلات" });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   useEffect(() => {
     fetchDocuments();
@@ -175,12 +222,12 @@ export default function DocumentsList() {
                     <TableCell>{getStatusBadge(doc.status)}</TableCell>
                     <TableCell className="flex items-center space-x-2 space-x-reverse">
                       {doc.document_url && (
-                        <Button variant="ghost" size="sm" className="text-blue-500">
+                        <Button variant="ghost" size="sm" className="text-blue-500" onClick={() => handleDownload(doc)}>
                           <Download className="h-4 w-4" />
                           <span className="sr-only">تنزيل</span>
                         </Button>
                       )}
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => setEditDoc(doc)}>
                         <Pencil className="h-4 w-4" />
                         <span className="sr-only">تعديل</span>
                       </Button>
