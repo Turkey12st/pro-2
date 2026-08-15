@@ -1,8 +1,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, FileSpreadsheet, Upload } from "lucide-react";
+import { Plus, FileSpreadsheet } from "lucide-react";
 import EmployeeForm from "@/components/hr/EmployeeForm";
+import EmployeeImport from "@/components/hr/EmployeeImport";
 
 interface HRPageHeaderProps {
   isDialogOpen: boolean;
@@ -49,13 +50,7 @@ export function HRPageHeader({
           <FileSpreadsheet className="h-4 w-4" />
           تصدير Excel
         </Button>
-        <Button 
-          variant="outline" 
-          className="flex items-center gap-2 flex-1 sm:flex-none"
-        >
-          <Upload className="h-4 w-4" />
-          استيراد
-        </Button>
+        <EmployeeImport />
       </div>
     </div>
   );
