@@ -114,6 +114,22 @@ export function APIIntegrationManager() {
     }
   };
 
+  const handleDeleteIntegration = async (integration: APIIntegrationConfig) => {
+    if (!integration.id) return;
+    if (!window.confirm(`هل أنت متأكد من حذف التكامل «${integration.name}»؟`)) return;
+    try {
+      await APIIntegrationService.deleteIntegration(integration.id);
+      toast({ title: 'تم الحذف', description: `تم حذف التكامل ${integration.name}` });
+      loadIntegrations();
+    } catch (error: any) {
+      toast({
+        title: 'خطأ في الحذف',
+        description: error?.message || 'تعذر حذف التكامل',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleTestIntegration = async (integration: APIIntegrationConfig) => {
     try {
       setTestingIntegration(integration.id);
@@ -353,7 +369,7 @@ export function APIIntegrationManager() {
                           )}
                           اختبار
                         </Button>
-                        <Button variant="destructive" size="sm">
+                        <Button variant="destructive" size="sm" onClick={() => handleDeleteIntegration(integration)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
