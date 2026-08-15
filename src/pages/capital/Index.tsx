@@ -249,14 +249,31 @@ export default function CapitalManagementPage() {
                 <CardTitle className="text-center">تحليل رأس المال</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-10">
-                  <p className="text-muted-foreground">
-                    سيتم تفعيل تحليلات رأس المال قريبًا
-                  </p>
-                  <Button variant="outline" className="mt-4">
-                    طلب تقرير مخصص
-                  </Button>
-                </div>
+                {capitalHistory && capitalHistory.length > 0 ? (
+                  <div className="h-72 w-full" dir="ltr">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={[...(capitalHistory as any[])]
+                          .slice()
+                          .reverse()
+                          .map((i: any) => ({
+                            date: new Date(i.created_at).toLocaleDateString('en-GB'),
+                            capital: Number(i.new_capital) || 0,
+                          }))}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <RechartsTooltip formatter={(v: any) => `${new Intl.NumberFormat('en-US').format(v)} ريال`} />
+                        <Area type="monotone" dataKey="capital" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.2)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="text-center py-10 text-muted-foreground">
+                    لا توجد بيانات كافية لتحليل رأس المال
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
