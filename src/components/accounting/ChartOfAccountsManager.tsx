@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { ChartOfAccount } from "@/types/database";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
+import { exportToExcel } from "@/utils/exportHelpers";
 
 export function ChartOfAccountsManager() {
   const { toast } = useToast();
@@ -56,6 +57,29 @@ export function ChartOfAccountsManager() {
   const handleFormSuccess = () => {
     setIsDialogOpen(false);
     fetchAccounts();
+  };
+
+  const handleExport = () => {
+    if (!filteredAccounts.length) {
+      toast({ variant: "destructive", title: "لا توجد بيانات", description: "لا توجد حسابات للتصدير" });
+      return;
+    }
+    try {
+      exportToExcel(
+        filteredAccounts as any[],
+        [
+          { header: "رقم الحساب", key: "account_number", width: 15 },
+          { header: "اسم الحساب", key: "account_name", width: 30 },
+          { header: "نوع الحساب", key: "account_type", width: 15 },
+          { header: "طبيعة الحساب", key: "balance_type", width: 15 },
+          { header: "المستوى", key: "level", width: 10 },
+        ],
+        { filename: `شجرة_الحسابات_${new Date().toISOString().slice(0, 10)}`, sheetName: "شجرة الحسابات" }
+      );
+      toast({ title: "تم التصدير", description: "تم تصدير شجرة الحسابات بنجاح" });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "خطأ", description: e?.message || "فشل التصدير" });
+    }
   };
 
   return (
