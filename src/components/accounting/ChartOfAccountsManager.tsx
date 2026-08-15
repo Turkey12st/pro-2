@@ -90,7 +90,7 @@ export function ChartOfAccountsManager() {
           <Button variant="outline" onClick={() => handleAddAccount()}>
             <Plus className="ms-2 h-4 w-4" /> إضافة حساب
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExport}>
             <FileSpreadsheet className="ms-2 h-4 w-4" /> تصدير
           </Button>
         </div>
