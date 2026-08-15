@@ -265,6 +265,39 @@ export default function DocumentsList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!editDoc} onOpenChange={(o) => !o && setEditDoc(null)}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>تعديل المستند</DialogTitle>
+          </DialogHeader>
+          {editDoc && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>اسم المستند</Label>
+                <Input value={editDoc.title || ""} onChange={(e) => setEditDoc({ ...editDoc, title: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>الرقم</Label>
+                <Input dir="ltr" value={editDoc.number || ""} onChange={(e) => setEditDoc({ ...editDoc, number: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>تاريخ الإصدار</Label>
+                  <Input type="date" value={(editDoc.issue_date || "").slice(0, 10)} onChange={(e) => setEditDoc({ ...editDoc, issue_date: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>تاريخ الانتهاء</Label>
+                  <Input type="date" value={(editDoc.expiry_date || "").slice(0, 10)} onChange={(e) => setEditDoc({ ...editDoc, expiry_date: e.target.value })} />
+                </div>
+              </div>
+              <Button className="w-full" onClick={handleSaveEdit} disabled={savingEdit}>
+                {savingEdit ? "جارٍ الحفظ..." : "حفظ التعديلات"}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
