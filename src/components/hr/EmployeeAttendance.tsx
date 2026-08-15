@@ -128,13 +128,20 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
     if (!file || !employeeId) return;
 
     try {
-      // رفع الملف لقاعدة البيانات
-      const { data, error } = await supabase
+      const fileExt = file.name.split('.').pop();
+      const filePath = `attendance/${employeeId}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+      if (uploadError) throw uploadError;
+
+      const { error } = await supabase
         .from('attendance_files')
         .insert({
           employee_id: employeeId,
           file_name: file.name,
-          file_url: 'temp-url', // في الواقع سيتم رفع الملف للتخزين
+          file_url: filePath,
           processed: false
         });
 
@@ -142,7 +149,7 @@ export function EmployeeAttendance({ employeeId }: EmployeeAttendanceProps) {
 
       toast({
         title: "تم رفع الملف بنجاح",
-        description: "سيتم معالجة بيانات الحضور والانصراف قريباً"
+        description: "تم حفظ ملف الحضور وهو بانتظار المعالجة"
       });
 
       setIsUploadDialogOpen(false);
