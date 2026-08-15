@@ -280,10 +280,56 @@ export function EnhancedEmployeeVacations({ employeeId }: EnhancedEmployeeVacati
             <Calendar className="h-5 w-5" />
             سجل طلبات الإجازات
           </CardTitle>
-          <Button size="sm">
-            <Plus className="h-4 w-4 me-2" />
-            طلب إجازة جديدة
-          </Button>
+          <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" disabled={!employeeId}>
+                <Plus className="h-4 w-4 me-2" />
+                طلب إجازة جديدة
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>طلب إجازة جديدة</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>نوع الإجازة</Label>
+                  <Select
+                    value={newRequest.vacation_type}
+                    onValueChange={(v) => setNewRequest((p) => ({ ...p, vacation_type: v }))}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="annual">سنوية</SelectItem>
+                      <SelectItem value="sick">مرضية</SelectItem>
+                      <SelectItem value="emergency">اضطرارية</SelectItem>
+                      <SelectItem value="maternity">أمومة</SelectItem>
+                      <SelectItem value="paternity">أبوة</SelectItem>
+                      <SelectItem value="hajj">حج</SelectItem>
+                      <SelectItem value="study">دراسية</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>من تاريخ</Label>
+                    <Input type="date" value={newRequest.start_date} onChange={(e) => setNewRequest((p) => ({ ...p, start_date: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>إلى تاريخ</Label>
+                    <Input type="date" value={newRequest.end_date} onChange={(e) => setNewRequest((p) => ({ ...p, end_date: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>السبب (اختياري)</Label>
+                  <Textarea value={newRequest.reason} onChange={(e) => setNewRequest((p) => ({ ...p, reason: e.target.value }))} />
+                </div>
+                <Button className="w-full" onClick={handleSubmitRequest} disabled={isSubmitting}>
+                  {isSubmitting ? "جارٍ الإرسال..." : "إرسال الطلب"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           {!isLoading && vacationRequests && vacationRequests.length > 0 ? (
