@@ -10,6 +10,7 @@ import { Building2, Wallet, ArrowUpDown, LineChart, Download, Upload } from 'luc
 import { CapitalManagement } from '@/types/database';
 import { exportToExcel } from '@/utils/exportHelpers';
 import { useToast } from '@/hooks/use-toast';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 
 export default function CapitalManagementPage() {
   const [activeTab, setActiveTab] = React.useState('overview');
