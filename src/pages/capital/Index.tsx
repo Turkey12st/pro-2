@@ -8,9 +8,12 @@ import { CapitalIncreaseDialog } from '@/components/dashboard/capital/CapitalInc
 import { Button } from '@/components/ui/button';
 import { Building2, Wallet, ArrowUpDown, LineChart, Download, Upload } from 'lucide-react';
 import { CapitalManagement } from '@/types/database';
+import { exportToExcel } from '@/utils/exportHelpers';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CapitalManagementPage() {
   const [activeTab, setActiveTab] = React.useState('overview');
+  const { toast } = useToast();
   const {
     data: capitalData,
     isLoading
